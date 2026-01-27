@@ -1,0 +1,334 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+/* Custom theme variables */
+@theme {
+  /* Primary - Soft Mint/Sage (based on #6F8F72) */
+  --color-primary-50: #f0fdf4;
+  --color-primary-100: #dcfce7;
+  --color-primary-200: #bbf7d0;
+  --color-primary-300: #86efac;
+  --color-primary-400: #4ade80;
+  --color-primary-500: #6F8F72;
+  --color-primary-600: #5a7a5d;
+  --color-primary-700: #49634c;
+  --color-primary-800: #3c503e;
+  --color-primary-900: #324234;
+
+  /* Accent - Soft Peach/Lemon (based on #F2A65A) */
+  --color-accent-50: #fffbeb;
+  --color-accent-100: #fef3c7;
+  --color-accent-200: #fde68a;
+  --color-accent-300: #fcd34d;
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #F2A65A;
+  --color-accent-600: #da8f44;
+  --color-accent-700: #b57336;
+  --color-accent-800: #915b2c;
+  --color-accent-900: #774a25;
+
+  /* Pastel palette */
+  --color-pastel-mint: #d1fae5;
+  --color-pastel-lemon: #fef9c3;
+  --color-pastel-lavender: #e9d5ff;
+  --color-pastel-pink: #fce7f3;
+  --color-pastel-lime: #ecfccb;
+  --color-pastel-peach: #fed7aa;
+
+  /* Background colors */
+  --color-cream: #FAFAF8;
+  --color-sage: #e2e8e4;
+
+  /* Navy/ink for borders and text */
+  --color-ink: #1e293b;
+  --color-charcoal: #334155;
+
+  /* Functional colors */
+  --color-success-50: #f0fdf4;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+
+  --color-warning-50: #fffbeb;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+
+  --color-danger-50: #fef2f2;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+
+  /* Pastel neo-brutalist shadows (tiny, navy) */
+  --shadow-pastel-sm: 2px 2px 0px 0px #1e293b;
+  --shadow-pastel: 3px 3px 0px 0px #1e293b;
+  --shadow-pastel-lg: 4px 4px 0px 0px #1e293b;
+}
+
+/* Base styles */
+body {
+  background-color: #FAFAF8;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #334155;
+  @apply antialiased;
+}
+
+/* Pastel neo-brutalist utility classes */
+.shadow-pastel-sm {
+  box-shadow: 2px 2px 0px 0px #1e293b;
+}
+.shadow-pastel {
+  box-shadow: 3px 3px 0px 0px #1e293b;
+}
+.shadow-pastel-lg {
+  box-shadow: 4px 4px 0px 0px #1e293b;
+}
+.border-ink {
+  border-color: #1e293b;
+}
+.text-ink {
+  color: #1e293b;
+}
+.text-charcoal {
+  color: #334155;
+}
+
+/* Theme-aware nav link styles - uses CSS variables set by ThemeContext */
+.nav-link-active {
+  background-color: var(--accent-color, #d1fae5);
+  color: #1e293b;
+  border: 2px solid #1e293b;
+  box-shadow: 2px 2px 0px 0px #1e293b;
+  font-weight: 600;
+}
+
+.nav-link-inactive {
+  color: #334155;
+  font-weight: 500;
+}
+
+.nav-link-inactive:hover {
+  background-color: var(--secondary-accent, #fef9c3);
+  border: 2px solid #1e293b;
+}
+
+/* React Big Calendar styles - Pastel neo-brutalist */
+.rbc-calendar {
+  @apply bg-white rounded-2xl;
+  border: 2px solid #1e293b;
+  box-shadow: 3px 3px 0px 0px #1e293b;
+}
+
+.rbc-header {
+  @apply py-2 font-semibold;
+  color: #334155;
+  border-bottom: 2px solid #1e293b;
+}
+
+.rbc-time-view {
+  border: 2px solid #1e293b;
+  @apply rounded-2xl;
+}
+
+.rbc-time-header {
+  border-bottom: 2px solid #1e293b;
+}
+
+.rbc-time-content {
+  @apply border-t-0;
+}
+
+.rbc-time-slot {
+  border-top: 1px solid #cbd5e1;
+}
+
+.rbc-timeslot-group {
+  border-bottom: 1px solid #cbd5e1;
+}
+
+.rbc-day-slot .rbc-time-slot {
+  border-top: 1px solid #cbd5e1;
+}
+
+.rbc-current-time-indicator {
+  @apply bg-primary-500;
+}
+
+.rbc-event {
+  @apply rounded-xl px-2 py-1 text-sm text-white;
+  background-color: #6F8F72;
+  border: 2px solid #1e293b;
+  box-shadow: 2px 2px 0px 0px #1e293b;
+}
+
+.rbc-event-content {
+  @apply font-medium;
+}
+
+.rbc-toolbar {
+  @apply mb-4 flex flex-wrap gap-2;
+}
+
+.rbc-toolbar button {
+  @apply px-3 py-1.5 text-sm font-medium rounded-xl bg-white;
+  color: #334155;
+  border: 2px solid #1e293b;
+  box-shadow: 2px 2px 0px 0px #1e293b;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.rbc-toolbar button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px 0px #1e293b;
+  background-color: #f0fdf4;
+}
+
+.rbc-toolbar button:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px 0px #1e293b;
+}
+
+.rbc-toolbar button.rbc-active {
+  background-color: #6F8F72;
+  color: white;
+  border: 2px solid #1e293b;
+}
+
+.rbc-today {
+  background-color: #f0fdf4;
+}
+
+.rbc-event:hover {
+  background-color: #5a7a5d;
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px 0px #1e293b;
+}
+
+.rbc-event.rbc-selected {
+  background-color: #49634c;
+}
+
+.rbc-show-more {
+  color: #6F8F72;
+  @apply font-semibold text-sm;
+}
+
+.rbc-show-more:hover {
+  color: #49634c;
+}
+
+/* Month view styles */
+.rbc-month-view {
+  border: 2px solid #1e293b;
+  @apply rounded-2xl overflow-hidden;
+}
+
+.rbc-month-row {
+  border-bottom: 1px solid #cbd5e1;
+}
+
+.rbc-month-row:last-child {
+  border-bottom: none;
+}
+
+.rbc-date-cell {
+  @apply py-1 px-2 text-right font-semibold;
+  color: #334155;
+}
+
+.rbc-date-cell.rbc-now {
+  color: #6F8F72;
+  @apply font-bold;
+}
+
+.rbc-date-cell.rbc-off-range {
+  color: #94a3b8;
+}
+
+.rbc-off-range-bg {
+  background-color: #f8fafc;
+}
+
+.rbc-month-view .rbc-header {
+  border-bottom: 2px solid #1e293b;
+  @apply py-3 font-bold text-sm;
+  color: #1e293b;
+  background-color: #f0fdf4;
+}
+
+.rbc-month-view .rbc-event {
+  @apply text-xs py-0.5 px-1;
+}
+
+.rbc-month-view .rbc-row-segment {
+  @apply py-0.5;
+}
+
+/* Day view styles */
+.rbc-day-view .rbc-time-header {
+  border-bottom: 2px solid #1e293b;
+}
+
+.rbc-day-view .rbc-allday-cell {
+  border-bottom: 1px solid #cbd5e1;
+}
+
+/* Agenda view styles (hidden by default, but styled just in case) */
+.rbc-agenda-view {
+  @apply rounded-2xl overflow-hidden;
+  border: 2px solid #1e293b;
+}
+
+.rbc-agenda-date-cell,
+.rbc-agenda-time-cell {
+  @apply font-semibold py-2 px-3;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.rbc-agenda-event-cell {
+  @apply py-2 px-3;
+}
+
+/* Event popup/overlay styles */
+.rbc-overlay {
+  @apply rounded-xl p-3 z-50;
+  border: 2px solid #1e293b;
+  box-shadow: 4px 4px 0px 0px #1e293b;
+  background-color: white;
+}
+
+.rbc-overlay-header {
+  @apply font-bold text-sm py-2 border-b-2 border-[#1e293b] mb-2;
+  color: #1e293b;
+}
+
+/* Selected slot styles */
+.rbc-slot-selection {
+  background-color: rgba(111, 143, 114, 0.2);
+  border: 2px dashed #6F8F72;
+  @apply rounded-lg;
+}
+
+/* Time gutter styling */
+.rbc-time-gutter {
+  @apply text-xs font-medium;
+  color: #64748b;
+}
+
+.rbc-label {
+  @apply px-2;
+}
+
+/* All day row styling */
+.rbc-allday-cell {
+  @apply min-h-8;
+}
+
+/* Row background hover */
+.rbc-day-bg:hover {
+  background-color: rgba(111, 143, 114, 0.05);
+}
+
+/* Improve event focus state */
+.rbc-event:focus {
+  outline: 2px solid #6F8F72;
+  outline-offset: 2px;
+}
