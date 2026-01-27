@@ -22,6 +22,31 @@ const themeOptions: { name: ThemeName; label: string; swatches: string[] }[] = [
     label: 'Peach',
     swatches: [themeColors.peach.accentColorLight, themeColors.peach.accentColor, themeColors.peach.accentColorDark],
   },
+  {
+    name: 'ocean',
+    label: 'Ocean',
+    swatches: [themeColors.ocean.accentColorLight, themeColors.ocean.accentColor, themeColors.ocean.accentColorDark],
+  },
+  {
+    name: 'rose',
+    label: 'Rose',
+    swatches: [themeColors.rose.accentColorLight, themeColors.rose.accentColor, themeColors.rose.accentColorDark],
+  },
+  {
+    name: 'sunset',
+    label: 'Sunset',
+    swatches: [themeColors.sunset.accentColorLight, themeColors.sunset.accentColor, themeColors.sunset.accentColorDark],
+  },
+  {
+    name: 'forest',
+    label: 'Forest',
+    swatches: [themeColors.forest.accentColorLight, themeColors.forest.accentColor, themeColors.forest.accentColorDark],
+  },
+  {
+    name: 'sky',
+    label: 'Sky',
+    swatches: [themeColors.sky.accentColorLight, themeColors.sky.accentColor, themeColors.sky.accentColorDark],
+  },
 ]
 
 export function SettingsPage() {
@@ -125,7 +150,7 @@ export function SettingsPage() {
         <p className="mt-2 text-sm text-gray-600">
           Choose your color palette
         </p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+        <div className="mt-4 grid gap-4 grid-cols-2 sm:grid-cols-4">
           {themeOptions.map((theme) => {
             const isSelected = currentTheme === theme.name
             return (
