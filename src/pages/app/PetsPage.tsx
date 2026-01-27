@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, AlertTriangle } from 'lucide-react'
+import { Search, AlertTriangle, User } from 'lucide-react'
 import { Card, Input, Badge } from '@/components/common'
 import { usePets, useClients } from '@/hooks'
 import { BEHAVIOR_LEVEL_LABELS } from '@/config/constants'
@@ -26,7 +26,7 @@ export function PetsPage() {
   })
 
   return (
-    <div className={cn('min-h-full', colors.pageGradientLight)}>
+    <div className={cn('min-h-screen', colors.pageGradientLight)}>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-gray-900">Pets</h1>
 
@@ -79,9 +79,10 @@ export function PetsPage() {
 
                   {/* Owner */}
                   {client && (
-                    <p className="mt-1 text-xs text-gray-500 truncate">
-                      {client.firstName} {client.lastName}
-                    </p>
+                    <div className="mt-1 flex items-center justify-center gap-1 text-xs text-gray-500">
+                      <User className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{client.firstName} {client.lastName}</span>
+                    </div>
                   )}
 
                   {/* Badges */}

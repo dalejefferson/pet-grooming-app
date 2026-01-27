@@ -96,8 +96,8 @@ export function useUpdateAppointmentStatus() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: AppointmentStatus }) =>
-      calendarApi.updateStatus(id, status),
+    mutationFn: ({ id, status, statusNotes }: { id: string; status: AppointmentStatus; statusNotes?: string }) =>
+      calendarApi.updateStatus(id, status, statusNotes),
     onSuccess: (updatedAppointment) => {
       queryClient.setQueryData(
         ['appointment', updatedAppointment.id],

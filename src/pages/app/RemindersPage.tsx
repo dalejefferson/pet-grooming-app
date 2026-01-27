@@ -82,7 +82,7 @@ export function RemindersPage() {
   const dueForGrooming = formData.dueForGrooming
 
   return (
-    <div className={cn('min-h-full', colors.pageGradientLight)}>
+    <div className={cn('min-h-screen', colors.pageGradientLight)}>
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold text-gray-900">Reminder Settings</h1>

@@ -41,15 +41,16 @@ export function Drawer({
     return () => window.removeEventListener('keydown', handleEscape)
   }, [isOpen, onClose])
 
+  // On mobile, always full width; on larger screens, use specified size
   const sizes = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
+    sm: 'w-full sm:max-w-sm',
+    md: 'w-full sm:max-w-md',
+    lg: 'w-full sm:max-w-lg',
   }
 
   const positions = {
     left: 'left-0 border-r-2 border-[#1e293b] shadow-[4px_0px_0px_0px_#1e293b]',
-    right: 'right-0 border-l-2 border-[#1e293b] shadow-[-4px_0px_0px_0px_#1e293b]',
+    right: 'right-0 sm:border-l-2 sm:border-[#1e293b] sm:shadow-[-4px_0px_0px_0px_#1e293b]',
   }
 
   const transforms = {
@@ -66,12 +67,13 @@ export function Drawer({
           isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         )}
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Drawer */}
       <div
         className={cn(
-          'fixed inset-y-0 z-50 flex w-full flex-col bg-white transition-transform duration-200',
+          'fixed inset-y-0 z-50 flex flex-col bg-white transition-transform duration-200',
           sizes[size],
           positions[position],
           transforms[position]

@@ -112,8 +112,8 @@ export const calendarApi = {
     return appointments[index]
   },
 
-  async updateStatus(id: string, status: AppointmentStatus): Promise<Appointment> {
-    return this.update(id, { status })
+  async updateStatus(id: string, status: AppointmentStatus, statusNotes?: string): Promise<Appointment> {
+    return this.update(id, { status, statusNotes })
   },
 
   async delete(id: string): Promise<void> {

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, useSearchParams, useOutletContext } from 'react-router-dom'
-import { ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, Clock, Check, User, Users } from 'lucide-react'
+import { ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, Clock, Users } from 'lucide-react'
 import { Card, Button } from '@/components/common'
 import { useAvailableSlotsForWeek, useActiveServices, useGroomers } from '@/hooks'
 import { format, addWeeks, startOfWeek, addDays, parseISO, isBefore, startOfDay } from 'date-fns'
@@ -16,92 +16,13 @@ interface SelectedPet {
   services: { serviceId: string; modifierIds: string[] }[]
 }
 
-function GroomerCard({
-  groomer,
-  isSelected,
-  onSelect,
-}: {
-  groomer: Groomer | null // null means "Any Available"
-  isSelected: boolean
-  onSelect: () => void
-}) {
-  const initials = groomer
-    ? `${groomer.firstName[0]}${groomer.lastName[0]}`
-    : null
-
-  return (
-    <button
-      onClick={onSelect}
-      className={cn(
-        'relative flex flex-col items-center gap-2 rounded-xl border-3 p-4 text-center transition-all',
-        isSelected
-          ? 'border-primary-500 bg-primary-50 shadow-[4px_4px_0px_0px_rgba(var(--color-primary-500))]'
-          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]'
-      )}
-    >
-      {isSelected && (
-        <div className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary-500 text-white">
-          <Check className="h-4 w-4" />
-        </div>
-      )}
-
-      {groomer ? (
-        <>
-          {groomer.imageUrl ? (
-            <img
-              src={groomer.imageUrl}
-              alt={`${groomer.firstName} ${groomer.lastName}`}
-              className="h-14 w-14 rounded-full border-2 border-gray-200 object-cover"
-            />
-          ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary-100 to-primary-200 text-lg font-bold text-primary-700">
-              {initials}
-            </div>
-          )}
-          <div>
-            <p className="font-semibold text-gray-900">
-              {groomer.firstName} {groomer.lastName}
-            </p>
-            {groomer.specialties.length > 0 && (
-              <div className="mt-1 flex flex-wrap justify-center gap-1">
-                {groomer.specialties.slice(0, 2).map((specialty) => (
-                  <span
-                    key={specialty}
-                    className="rounded-full bg-accent-100 px-2 py-0.5 text-[10px] font-medium text-accent-700"
-                  >
-                    {specialty}
-                  </span>
-                ))}
-                {groomer.specialties.length > 2 && (
-                  <span className="text-[10px] text-gray-500">
-                    +{groomer.specialties.length - 2}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-gray-100 to-gray-200">
-            <Users className="h-7 w-7 text-gray-600" />
-          </div>
-          <div>
-            <p className="font-semibold text-gray-900">Any Available</p>
-            <p className="text-xs text-gray-500">First available groomer</p>
-          </div>
-        </>
-      )}
-    </button>
-  )
-}
-
 export function BookingTimesPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { organization } = useOutletContext<{ organization: Organization }>()
 
   const petsParam = searchParams.get('pets')
+  const groomerId = searchParams.get('groomerId') || undefined
   const selectedPets: SelectedPet[] = petsParam ? JSON.parse(petsParam) : []
 
   const { data: services = [] } = useActiveServices(organization.id)
@@ -109,6 +30,12 @@ export function BookingTimesPage() {
 
   // Filter to only active groomers
   const groomers = useMemo(() => allGroomers.filter((g) => g.isActive), [allGroomers])
+
+  // Find the selected groomer
+  const selectedGroomer = useMemo(() => {
+    if (!groomerId) return null
+    return groomers.find((g) => g.id === groomerId) || null
+  }, [groomerId, groomers])
 
   // Calculate total duration
   const totalDuration = useMemo(() => {
@@ -132,14 +59,13 @@ export function BookingTimesPage() {
 
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 0 }))
   const [selectedSlot, setSelectedSlot] = useState<{ date: string; startTime: string; groomerId?: string } | null>(null)
-  const [selectedGroomerId, setSelectedGroomerId] = useState<string | undefined>(undefined) // undefined = "Any"
 
   // Fetch slots for selected groomer (or all if "Any")
   const { data: slotsForWeek = {} } = useAvailableSlotsForWeek(
     weekStart,
     totalDuration,
     organization.id,
-    selectedGroomerId
+    groomerId
   )
 
   // If "Any" is selected, fetch slots for each groomer to show names
@@ -164,13 +90,8 @@ export function BookingTimesPage() {
     setSelectedSlot(null)
   }
 
-  const handleSelectGroomer = (groomerId: string | undefined) => {
-    setSelectedGroomerId(groomerId)
-    setSelectedSlot(null) // Reset slot when groomer changes
-  }
-
-  const handleSelectSlot = (date: string, startTime: string, groomerId?: string) => {
-    setSelectedSlot({ date, startTime, groomerId })
+  const handleSelectSlot = (date: string, startTime: string, slotGroomerId?: string) => {
+    setSelectedSlot({ date, startTime, groomerId: slotGroomerId })
   }
 
   const handleContinue = () => {
@@ -180,9 +101,9 @@ export function BookingTimesPage() {
     params.set('date', selectedSlot.date)
     params.set('time', selectedSlot.startTime)
     // Pass groomer ID: use selected groomer or the slot's groomer (for "Any")
-    const groomerId = selectedGroomerId || selectedSlot.groomerId
-    if (groomerId) {
-      params.set('groomerId', groomerId)
+    const finalGroomerId = groomerId || selectedSlot.groomerId
+    if (finalGroomerId) {
+      params.set('groomerId', finalGroomerId)
     }
     navigate(`/book/${organization.slug}/confirm?${params.toString()}`)
   }
@@ -211,11 +132,50 @@ export function BookingTimesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Choose Your Groomer & Time</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Choose Your Time</h1>
         <p className="mt-2 text-gray-600">
-          Select a groomer and an available time slot for your appointment.
+          Select an available time slot for your appointment.
         </p>
       </div>
+
+      {/* Selected Groomer Display */}
+      <Card className="bg-accent-50 border-accent-200">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-accent-100">
+            {selectedGroomer ? (
+              selectedGroomer.imageUrl ? (
+                <img
+                  src={selectedGroomer.imageUrl}
+                  alt={`${selectedGroomer.firstName} ${selectedGroomer.lastName}`}
+                  className="h-12 w-12 object-cover"
+                />
+              ) : (
+                <span className="text-lg font-bold text-accent-700">
+                  {selectedGroomer.firstName[0]}
+                  {selectedGroomer.lastName[0]}
+                </span>
+              )
+            ) : (
+              <Users className="h-6 w-6 text-accent-600" />
+            )}
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-accent-600">Your Groomer</p>
+            <p className="font-semibold text-accent-900">
+              {selectedGroomer
+                ? `${selectedGroomer.firstName} ${selectedGroomer.lastName}`
+                : 'Any Available Groomer'}
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate(`/book/${organization.slug}/groomer?${searchParams.toString()}`)}
+          >
+            Change
+          </Button>
+        </div>
+      </Card>
 
       {/* Duration Summary */}
       <Card padding="sm" className="bg-primary-50 border-primary-200">
@@ -227,31 +187,6 @@ export function BookingTimesPage() {
           </span>
         </div>
       </Card>
-
-      {/* Groomer Selection */}
-      <div>
-        <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-900">
-          <User className="h-5 w-5 text-primary-500" />
-          Select a Groomer
-        </h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-          {/* Any Available option */}
-          <GroomerCard
-            groomer={null}
-            isSelected={selectedGroomerId === undefined}
-            onSelect={() => handleSelectGroomer(undefined)}
-          />
-          {/* Individual groomers */}
-          {groomers.map((groomer) => (
-            <GroomerCard
-              key={groomer.id}
-              groomer={groomer}
-              isSelected={selectedGroomerId === groomer.id}
-              onSelect={() => handleSelectGroomer(groomer.id)}
-            />
-          ))}
-        </div>
-      </div>
 
       {/* Week Navigation */}
       <div className="flex items-center justify-between">
@@ -302,9 +237,9 @@ export function BookingTimesPage() {
                       selectedSlot?.startTime === slot.startTime
 
                     // For "Any" selection, find which groomer would take this slot
-                    const slotGroomer = !selectedGroomerId
+                    const slotGroomer = !groomerId
                       ? getGroomerForSlot(dateStr, slot.startTime)
-                      : groomers.find((g) => g.id === selectedGroomerId)
+                      : selectedGroomer
 
                     return (
                       <button
@@ -318,7 +253,7 @@ export function BookingTimesPage() {
                         )}
                       >
                         <div>{slot.startTime}</div>
-                        {!selectedGroomerId && slotGroomer && (
+                        {!groomerId && slotGroomer && (
                           <div
                             className={cn(
                               'truncate text-[10px]',
@@ -352,8 +287,8 @@ export function BookingTimesPage() {
               {format(parseISO(selectedSlot.date), 'EEEE, MMMM d, yyyy')} at {selectedSlot.startTime}
             </p>
             <p className="mt-1 text-sm text-success-600">
-              {selectedGroomerId
-                ? `with ${groomers.find((g) => g.id === selectedGroomerId)?.firstName} ${groomers.find((g) => g.id === selectedGroomerId)?.lastName}`
+              {groomerId && selectedGroomer
+                ? `with ${selectedGroomer.firstName} ${selectedGroomer.lastName}`
                 : selectedSlot.groomerId
                   ? `with ${groomers.find((g) => g.id === selectedSlot.groomerId)?.firstName} ${groomers.find((g) => g.id === selectedSlot.groomerId)?.lastName}`
                   : 'with First Available Groomer'}

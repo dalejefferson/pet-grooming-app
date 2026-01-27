@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Edit2, Plus, Trash2, AlertTriangle, Shield, Calendar, Clock, Upload } from 'lucide-react'
-import { Card, CardTitle, Button, Badge, LoadingPage, Modal, Input, Textarea, ImageUpload, Select } from '@/components/common'
+import { ArrowLeft, Edit2, Plus, Trash2, AlertTriangle, Shield, Calendar, Clock, FileText } from 'lucide-react'
+import { Card, CardTitle, Button, Badge, LoadingPage, Modal, Input, Textarea, ImageUpload, Select, DocumentUpload } from '@/components/common'
 import { usePet, useClient, useUpdatePet, useAddVaccination, useRemoveVaccination } from '@/hooks'
 import { BEHAVIOR_LEVEL_LABELS, COAT_TYPE_LABELS, WEIGHT_RANGE_LABELS } from '@/config/constants'
 import { format, parseISO, differenceInDays } from 'date-fns'
@@ -159,7 +159,7 @@ export function PetDetailPage() {
   const petInitial = pet.name.charAt(0).toUpperCase()
 
   return (
-    <div className={cn('min-h-full', colors.pageGradientLight)}>
+    <div className={cn('min-h-screen', colors.pageGradientLight)}>
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Link to="/app/pets">
@@ -399,6 +399,42 @@ export function PetDetailPage() {
 
                   {/* Action buttons */}
                   <div className="mt-3 flex items-center gap-2 pt-2 border-t border-[#e2e8f0]">
+                    {vax.documentUrl && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const newWindow = window.open()
+                          if (newWindow && vax.documentUrl) {
+                            const isPdf = vax.documentUrl.startsWith('data:application/pdf')
+                            if (isPdf) {
+                              newWindow.document.write(`
+                                <html>
+                                  <head><title>${vax.name} - Vaccination Document</title></head>
+                                  <body style="margin:0;padding:0;">
+                                    <iframe src="${vax.documentUrl}" style="width:100%;height:100vh;border:none;"></iframe>
+                                  </body>
+                                </html>
+                              `)
+                            } else {
+                              newWindow.document.write(`
+                                <html>
+                                  <head><title>${vax.name} - Vaccination Document</title></head>
+                                  <body style="margin:0;padding:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#1e293b;">
+                                    <img src="${vax.documentUrl}" style="max-width:100%;max-height:100vh;object-fit:contain;" />
+                                  </body>
+                                </html>
+                              `)
+                            }
+                            newWindow.document.close()
+                          }
+                        }}
+                        className="text-[#22c55e] hover:text-[#16a34a]"
+                      >
+                        <FileText className="h-3.5 w-3.5 mr-1" />
+                        View Doc
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -493,19 +529,12 @@ export function PetDetailPage() {
             onChange={(e) => setVaxForm((p) => ({ ...p, expirationDate: e.target.value }))}
           />
 
-          {/* Document Upload Placeholder */}
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-[#1e293b]">
-              Document (Optional)
-            </label>
-            <div className="flex items-center gap-3">
-              <div className="flex-1 rounded-xl border-2 border-dashed border-[#cbd5e1] bg-[#f8fafc] p-4 text-center">
-                <Upload className="mx-auto h-6 w-6 text-[#94a3b8]" />
-                <p className="mt-1 text-sm text-[#64748b]">Upload vaccination certificate</p>
-                <p className="text-xs text-[#94a3b8]">PDF, JPG, or PNG (Coming soon)</p>
-              </div>
-            </div>
-          </div>
+          {/* Document Upload */}
+          <DocumentUpload
+            label="Document"
+            currentDocument={vaxForm.documentUrl}
+            onDocumentChange={(url) => setVaxForm((p) => ({ ...p, documentUrl: url || undefined }))}
+          />
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">

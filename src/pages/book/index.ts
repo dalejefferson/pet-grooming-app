@@ -1,5 +1,6 @@
 export { BookingStartPage } from './BookingStartPage'
 export { BookingPetsPage } from './BookingPetsPage'
+export { BookingGroomerPage } from './BookingGroomerPage'
 export { BookingIntakePage } from './BookingIntakePage'
 export { BookingTimesPage } from './BookingTimesPage'
 export { BookingConfirmPage } from './BookingConfirmPage'

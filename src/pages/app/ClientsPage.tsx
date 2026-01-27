@@ -52,7 +52,7 @@ function ClientForm({
           size="lg"
         />
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
         <Input
           label="First Name"
           value={formData.firstName}
@@ -85,11 +85,11 @@ function ClientForm({
         value={formData.address}
         onChange={(e) => setFormData((p) => ({ ...p, address: e.target.value }))}
       />
-      <div className="flex gap-3 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <div className="flex flex-col sm:flex-row gap-3 pt-4">
+        <Button type="button" variant="outline" onClick={onCancel} className="min-h-[44px] sm:min-h-0">
           Cancel
         </Button>
-        <Button type="submit" loading={isLoading}>
+        <Button type="submit" loading={isLoading} className="min-h-[44px] sm:min-h-0">
           Add Client
         </Button>
       </div>
@@ -173,7 +173,7 @@ export function ClientsPage() {
   }
 
   return (
-    <div className={cn('min-h-full', colors.pageGradientLight)}>
+    <div className={cn('min-h-screen', colors.pageGradientLight)}>
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold text-gray-900">Clients</h1>

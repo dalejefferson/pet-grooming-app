@@ -1,13 +1,13 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { Calendar, dateFnsLocalizer, type View, type Components, type SlotInfo } from 'react-big-calendar'
 import withDragAndDrop, { type EventInteractionArgs } from 'react-big-calendar/lib/addons/dragAndDrop'
-import { format, parse, startOfWeek, getDay, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from 'date-fns'
+import { format, parse, startOfWeek, endOfWeek, getDay, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from 'date-fns'
 import { enUS } from 'date-fns/locale'
-import { Search, X, AlertTriangle, Plus, Clock, User, Scissors } from 'lucide-react'
+import { Search, X, AlertTriangle, Plus, Clock, User, Scissors, UserX, XCircle } from 'lucide-react'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
 
-import { Card, Drawer, Badge, Select, Modal, Button, Input, Textarea } from '@/components/common'
+import { Card, Drawer, Badge, Select, Modal, Button, Input, Textarea, MiniCalendar } from '@/components/common'
 import { useAppointmentsByWeek, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useUpdateAppointment, useClientPets, useServices, useCreateAppointment } from '@/hooks'
 import { APPOINTMENT_STATUS_LABELS, CALENDAR_BUSINESS_HOURS } from '@/config/constants'
 import { formatCurrency, formatDuration, cn } from '@/lib/utils'
@@ -293,6 +293,14 @@ export function CalendarPage() {
   const [createStartTime, setCreateStartTime] = useState<string>('')
   const [createEndTime, setCreateEndTime] = useState<string>('')
 
+  // Mini calendar state
+  const [miniCalendarMonth, setMiniCalendarMonth] = useState(new Date())
+
+  // Status change with notes state
+  const [showStatusNotesModal, setShowStatusNotesModal] = useState(false)
+  const [pendingStatusChange, setPendingStatusChange] = useState<AppointmentStatus | null>(null)
+  const [statusNotes, setStatusNotes] = useState('')
+
   const { data: appointments = [] } = useAppointmentsByWeek(currentDate)
   const { data: clients = [] } = useClients()
   const { data: pets = [] } = usePets()
@@ -369,9 +377,48 @@ export function CalendarPage() {
 
   const handleStatusChange = async (status: AppointmentStatus) => {
     if (selectedAppointment) {
-      await updateStatus.mutateAsync({ id: selectedAppointment.id, status })
-      setSelectedAppointment((prev) => (prev ? { ...prev, status } : null))
+      // For no_show and cancelled, show notes modal
+      if (status === 'no_show' || status === 'cancelled') {
+        setPendingStatusChange(status)
+        setStatusNotes(selectedAppointment.statusNotes || '')
+        setShowStatusNotesModal(true)
+      } else {
+        // For other statuses, update directly (clear any existing status notes)
+        await updateStatus.mutateAsync({ id: selectedAppointment.id, status, statusNotes: undefined })
+        setSelectedAppointment((prev) => (prev ? { ...prev, status, statusNotes: undefined } : null))
+      }
     }
+  }
+
+  // Handle status change with notes confirmation
+  const handleConfirmStatusWithNotes = async () => {
+    if (selectedAppointment && pendingStatusChange) {
+      await updateStatus.mutateAsync({
+        id: selectedAppointment.id,
+        status: pendingStatusChange,
+        statusNotes: statusNotes || undefined
+      })
+      setSelectedAppointment((prev) => (prev ? { ...prev, status: pendingStatusChange, statusNotes: statusNotes || undefined } : null))
+      setShowStatusNotesModal(false)
+      setPendingStatusChange(null)
+      setStatusNotes('')
+    }
+  }
+
+  // Handle quick status change buttons (No Show / Canceled)
+  const handleQuickStatusChange = (status: 'no_show' | 'cancelled') => {
+    if (selectedAppointment) {
+      setPendingStatusChange(status)
+      setStatusNotes(selectedAppointment.statusNotes || '')
+      setShowStatusNotesModal(true)
+    }
+  }
+
+  // Cancel status notes modal
+  const handleCancelStatusNotes = () => {
+    setShowStatusNotesModal(false)
+    setPendingStatusChange(null)
+    setStatusNotes('')
   }
 
   // Navigation handlers
@@ -398,6 +445,23 @@ export function CalendarPage() {
   const goToToday = useCallback(() => {
     setCurrentDate(new Date())
   }, [])
+
+  // Mini calendar handlers
+  const handleMiniCalendarDateSelect = useCallback((date: Date) => {
+    setCurrentDate(date)
+  }, [])
+
+  const handleMiniCalendarMonthChange = useCallback((date: Date) => {
+    setMiniCalendarMonth(date)
+  }, [])
+
+  // Calculate week range for mini calendar highlighting (only used in week view)
+  const weekRange = useMemo(() => {
+    if (view !== 'week') return undefined
+    const start = startOfWeek(currentDate, { weekStartsOn: 0 })
+    const end = endOfWeek(currentDate, { weekStartsOn: 0 })
+    return { start, end }
+  }, [currentDate, view])
 
   // Hover handlers for appointment popup
   const handleEventMouseEnter = useCallback((event: CalendarEvent, e: React.MouseEvent) => {
@@ -711,48 +775,69 @@ export function CalendarPage() {
   ]
 
   return (
-    <div className={cn('min-h-full', colors.pageGradientLight)}>
+    <div className={cn('min-h-screen', colors.pageGradientLight)}>
       <div className="space-y-6">
         {/* Custom Header with Navigation and View Toggle */}
         <Card className="bg-white/80 backdrop-blur-sm">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            {/* Left: Title and Date Navigation */}
-            <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-[#1e293b]">Calendar</h1>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={goToPrev}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-[#1e293b] bg-white shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#1e293b]"
-                  aria-label="Previous"
-                >
-                  <svg className="h-5 w-5 text-[#334155]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <button
-                  onClick={goToToday}
-                  className="rounded-xl border-2 border-[#1e293b] bg-[#fef9c3] px-3 py-1.5 text-sm font-semibold text-[#334155] shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:bg-[#fde68a] hover:shadow-[3px_3px_0px_0px_#1e293b] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#1e293b]"
-                >
-                  Today
-                </button>
-                <button
-                  onClick={goToNext}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-[#1e293b] bg-white shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#1e293b]"
-                  aria-label="Next"
-                >
-                  <svg className="h-5 w-5 text-[#334155]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
+          <div className="space-y-4">
+            {/* Row 1: Title and Navigation */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              {/* Title and Date Navigation */}
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                <h1 className="text-xl sm:text-2xl font-bold text-[#1e293b]">Calendar</h1>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={goToPrev}
+                    className="flex h-10 w-10 sm:h-9 sm:w-9 items-center justify-center rounded-xl border-2 border-[#1e293b] bg-white shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#1e293b]"
+                    aria-label="Previous"
+                  >
+                    <svg className="h-5 w-5 text-[#334155]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={goToToday}
+                    className="rounded-xl border-2 border-[#1e293b] bg-[#fef9c3] px-4 py-2 sm:px-3 sm:py-1.5 text-sm font-semibold text-[#334155] shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:bg-[#fde68a] hover:shadow-[3px_3px_0px_0px_#1e293b] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#1e293b]"
+                  >
+                    Today
+                  </button>
+                  <button
+                    onClick={goToNext}
+                    className="flex h-10 w-10 sm:h-9 sm:w-9 items-center justify-center rounded-xl border-2 border-[#1e293b] bg-white shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#1e293b]"
+                    aria-label="Next"
+                  >
+                    <svg className="h-5 w-5 text-[#334155]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* View Toggle Buttons */}
+              <div className="flex items-center gap-1 rounded-xl border-2 border-[#1e293b] bg-white p-1 shadow-[2px_2px_0px_0px_#1e293b] self-start sm:self-auto">
+                {viewButtons.map((btn) => (
+                  <button
+                    key={btn.value}
+                    onClick={() => handleViewChange(btn.value)}
+                    className={cn(
+                      'rounded-lg px-3 sm:px-4 py-2 sm:py-1.5 text-sm font-semibold transition-all min-h-[44px] sm:min-h-0',
+                      view === btn.value
+                        ? 'bg-primary-500 text-white shadow-inner'
+                        : 'bg-transparent text-[#334155] hover:bg-[#f0fdf4]'
+                    )}
+                  >
+                    {btn.label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Center: Current Date Display */}
-            <div className="text-center">
-              <h2 className="text-xl font-bold text-[#1e293b]">{getDisplayDate()}</h2>
+            {/* Row 2: Current Date Display */}
+            <div className="text-center sm:text-left">
+              <h2 className="text-lg sm:text-xl font-bold text-[#1e293b]">{getDisplayDate()}</h2>
             </div>
 
-            {/* Search Input */}
+            {/* Row 3: Search Input */}
             <div className="relative">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64748b]" />
@@ -761,12 +846,12 @@ export function CalendarPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search clients or pets..."
-                  className="w-64 rounded-xl border-2 border-[#1e293b] bg-white py-2 pl-10 pr-10 text-sm text-[#1e293b] placeholder-[#94a3b8] shadow-[2px_2px_0px_0px_#1e293b] transition-all focus:outline-none focus:shadow-[3px_3px_0px_0px_#1e293b] focus:-translate-y-0.5"
+                  className="w-full sm:w-64 rounded-xl border-2 border-[#1e293b] bg-white py-3 sm:py-2 pl-10 pr-10 text-sm text-[#1e293b] placeholder-[#94a3b8] shadow-[2px_2px_0px_0px_#1e293b] transition-all focus:outline-none focus:shadow-[3px_3px_0px_0px_#1e293b] focus:-translate-y-0.5"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#1e293b] transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#1e293b] transition-colors"
                     aria-label="Clear search"
                   >
                     <X className="h-4 w-4" />
@@ -774,28 +859,10 @@ export function CalendarPage() {
                 )}
               </div>
               {searchQuery && (
-                <div className="absolute left-0 top-full mt-1 text-xs text-[#64748b]">
+                <div className="mt-1 text-xs text-[#64748b]">
                   Showing {filteredEvents.length} of {events.length} appointments
                 </div>
               )}
-            </div>
-
-            {/* Right: View Toggle Buttons */}
-            <div className="flex items-center gap-1 rounded-xl border-2 border-[#1e293b] bg-white p-1 shadow-[2px_2px_0px_0px_#1e293b]">
-              {viewButtons.map((btn) => (
-                <button
-                  key={btn.value}
-                  onClick={() => handleViewChange(btn.value)}
-                  className={cn(
-                    'rounded-lg px-4 py-1.5 text-sm font-semibold transition-all',
-                    view === btn.value
-                      ? 'bg-primary-500 text-white shadow-inner'
-                      : 'bg-transparent text-[#334155] hover:bg-[#f0fdf4]'
-                  )}
-                >
-                  {btn.label}
-                </button>
-              ))}
             </div>
           </div>
         </Card>
@@ -819,40 +886,65 @@ export function CalendarPage() {
           </div>
         </Card>
 
-        {/* Calendar */}
-        <Card padding="none" className={cn(
-          "overflow-hidden bg-white/80 backdrop-blur-sm",
-          isDragging && "cursor-grabbing"
-        )}>
-          <div className="p-4" style={{ height: 'calc(100vh - 340px)', minHeight: '500px' }}>
-            <DragAndDropCalendar
-              localizer={localizer}
-              events={filteredEvents}
-              startAccessor="start"
-              endAccessor="end"
-              view={view}
-              date={currentDate}
-              onNavigate={handleNavigate}
-              onView={handleViewChange}
-              onSelectEvent={handleSelectEvent}
-              eventPropGetter={eventStyleGetter}
-              components={components}
-              min={new Date(0, 0, 0, CALENDAR_BUSINESS_HOURS.start)}
-              max={new Date(0, 0, 0, CALENDAR_BUSINESS_HOURS.end)}
-              views={['day', 'week', 'month']}
-              step={15}
-              timeslots={4}
-              popup
-              selectable
-              draggableAccessor={() => true}
-              resizable
-              onDragStart={handleDragStart}
-              onEventDrop={handleEventDrop}
-              onEventResize={handleEventResize}
-              onSelectSlot={handleSelectSlot}
-            />
-          </div>
-        </Card>
+        {/* Calendar with Mini Calendar */}
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* Mini Calendar - Only show for day/week views, stacks on top on mobile */}
+          {(view === 'day' || view === 'week') && (
+            <div className="flex-shrink-0 w-full lg:w-auto">
+              <MiniCalendar
+                currentMonth={miniCalendarMonth}
+                selectedDate={currentDate}
+                weekRange={weekRange}
+                onDateSelect={handleMiniCalendarDateSelect}
+                onMonthChange={handleMiniCalendarMonthChange}
+              />
+            </div>
+          )}
+
+          {/* Main Calendar */}
+          <Card padding="none" className={cn(
+            "flex-1 overflow-hidden bg-white/80 backdrop-blur-sm",
+            isDragging && "cursor-grabbing"
+          )}>
+            {/* Horizontally scrollable wrapper for mobile */}
+            <div
+              className="p-2 sm:p-4 overflow-x-auto"
+              style={{
+                height: view === 'month' ? 'calc(100vh - 380px)' : 'calc(100vh - 440px)',
+                minHeight: view === 'month' ? '500px' : '400px'
+              }}
+            >
+              <div className="min-w-[600px] h-full">
+                <DragAndDropCalendar
+                  localizer={localizer}
+                  events={filteredEvents}
+                  startAccessor="start"
+                  endAccessor="end"
+                  view={view}
+                  date={currentDate}
+                  onNavigate={handleNavigate}
+                  onView={handleViewChange}
+                  onSelectEvent={handleSelectEvent}
+                  eventPropGetter={eventStyleGetter}
+                  components={components}
+                  min={new Date(0, 0, 0, CALENDAR_BUSINESS_HOURS.start)}
+                  max={new Date(0, 0, 0, CALENDAR_BUSINESS_HOURS.end)}
+                  views={['day', 'week', 'month']}
+                  step={15}
+                  timeslots={4}
+                  popup
+                  selectable
+                  draggableAccessor={() => true}
+                  resizable
+                  onDragStart={handleDragStart}
+                  onEventDrop={handleEventDrop}
+                  onEventResize={handleEventResize}
+                  onSelectSlot={handleSelectSlot}
+                />
+              </div>
+            </div>
+          </Card>
+        </div>
 
         {/* Hover Popup */}
         {hoveredAppointment && hoverPosition && (
@@ -894,6 +986,41 @@ export function CalendarPage() {
                     className="flex-1"
                   />
                 </div>
+
+                {/* Quick Action Buttons for No Show / Canceled */}
+                {selectedAppointment.status !== 'no_show' && selectedAppointment.status !== 'cancelled' && (
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={() => handleQuickStatusChange('no_show')}
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-[#f472b6] bg-[#fce7f3] px-3 py-2 text-sm font-semibold text-[#9d174d] shadow-[2px_2px_0px_0px_#9d174d] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#9d174d] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#9d174d]"
+                    >
+                      <UserX className="h-4 w-4" />
+                      No Show
+                    </button>
+                    <button
+                      onClick={() => handleQuickStatusChange('cancelled')}
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-[#9ca3af] bg-[#e5e7eb] px-3 py-2 text-sm font-semibold text-[#374151] shadow-[2px_2px_0px_0px_#374151] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#374151] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#374151]"
+                    >
+                      <XCircle className="h-4 w-4" />
+                      Canceled
+                    </button>
+                  </div>
+                )}
+
+                {/* Display status notes if they exist */}
+                {selectedAppointment.statusNotes && (selectedAppointment.status === 'no_show' || selectedAppointment.status === 'cancelled') && (
+                  <div className="mt-3 rounded-xl border-2 border-[#fbbf24] bg-[#fef9c3] p-3">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="h-4 w-4 flex-shrink-0 text-[#854d0e] mt-0.5" />
+                      <div>
+                        <p className="text-xs font-semibold text-[#854d0e] uppercase mb-1">
+                          {selectedAppointment.status === 'no_show' ? 'No Show Notes' : 'Cancellation Notes'}
+                        </p>
+                        <p className="text-sm text-[#92400e]">{selectedAppointment.statusNotes}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Time */}
@@ -1032,12 +1159,12 @@ export function CalendarPage() {
             ) : (
               <>
                 {/* Time Section */}
-                <div className="rounded-xl border-2 border-[#1e293b] bg-[#ecfccb]/30 p-4 shadow-[2px_2px_0px_0px_#1e293b]">
+                <div className="rounded-xl border-2 border-[#1e293b] bg-[#ecfccb]/30 p-3 sm:p-4 shadow-[2px_2px_0px_0px_#1e293b]">
                   <div className="flex items-center gap-2 mb-3">
                     <Clock className="h-5 w-5 text-[#334155]" />
                     <h3 className="font-semibold text-[#1e293b]">Appointment Time</h3>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input
                       type="datetime-local"
                       label="Start Time"
@@ -1125,7 +1252,7 @@ export function CalendarPage() {
                               {isSelected && (
                                 <div className="mt-3 pt-3 border-t border-[#1e293b]/20" onClick={(e) => e.stopPropagation()}>
                                   <p className="text-sm font-medium text-[#334155] mb-2">Select Services:</p>
-                                  <div className="grid grid-cols-2 gap-2">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     {services.filter((s) => s.isActive).map((service) => {
                                       const isServiceSelected = petServiceSelection?.serviceIds.includes(service.id)
                                       return (
@@ -1134,14 +1261,14 @@ export function CalendarPage() {
                                           type="button"
                                           onClick={() => handleServiceToggle(pet.id, service.id)}
                                           className={cn(
-                                            'flex items-center justify-between p-2 rounded-lg border-2 text-left text-sm transition-all',
+                                            'flex items-center justify-between p-3 sm:p-2 rounded-lg border-2 text-left text-sm transition-all min-h-[44px]',
                                             isServiceSelected
                                               ? 'border-accent-500 bg-accent-50 text-accent-700'
                                               : 'border-[#1e293b] bg-white hover:bg-[#fef9c3]'
                                           )}
                                         >
                                           <span className="font-medium truncate">{service.name}</span>
-                                          <span className="text-xs">{formatCurrency(service.basePrice)}</span>
+                                          <span className="text-xs ml-2 flex-shrink-0">{formatCurrency(service.basePrice)}</span>
                                         </button>
                                       )
                                     })}
@@ -1294,6 +1421,83 @@ export function CalendarPage() {
               </div>
             </div>
           )}
+        </Modal>
+
+        {/* Status Notes Modal (for No Show / Canceled) */}
+        <Modal
+          isOpen={showStatusNotesModal}
+          onClose={handleCancelStatusNotes}
+          title={pendingStatusChange === 'no_show' ? 'Mark as No Show' : 'Cancel Appointment'}
+          size="md"
+        >
+          <div className="space-y-4">
+            {/* Status Icon and Description */}
+            <div className={cn(
+              'rounded-xl border-2 p-4',
+              pendingStatusChange === 'no_show'
+                ? 'border-[#f472b6] bg-[#fce7f3]'
+                : 'border-[#9ca3af] bg-[#e5e7eb]'
+            )}>
+              <div className="flex items-center gap-3">
+                {pendingStatusChange === 'no_show' ? (
+                  <UserX className="h-6 w-6 text-[#9d174d]" />
+                ) : (
+                  <XCircle className="h-6 w-6 text-[#374151]" />
+                )}
+                <div>
+                  <p className={cn(
+                    'font-semibold',
+                    pendingStatusChange === 'no_show' ? 'text-[#9d174d]' : 'text-[#374151]'
+                  )}>
+                    {pendingStatusChange === 'no_show'
+                      ? 'Client did not show up for appointment'
+                      : 'Cancel this appointment'}
+                  </p>
+                  <p className={cn(
+                    'text-sm',
+                    pendingStatusChange === 'no_show' ? 'text-[#9d174d]/70' : 'text-[#374151]/70'
+                  )}>
+                    Add notes to explain what happened (optional)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Notes Textarea */}
+            <div>
+              <Textarea
+                label={pendingStatusChange === 'no_show' ? 'No Show Notes' : 'Cancellation Notes'}
+                placeholder={pendingStatusChange === 'no_show'
+                  ? 'e.g., Client did not answer calls, appointment rescheduled...'
+                  : 'e.g., Client requested cancellation, emergency situation...'}
+                value={statusNotes}
+                onChange={(e) => setStatusNotes(e.target.value)}
+                rows={4}
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={handleCancelStatusNotes}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant={pendingStatusChange === 'no_show' ? 'primary' : 'outline'}
+                className={cn(
+                  'flex-1',
+                  pendingStatusChange === 'cancelled' && 'border-[#374151] bg-[#374151] text-white hover:bg-[#1f2937]'
+                )}
+                onClick={handleConfirmStatusWithNotes}
+                disabled={updateStatus.isPending}
+              >
+                {updateStatus.isPending ? 'Updating...' : (pendingStatusChange === 'no_show' ? 'Mark No Show' : 'Cancel Appointment')}
+              </Button>
+            </div>
+          </div>
         </Modal>
       </div>
     </div>

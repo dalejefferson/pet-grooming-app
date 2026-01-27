@@ -21,6 +21,7 @@ import {
 import {
   BookingStartPage,
   BookingPetsPage,
+  BookingGroomerPage,
   BookingIntakePage,
   BookingTimesPage,
   BookingConfirmPage,
@@ -58,6 +59,7 @@ function App() {
             <Route index element={<Navigate to="start" replace />} />
             <Route path="start" element={<BookingStartPage />} />
             <Route path="pets" element={<BookingPetsPage />} />
+            <Route path="groomer" element={<BookingGroomerPage />} />
             <Route path="intake" element={<BookingIntakePage />} />
             <Route path="times" element={<BookingTimesPage />} />
             <Route path="confirm" element={<BookingConfirmPage />} />

@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, useSearchParams, useOutletContext } from 'react-router-dom'
-import { ArrowRight, ArrowLeft, Check } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Check, Users } from 'lucide-react'
 import { Card, CardTitle, Button, Badge } from '@/components/common'
-import { useActiveServices, useClientPets } from '@/hooks'
+import { useActiveServices, useClientPets, useGroomers } from '@/hooks'
 import { formatCurrency, formatDuration } from '@/lib/utils'
 import { SERVICE_CATEGORIES } from '@/config/constants'
 import type { Organization, Service } from '@/types'
@@ -26,6 +26,7 @@ export function BookingIntakePage() {
 
   const clientId = searchParams.get('clientId')
   const petsParam = searchParams.get('pets')
+  const groomerId = searchParams.get('groomerId') || undefined
   const initialPets: SelectedPet[] = petsParam
     ? JSON.parse(petsParam).map((p: SelectedPet) => ({
         ...p,
@@ -35,6 +36,13 @@ export function BookingIntakePage() {
 
   const { data: services = [] } = useActiveServices(organization.id)
   const { data: clientPets = [] } = useClientPets(clientId || '')
+  const { data: allGroomers = [] } = useGroomers()
+
+  // Find the selected groomer
+  const selectedGroomer = useMemo(() => {
+    if (!groomerId) return null
+    return allGroomers.find((g) => g.id === groomerId) || null
+  }, [groomerId, allGroomers])
 
   const [selectedPets, setSelectedPets] = useState<SelectedPet[]>(initialPets)
   const [currentPetIndex, setCurrentPetIndex] = useState(0)
@@ -114,7 +122,7 @@ export function BookingIntakePage() {
     if (currentPetIndex > 0) {
       setCurrentPetIndex((prev) => prev - 1)
     } else {
-      navigate(`/book/${organization.slug}/pets?${searchParams.toString()}`)
+      navigate(`/book/${organization.slug}/groomer?${searchParams.toString()}`)
     }
   }
 
@@ -132,6 +140,45 @@ export function BookingIntakePage() {
           </p>
         )}
       </div>
+
+      {/* Selected Groomer Display */}
+      <Card className="bg-accent-50 border-accent-200">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-accent-100">
+            {selectedGroomer ? (
+              selectedGroomer.imageUrl ? (
+                <img
+                  src={selectedGroomer.imageUrl}
+                  alt={`${selectedGroomer.firstName} ${selectedGroomer.lastName}`}
+                  className="h-12 w-12 object-cover"
+                />
+              ) : (
+                <span className="text-lg font-bold text-accent-700">
+                  {selectedGroomer.firstName[0]}
+                  {selectedGroomer.lastName[0]}
+                </span>
+              )
+            ) : (
+              <Users className="h-6 w-6 text-accent-600" />
+            )}
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-accent-600">Your Groomer</p>
+            <p className="font-semibold text-accent-900">
+              {selectedGroomer
+                ? `${selectedGroomer.firstName} ${selectedGroomer.lastName}`
+                : 'Any Available Groomer'}
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate(`/book/${organization.slug}/groomer?${searchParams.toString()}`)}
+          >
+            Change
+          </Button>
+        </div>
+      </Card>
 
       {/* Pet Progress */}
       {selectedPets.length > 1 && (

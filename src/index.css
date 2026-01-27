@@ -327,6 +327,32 @@ body {
   background-color: rgba(111, 143, 114, 0.05);
 }
 
+/* Time slot hover highlighting - Day and Week views */
+.rbc-time-slot {
+  transition: background-color 0.15s ease;
+}
+
+.rbc-day-slot .rbc-time-slot:hover {
+  background-color: rgba(111, 143, 114, 0.1);
+  cursor: pointer;
+}
+
+/* Time slot group hover for better visual feedback */
+.rbc-timeslot-group:hover {
+  background-color: rgba(111, 143, 114, 0.05);
+}
+
+/* Specific styling for selectable time slots */
+.rbc-day-slot .rbc-timeslot-group:hover .rbc-time-slot {
+  background-color: rgba(111, 143, 114, 0.08);
+}
+
+/* Hover effect on individual time slots in the day column */
+.rbc-day-slot .rbc-events-container + .rbc-timeslot-group .rbc-time-slot:hover,
+.rbc-day-slot .rbc-time-slot:hover {
+  background-color: rgba(111, 143, 114, 0.12);
+}
+
 /* Improve event focus state */
 .rbc-event:focus {
   outline: 2px solid #6F8F72;

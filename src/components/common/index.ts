@@ -30,3 +30,12 @@ export type { LoadingSpinnerProps } from './LoadingSpinner'
 
 export { ImageUpload } from './ImageUpload'
 export type { ImageUploadProps } from './ImageUpload'
+
+export { MiniCalendar } from './MiniCalendar'
+export type { MiniCalendarProps } from './MiniCalendar'
+
+export { DocumentUpload } from './DocumentUpload'
+export type { DocumentUploadProps } from './DocumentUpload'
+
+export { ComboBox } from './ComboBox'
+export type { ComboBoxProps, ComboBoxOption } from './ComboBox'

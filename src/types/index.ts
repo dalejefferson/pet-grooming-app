@@ -138,6 +138,7 @@ export interface Appointment {
   startTime: string
   endTime: string
   status: AppointmentStatus
+  statusNotes?: string
   internalNotes?: string
   clientNotes?: string
   depositAmount?: number

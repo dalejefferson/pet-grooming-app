@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate, useSearchParams, useOutletContext } from 'react-router-dom'
 import { Plus, ArrowRight, ArrowLeft, Check } from 'lucide-react'
-import { Card, CardTitle, Button, Input, Select } from '@/components/common'
+import { Card, CardTitle, Button, Input, Select, ComboBox } from '@/components/common'
 import { useClientPets } from '@/hooks'
-import { COAT_TYPE_LABELS, WEIGHT_RANGE_LABELS } from '@/config/constants'
+import { COAT_TYPE_LABELS, WEIGHT_RANGE_LABELS, DOG_BREEDS, CAT_BREEDS } from '@/config/constants'
 import type { Organization, Pet } from '@/types'
 
 interface SelectedPet {
@@ -31,6 +31,16 @@ export function BookingPetsPage() {
     weightRange: 'medium',
     coatType: 'medium',
   })
+
+  // Get breed options based on selected species
+  const breedOptions = useMemo(() => {
+    if (newPetInfo.species === 'dog') {
+      return DOG_BREEDS.map(breed => ({ value: breed, label: breed }))
+    } else if (newPetInfo.species === 'cat') {
+      return CAT_BREEDS.map(breed => ({ value: breed, label: breed }))
+    }
+    return []
+  }, [newPetInfo.species])
 
   const togglePet = (pet: Pet) => {
     setSelectedPets((prev) => {
@@ -66,7 +76,7 @@ export function BookingPetsPage() {
   const handleContinue = () => {
     const params = new URLSearchParams(searchParams)
     params.set('pets', JSON.stringify(selectedPets))
-    navigate(`/book/${organization.slug}/intake?${params.toString()}`)
+    navigate(`/book/${organization.slug}/groomer?${params.toString()}`)
   }
 
   const handleBack = () => {
@@ -171,17 +181,32 @@ export function BookingPetsPage() {
                 ]}
                 value={newPetInfo.species || 'dog'}
                 onChange={(e) =>
-                  setNewPetInfo((p) => ({ ...p, species: e.target.value as Pet['species'] }))
+                  setNewPetInfo((p) => ({ ...p, species: e.target.value as Pet['species'], breed: '' }))
                 }
               />
-              <Input
-                label="Breed"
-                value={newPetInfo.breed || ''}
-                onChange={(e) =>
-                  setNewPetInfo((p) => ({ ...p, breed: e.target.value }))
-                }
-                required
-              />
+              {newPetInfo.species === 'other' ? (
+                <Input
+                  label="Breed"
+                  value={newPetInfo.breed || ''}
+                  onChange={(e) =>
+                    setNewPetInfo((p) => ({ ...p, breed: e.target.value }))
+                  }
+                  placeholder="Enter breed"
+                  required
+                />
+              ) : (
+                <ComboBox
+                  label="Breed"
+                  options={breedOptions}
+                  value={newPetInfo.breed || ''}
+                  onChange={(value) =>
+                    setNewPetInfo((p) => ({ ...p, breed: value }))
+                  }
+                  placeholder="Search or enter breed..."
+                  allowCustomValue={true}
+                  helperText="Select from list or type custom breed"
+                />
+              )}
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <Select

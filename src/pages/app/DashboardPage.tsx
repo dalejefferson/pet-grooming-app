@@ -18,35 +18,41 @@ export function DashboardPage() {
     .filter((a) => a.status !== 'completed' && a.status !== 'cancelled' && a.status !== 'no_show')
     .slice(0, 5)
 
+  const todayDateParam = format(today, 'yyyy-MM-dd')
+
   const stats = [
     {
       label: "Today's Appointments",
       value: todayAppointments.length,
       icon: Calendar,
       color: 'text-primary-600 bg-primary-100',
+      link: `/app/calendar?date=${todayDateParam}`,
     },
     {
       label: 'Total Clients',
       value: clients.length,
       icon: Users,
       color: 'text-green-600 bg-green-100',
+      link: '/app/clients',
     },
     {
       label: 'Total Pets',
       value: pets.length,
       icon: Dog,
       color: 'text-purple-600 bg-purple-100',
+      link: '/app/pets',
     },
     {
       label: 'Pending Requests',
       value: todayAppointments.filter((a) => a.status === 'requested').length,
       icon: AlertCircle,
       color: 'text-yellow-600 bg-yellow-100',
+      link: `/app/calendar?date=${todayDateParam}&filter=requested`,
     },
   ]
 
   return (
-    <div className={cn('min-h-full', colors.pageGradientLight)}>
+    <div className={cn('min-h-screen', colors.pageGradientLight)}>
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
@@ -56,17 +62,19 @@ export function DashboardPage() {
       {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.label}>
-            <div className="flex items-center gap-4">
-              <div className={cn('rounded-lg p-3', stat.color)}>
-                <stat.icon className="h-6 w-6" />
+          <Link key={stat.label} to={stat.link} className="group">
+            <Card className="cursor-pointer transition-all duration-200 hover:shadow-md hover:ring-2 hover:ring-primary-200 group-hover:bg-gray-50">
+              <div className="flex items-center gap-4">
+                <div className={cn('rounded-lg p-3 transition-transform duration-200 group-hover:scale-105', stat.color)}>
+                  <stat.icon className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-sm text-gray-600">{stat.label}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-sm text-gray-600">{stat.label}</p>
-              </div>
-            </div>
-          </Card>
+            </Card>
+          </Link>
         ))}
       </div>
 

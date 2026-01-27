@@ -308,9 +308,9 @@ export function ReportsPage() {
             style={{ animation: 'fadeInUp 0.5s ease-out 0.1s forwards', opacity: 0 }}
           >
             <CardTitle className="mb-4 text-[#1e293b]">Revenue Over Time</CardTitle>
-            <div className="h-[300px]">
+            <div className="h-[300px]" style={{ outline: 'none', cursor: 'default' }}>
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={revenueData}>
+                <LineChart data={revenueData} style={{ outline: 'none' }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis
                     dataKey="date"
@@ -338,7 +338,7 @@ export function ReportsPage() {
                     stroke="#059669"
                     strokeWidth={3}
                     dot={{ fill: PASTEL_COLORS.mint, stroke: '#059669', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, fill: '#059669' }}
+                    activeDot={false}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -351,9 +351,9 @@ export function ReportsPage() {
             style={{ animation: 'fadeInUp 0.5s ease-out 0.2s forwards', opacity: 0 }}
           >
             <CardTitle className="mb-4 text-[#1e293b]">Appointments by Status</CardTitle>
-            <div className="h-[300px]">
+            <div className="h-[300px]" style={{ outline: 'none', cursor: 'default' }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={statusData}>
+                <BarChart data={statusData} style={{ outline: 'none' }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis
                     dataKey="status"
@@ -376,7 +376,7 @@ export function ReportsPage() {
                       boxShadow: '2px 2px 0px 0px #1e293b',
                     }}
                   />
-                  <Bar dataKey="count" radius={[8, 8, 0, 0]}>
+                  <Bar dataKey="count" radius={[8, 8, 0, 0]} style={{ cursor: 'default' }}>
                     {statusData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} stroke="#1e293b" strokeWidth={2} />
                     ))}
@@ -392,9 +392,9 @@ export function ReportsPage() {
             style={{ animation: 'fadeInUp 0.5s ease-out 0.3s forwards', opacity: 0 }}
           >
             <CardTitle className="mb-4 text-[#1e293b]">Top Services</CardTitle>
-            <div className="h-[300px]">
+            <div className="h-[300px]" style={{ outline: 'none', cursor: 'default' }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topServicesData} layout="vertical">
+                <BarChart data={topServicesData} layout="vertical" style={{ outline: 'none' }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis
                     type="number"
@@ -416,7 +416,7 @@ export function ReportsPage() {
                       boxShadow: '2px 2px 0px 0px #1e293b',
                     }}
                   />
-                  <Bar dataKey="count" radius={[0, 8, 8, 0]}>
+                  <Bar dataKey="count" radius={[0, 8, 8, 0]} style={{ cursor: 'default' }}>
                     {topServicesData.map((_, index) => (
                       <Cell
                         key={`cell-${index}`}
@@ -437,9 +437,9 @@ export function ReportsPage() {
             style={{ animation: 'fadeInUp 0.5s ease-out 0.4s forwards', opacity: 0 }}
           >
             <CardTitle className="mb-4 text-[#1e293b]">New Clients Over Time</CardTitle>
-            <div className="h-[300px]">
+            <div className="h-[300px]" style={{ outline: 'none', cursor: 'default' }}>
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={clientAcquisitionData}>
+                <LineChart data={clientAcquisitionData} style={{ outline: 'none' }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis
                     dataKey="date"
@@ -466,7 +466,7 @@ export function ReportsPage() {
                     stroke="#8b5cf6"
                     strokeWidth={3}
                     dot={{ fill: PASTEL_COLORS.lavender, stroke: '#8b5cf6', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, fill: '#8b5cf6' }}
+                    activeDot={false}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -486,6 +486,29 @@ export function ReportsPage() {
             opacity: 1;
             transform: translateY(0);
           }
+        }
+
+        /* Disable chart selection/focus highlighting */
+        .recharts-wrapper,
+        .recharts-wrapper svg,
+        .recharts-surface,
+        .recharts-layer,
+        .recharts-bar-rectangle,
+        .recharts-line-curve,
+        .recharts-dot {
+          outline: none !important;
+          cursor: default !important;
+        }
+
+        .recharts-wrapper:focus,
+        .recharts-wrapper svg:focus,
+        .recharts-surface:focus,
+        .recharts-layer:focus {
+          outline: none !important;
+        }
+
+        .recharts-wrapper *:focus {
+          outline: none !important;
         }
       `}</style>
     </div>

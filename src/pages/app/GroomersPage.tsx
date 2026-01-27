@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Search, Plus, Edit2, Trash2, Phone, X } from 'lucide-react'
+import { Search, Plus, Trash2, Phone, X } from 'lucide-react'
 import { Card, Button, Input, Badge, Modal, Toggle, ImageUpload } from '@/components/common'
 import { useGroomers, useCreateGroomer, useUpdateGroomer, useDeleteGroomer } from '@/hooks'
 import { formatPhone, cn } from '@/lib/utils'
@@ -84,7 +84,7 @@ function GroomerForm({
           size="lg"
         />
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
         <Input
           label="First Name"
           value={formData.firstName}
@@ -118,14 +118,14 @@ function GroomerForm({
         <label className="mb-2 block text-sm font-medium text-gray-700">Specialties</label>
         <div className="flex flex-wrap gap-2 mb-3">
           {formData.specialties.map((specialty) => (
-            <Badge key={specialty} variant="primary" size="sm" className="flex items-center gap-1">
+            <Badge key={specialty} variant="primary" size="sm" className="flex items-center gap-1 py-1.5">
               {specialty}
               <button
                 type="button"
                 onClick={() => removeSpecialty(specialty)}
-                className="ml-1 hover:text-red-600"
+                className="ml-1 p-0.5 hover:text-red-600"
               >
-                <X className="h-3 w-3" />
+                <X className="h-3.5 w-3.5" />
               </button>
             </Badge>
           ))}
@@ -133,11 +133,11 @@ function GroomerForm({
             <span className="text-sm text-gray-500">No specialties added</span>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <select
             value={newSpecialty}
             onChange={(e) => setNewSpecialty(e.target.value)}
-            className="flex-1 rounded-xl border-2 border-[#1e293b] bg-white px-3 py-2 text-sm shadow-[2px_2px_0px_0px_#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b] focus:ring-offset-2"
+            className="flex-1 rounded-xl border-2 border-[#1e293b] bg-white px-3 py-3 sm:py-2 text-sm shadow-[2px_2px_0px_0px_#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b] focus:ring-offset-2"
           >
             <option value="">Select a specialty...</option>
             {SPECIALTY_OPTIONS.filter((s) => !formData.specialties.includes(s)).map((specialty) => (
@@ -151,6 +151,7 @@ function GroomerForm({
             variant="outline"
             onClick={() => addSpecialty(newSpecialty)}
             disabled={!newSpecialty}
+            className="min-h-[44px] sm:min-h-0"
           >
             Add
           </Button>
@@ -164,11 +165,11 @@ function GroomerForm({
         onChange={(checked) => setFormData((p) => ({ ...p, isActive: checked }))}
       />
 
-      <div className="flex gap-3 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <div className="flex flex-col sm:flex-row gap-3 pt-4">
+        <Button type="button" variant="outline" onClick={onCancel} className="min-h-[44px] sm:min-h-0">
           Cancel
         </Button>
-        <Button type="submit" loading={isLoading}>
+        <Button type="submit" loading={isLoading} className="min-h-[44px] sm:min-h-0">
           {groomer ? 'Update' : 'Add'} Groomer
         </Button>
       </div>
@@ -187,17 +188,29 @@ function GroomerCard({
 }) {
   const initials = `${groomer.firstName.charAt(0)}${groomer.lastName.charAt(0)}`
 
+  const handleCardClick = () => {
+    onEdit()
+  }
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onDelete()
+  }
+
   return (
-    <Card colorVariant={groomer.isActive ? 'white' : 'lemon'} className="aspect-square flex flex-col items-center justify-center p-4 text-center relative">
-      {/* Actions - Top Right */}
-      <div className="absolute top-2 right-2 flex gap-1">
-        <Button variant="ghost" size="sm" onClick={onEdit}>
-          <Edit2 className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="sm" onClick={onDelete}>
-          <Trash2 className="h-4 w-4 text-danger-500" />
-        </Button>
-      </div>
+    <Card
+      colorVariant={groomer.isActive ? 'white' : 'lemon'}
+      className="aspect-square flex flex-col items-center justify-center p-4 text-center relative cursor-pointer hover:shadow-[4px_4px_0px_0px_#1e293b] transition-shadow"
+      onClick={handleCardClick}
+    >
+      {/* Delete Button - Top Right */}
+      <button
+        onClick={handleDeleteClick}
+        className="absolute top-1.5 right-1.5 p-1 rounded-lg hover:bg-red-50 transition-colors"
+        aria-label="Delete groomer"
+      >
+        <Trash2 className="h-3.5 w-3.5 text-danger-500" />
+      </button>
 
       {/* Profile Image or Initials */}
       {groomer.imageUrl ? (
@@ -294,7 +307,7 @@ export function GroomersPage() {
   }
 
   return (
-    <div className={cn('min-h-full', colors.pageGradientLight)}>
+    <div className={cn('min-h-screen', colors.pageGradientLight)}>
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold text-gray-900">Groomers</h1>

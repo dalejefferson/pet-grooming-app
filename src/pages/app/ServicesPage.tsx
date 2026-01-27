@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Edit2, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronUp, Clock, DollarSign, Tag } from 'lucide-react'
 import { Card, Button, Badge, Modal, Input, Select, Textarea, Toggle } from '@/components/common'
 import { useServices, useCreateService, useUpdateService, useDeleteService, useAddModifier, useRemoveModifier } from '@/hooks'
 import { formatCurrency, formatDuration, cn } from '@/lib/utils'
@@ -49,7 +49,7 @@ function ServiceForm({
         onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))}
         rows={3}
       />
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
         <Input
           label="Base Duration (minutes)"
           type="number"
@@ -80,11 +80,11 @@ function ServiceForm({
         checked={formData.isActive}
         onChange={(checked) => setFormData((p) => ({ ...p, isActive: checked }))}
       />
-      <div className="flex gap-3 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <div className="flex flex-col sm:flex-row gap-3 pt-4">
+        <Button type="button" variant="outline" onClick={onCancel} className="min-h-[44px] sm:min-h-0">
           Cancel
         </Button>
-        <Button type="submit" loading={isLoading}>
+        <Button type="submit" loading={isLoading} className="min-h-[44px] sm:min-h-0">
           {service ? 'Update' : 'Create'} Service
         </Button>
       </div>
@@ -135,7 +135,7 @@ function ModifierForm({
         value={formData.type}
         onChange={(e) => setFormData((p) => ({ ...p, type: e.target.value as ServiceModifier['type'] }))}
       />
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
         <Input
           label="Additional Duration (min)"
           type="number"
@@ -158,11 +158,11 @@ function ModifierForm({
         checked={formData.isPercentage}
         onChange={(checked) => setFormData((p) => ({ ...p, isPercentage: checked }))}
       />
-      <div className="flex gap-3 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <div className="flex flex-col sm:flex-row gap-3 pt-4">
+        <Button type="button" variant="outline" onClick={onCancel} className="min-h-[44px] sm:min-h-0">
           Cancel
         </Button>
-        <Button type="submit" loading={isLoading}>
+        <Button type="submit" loading={isLoading} className="min-h-[44px] sm:min-h-0">
           Add Modifier
         </Button>
       </div>
@@ -170,14 +170,18 @@ function ModifierForm({
   )
 }
 
-function ServiceCard({
+function EditServiceModal({
   service,
-  onEdit,
+  onSubmit,
+  onCancel,
   onDelete,
+  isLoading,
 }: {
   service: Service
-  onEdit: () => void
+  onSubmit: (data: Partial<Service>) => void
+  onCancel: () => void
   onDelete: () => void
+  isLoading: boolean
 }) {
   const [expanded, setExpanded] = useState(false)
   const [showModifierForm, setShowModifierForm] = useState(false)
@@ -194,40 +198,16 @@ function ServiceCard({
   }
 
   return (
-    <Card>
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-gray-900">{service.name}</h3>
-            {!service.isActive && (
-              <Badge variant="secondary" size="sm">Inactive</Badge>
-            )}
-          </div>
-          <p className="mt-1 text-sm text-gray-600">{service.description}</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <Badge variant="outline" size="sm">
-              {SERVICE_CATEGORIES[service.category]}
-            </Badge>
-            <Badge variant="primary" size="sm">
-              {formatDuration(service.baseDurationMinutes)}
-            </Badge>
-            <Badge variant="success" size="sm">
-              {formatCurrency(service.basePrice)}
-            </Badge>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={onEdit}>
-            <Edit2 className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={onDelete}>
-            <Trash2 className="h-4 w-4 text-danger-500" />
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <ServiceForm
+        service={service}
+        onSubmit={onSubmit}
+        onCancel={onCancel}
+        isLoading={isLoading}
+      />
 
       {/* Modifiers Section */}
-      <div className="mt-4 border-t pt-4">
+      <div className="border-t pt-4">
         <button
           onClick={() => setExpanded(!expanded)}
           className="flex w-full items-center justify-between text-sm font-medium text-gray-700"
@@ -285,6 +265,87 @@ function ServiceCard({
           </div>
         )}
       </div>
+
+      {/* Delete Service button */}
+      <div className="border-t pt-4">
+        <Button
+          variant="outline"
+          onClick={onDelete}
+          className="w-full text-danger-600 border-danger-300 hover:bg-danger-50"
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          Delete Service
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function ServiceCard({
+  service,
+  onEdit,
+  onDelete,
+}: {
+  service: Service
+  onEdit: () => void
+  onDelete: (e: React.MouseEvent) => void
+}) {
+  return (
+    <Card
+      className="aspect-square flex flex-col items-center justify-center p-4 text-center transition-all hover:shadow-md hover:-translate-y-1 cursor-pointer relative group"
+      onClick={onEdit}
+    >
+      {/* Delete button in corner */}
+      <button
+        onClick={onDelete}
+        className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/80 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-danger-50"
+        title="Delete service"
+      >
+        <Trash2 className="h-4 w-4 text-danger-500" />
+      </button>
+
+      {/* Service Icon/Initial */}
+      <div className={cn(
+        "flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-[#1e293b] text-2xl font-bold text-[#334155] shadow-[3px_3px_0px_0px_#1e293b]",
+        service.isActive ? "bg-[#d1fae5]" : "bg-gray-200"
+      )}>
+        <span>{service.name.charAt(0).toUpperCase()}</span>
+      </div>
+
+      {/* Service Name */}
+      <div className="mt-3 flex items-center justify-center gap-1.5">
+        <h3 className="font-semibold text-gray-900 truncate max-w-full">{service.name}</h3>
+        {!service.isActive && (
+          <Badge variant="secondary" size="sm">Inactive</Badge>
+        )}
+      </div>
+
+      {/* Price */}
+      <div className="mt-2 flex items-center justify-center gap-1 text-lg font-bold text-success-600">
+        <DollarSign className="h-4 w-4" />
+        <span>{formatCurrency(service.basePrice).replace('$', '')}</span>
+      </div>
+
+      {/* Duration */}
+      <div className="mt-1 flex items-center justify-center gap-1 text-sm text-gray-600">
+        <Clock className="h-3.5 w-3.5" />
+        <span>{formatDuration(service.baseDurationMinutes)}</span>
+      </div>
+
+      {/* Category Badge */}
+      <div className="mt-3">
+        <Badge variant="outline" size="sm">
+          <Tag className="mr-1 h-3 w-3" />
+          {SERVICE_CATEGORIES[service.category]}
+        </Badge>
+      </div>
+
+      {/* Modifiers count */}
+      {service.modifiers.length > 0 && (
+        <p className="mt-2 text-xs text-gray-500">
+          {service.modifiers.length} modifier{service.modifiers.length !== 1 ? 's' : ''}
+        </p>
+      )}
     </Card>
   )
 }
@@ -311,23 +372,22 @@ export function ServicesPage() {
     }
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation() // Prevent card click from triggering
     if (confirm('Are you sure you want to delete this service?')) {
       await deleteService.mutateAsync(id)
     }
   }
 
-  // Group services by category
-  const servicesByCategory = services.reduce((acc, service) => {
-    if (!acc[service.category]) {
-      acc[service.category] = []
+  const handleDeleteFromModal = async () => {
+    if (editingService && confirm('Are you sure you want to delete this service?')) {
+      await deleteService.mutateAsync(editingService.id)
+      setEditingService(null)
     }
-    acc[service.category].push(service)
-    return acc
-  }, {} as Record<string, Service[]>)
+  }
 
   return (
-    <div className={cn('min-h-full', colors.pageGradientLight)}>
+    <div className={cn('min-h-screen', colors.pageGradientLight)}>
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold text-gray-900">Services</h1>
@@ -346,23 +406,16 @@ export function ServicesPage() {
           </div>
         </Card>
       ) : (
-        Object.entries(servicesByCategory).map(([category, categoryServices]) => (
-          <div key={category}>
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">
-              {SERVICE_CATEGORIES[category as keyof typeof SERVICE_CATEGORIES]}
-            </h2>
-            <div className="grid gap-4 lg:grid-cols-2">
-              {categoryServices.map((service) => (
-                <ServiceCard
-                  key={service.id}
-                  service={service}
-                  onEdit={() => setEditingService(service)}
-                  onDelete={() => handleDelete(service.id)}
-                />
-              ))}
-            </div>
-          </div>
-        ))
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          {services.map((service) => (
+            <ServiceCard
+              key={service.id}
+              service={service}
+              onEdit={() => setEditingService(service)}
+              onDelete={(e) => handleDelete(e, service.id)}
+            />
+          ))}
+        </div>
       )}
 
       {/* Create Modal */}
@@ -387,10 +440,11 @@ export function ServicesPage() {
         size="md"
       >
         {editingService && (
-          <ServiceForm
+          <EditServiceModal
             service={editingService}
             onSubmit={handleUpdate}
             onCancel={() => setEditingService(null)}
+            onDelete={handleDeleteFromModal}
             isLoading={updateService.isPending}
           />
         )}
