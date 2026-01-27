@@ -205,75 +205,27 @@ body {
   background-color: #49634c;
 }
 
-/* "Show more" link - styled as a neo-brutalist button */
 .rbc-show-more {
-  color: #1e293b;
-  @apply font-bold text-xs;
-  background-color: #fef9c3;
-  border: 2px solid #1e293b;
-  border-radius: 8px;
-  padding: 2px 8px;
-  box-shadow: 2px 2px 0px 0px #1e293b;
-  display: inline-block;
-  margin-top: 2px;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  color: #6F8F72;
+  @apply font-semibold text-sm;
 }
 
 .rbc-show-more:hover {
-  color: #1e293b;
-  background-color: #fde68a;
-  transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0px 0px #1e293b;
-}
-
-.rbc-show-more:active {
-  transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0px 0px #1e293b;
+  color: #49634c;
 }
 
 /* Month view styles */
 .rbc-month-view {
   border: 2px solid #1e293b;
-  @apply rounded-2xl;
-  /* Allow content to determine height instead of forcing overflow hidden */
-  overflow: visible;
+  @apply rounded-2xl overflow-hidden;
 }
 
 .rbc-month-row {
   border-bottom: 1px solid #cbd5e1;
-  /* Set minimum height to accommodate event cards - roughly 4 events visible */
-  min-height: 120px;
-  /* Allow rows to expand if needed */
-  overflow: visible;
 }
 
 .rbc-month-row:last-child {
   border-bottom: none;
-}
-
-/* Row content container that holds events */
-.rbc-month-view .rbc-row-content {
-  /* Allow the content area to grow and show events properly */
-  position: relative;
-  overflow: visible;
-  z-index: 1;
-}
-
-/* Individual row segments that wrap each event */
-.rbc-month-view .rbc-row-segment {
-  @apply py-0.5;
-  /* Ensure segments don't get clipped */
-  overflow: visible;
-}
-
-/* Background cells should not clip content */
-.rbc-month-view .rbc-row-bg {
-  overflow: visible;
-}
-
-/* Individual day background cells */
-.rbc-month-view .rbc-day-bg {
-  overflow: visible;
 }
 
 .rbc-date-cell {
@@ -301,15 +253,12 @@ body {
   background-color: #f0fdf4;
 }
 
-/* Month view event cards - ensure they display fully */
 .rbc-month-view .rbc-event {
-  @apply text-xs py-1 px-2;
-  /* Ensure events are fully visible */
-  overflow: visible;
-  /* Give events more breathing room */
-  margin-bottom: 2px;
-  /* Maintain the neo-brutalist card look */
-  min-height: 22px;
+  @apply text-xs py-0.5 px-1;
+}
+
+.rbc-month-view .rbc-row-segment {
+  @apply py-0.5;
 }
 
 /* Day view styles */
@@ -338,31 +287,17 @@ body {
   @apply py-2 px-3;
 }
 
-/* Event popup/overlay styles - shown when clicking "show more" */
+/* Event popup/overlay styles */
 .rbc-overlay {
-  @apply rounded-xl p-4 z-50;
+  @apply rounded-xl p-3 z-50;
   border: 2px solid #1e293b;
   box-shadow: 4px 4px 0px 0px #1e293b;
   background-color: white;
-  max-height: 300px;
-  overflow-y: auto;
-  min-width: 200px;
 }
 
 .rbc-overlay-header {
-  @apply font-bold text-sm py-2 border-b-2 border-[#1e293b] mb-3;
+  @apply font-bold text-sm py-2 border-b-2 border-[#1e293b] mb-2;
   color: #1e293b;
-  position: sticky;
-  top: -16px;
-  background-color: white;
-  margin: -16px -16px 12px -16px;
-  padding: 12px 16px;
-}
-
-/* Events inside the overlay popup */
-.rbc-overlay .rbc-event {
-  margin-bottom: 6px;
-  @apply py-1.5 px-2;
 }
 
 /* Selected slot styles */
