@@ -222,7 +222,6 @@ body {
 
 .rbc-month-row {
   border-bottom: 1px solid #cbd5e1;
-  min-height: 100px;
 }
 
 .rbc-month-row:last-child {
