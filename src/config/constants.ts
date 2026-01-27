@@ -136,3 +136,26 @@ export const CAT_BREEDS = [
   'Domestic Longhair',
   'Mixed Breed',
 ]
+
+// Mapping of groomer specialties to service categories they can perform
+// Groomers can perform services in categories that match their specialties
+// If a groomer has no matching specialties, they can still perform basic services (bath, nail)
+export const SPECIALTY_TO_SERVICE_CATEGORIES: Record<string, string[]> = {
+  // Large dog handling
+  'Large Dogs': ['bath', 'haircut', 'nail', 'specialty'],
+  // Small dog handling
+  'Small Dogs': ['bath', 'haircut', 'nail', 'specialty', 'package'],
+  // Cat grooming
+  'Cats': ['bath', 'nail', 'specialty'],
+  // Specific cut styles
+  'Poodle Cuts': ['haircut', 'bath'],
+  'Show Cuts': ['haircut', 'bath', 'specialty'],
+  'Breed-Specific Styles': ['haircut', 'bath'],
+  // Specialty services
+  'Dematting': ['specialty', 'bath', 'haircut'],
+  'Nail Trimming': ['nail'],
+  'Puppy Grooming': ['package', 'bath', 'nail'],
+}
+
+// Default service categories that any groomer can perform
+export const DEFAULT_GROOMER_SERVICE_CATEGORIES = ['bath', 'nail']

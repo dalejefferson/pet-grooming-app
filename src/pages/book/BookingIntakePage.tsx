@@ -1,11 +1,41 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, useSearchParams, useOutletContext } from 'react-router-dom'
-import { ArrowRight, ArrowLeft, Check, Users } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Check, Users, AlertCircle } from 'lucide-react'
 import { Card, CardTitle, Button, Badge } from '@/components/common'
 import { useActiveServices, useClientPets, useGroomers } from '@/hooks'
 import { formatCurrency, formatDuration } from '@/lib/utils'
-import { SERVICE_CATEGORIES } from '@/config/constants'
-import type { Organization, Service } from '@/types'
+import {
+  SERVICE_CATEGORIES,
+  SPECIALTY_TO_SERVICE_CATEGORIES,
+  DEFAULT_GROOMER_SERVICE_CATEGORIES,
+} from '@/config/constants'
+import type { Organization, Service, Groomer } from '@/types'
+
+// Helper function to get service categories a groomer can perform
+function getGroomerServiceCategories(groomer: Groomer | null): string[] {
+  // If no specific groomer selected (Any Available), allow all categories
+  if (!groomer) {
+    return Object.keys(SERVICE_CATEGORIES)
+  }
+
+  // Collect all service categories from the groomer's specialties
+  const categories = new Set<string>()
+
+  // Add categories based on specialties
+  for (const specialty of groomer.specialties) {
+    const specialtyCategories = SPECIALTY_TO_SERVICE_CATEGORIES[specialty]
+    if (specialtyCategories) {
+      specialtyCategories.forEach((cat) => categories.add(cat))
+    }
+  }
+
+  // If groomer has no mapped specialties, use default categories
+  if (categories.size === 0) {
+    DEFAULT_GROOMER_SERVICE_CATEGORIES.forEach((cat) => categories.add(cat))
+  }
+
+  return Array.from(categories)
+}
 
 interface SelectedPet {
   petId?: string
@@ -52,15 +82,29 @@ export function BookingIntakePage() {
     ? currentPet.petInfo?.name
     : clientPets.find((p) => p.id === currentPet?.petId)?.name
 
+  // Get allowed service categories for the selected groomer
+  const allowedCategories = useMemo(
+    () => getGroomerServiceCategories(selectedGroomer),
+    [selectedGroomer]
+  )
+
+  // Filter services by groomer capabilities and group by category
   const servicesByCategory = useMemo(() => {
     return services.reduce((acc, service) => {
+      // Only include services that the groomer can perform
+      if (!allowedCategories.includes(service.category)) {
+        return acc
+      }
       if (!acc[service.category]) {
         acc[service.category] = []
       }
       acc[service.category].push(service)
       return acc
     }, {} as Record<string, Service[]>)
-  }, [services])
+  }, [services, allowedCategories])
+
+  // Check if any services are available for this groomer
+  const hasAvailableServices = Object.keys(servicesByCategory).length > 0
 
   const toggleService = (serviceId: string) => {
     setSelectedPets((prev) => {
@@ -169,6 +213,18 @@ export function BookingIntakePage() {
                 ? `${selectedGroomer.firstName} ${selectedGroomer.lastName}`
                 : 'Any Available Groomer'}
             </p>
+            {selectedGroomer && selectedGroomer.specialties.length > 0 && (
+              <div className="mt-1 flex flex-wrap gap-1">
+                {selectedGroomer.specialties.map((specialty) => (
+                  <span
+                    key={specialty}
+                    className="rounded-full bg-accent-100 px-2 py-0.5 text-xs font-medium text-accent-700"
+                  >
+                    {specialty}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
           <Button
             variant="outline"
@@ -207,6 +263,50 @@ export function BookingIntakePage() {
             )
           })}
         </div>
+      )}
+
+      {/* No pets selected warning */}
+      {selectedPets.length === 0 && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-yellow-600" />
+            <div>
+              <p className="font-medium text-yellow-900">No pets selected</p>
+              <p className="text-sm text-yellow-700">
+                Please go back and select at least one pet to continue.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* No services available for groomer warning */}
+      {selectedPets.length > 0 && !hasAvailableServices && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-yellow-600" />
+            <div>
+              <p className="font-medium text-yellow-900">
+                No services available for this groomer
+              </p>
+              <p className="text-sm text-yellow-700">
+                {selectedGroomer
+                  ? `${selectedGroomer.firstName} ${selectedGroomer.lastName} doesn't have services matching their specialties. Please choose a different groomer or select "Any Available".`
+                  : 'No services are currently available. Please try again later.'}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-3"
+            onClick={() =>
+              navigate(`/book/${organization.slug}/groomer?${searchParams.toString()}`)
+            }
+          >
+            Change Groomer
+          </Button>
+        </Card>
       )}
 
       {/* Services by Category */}
