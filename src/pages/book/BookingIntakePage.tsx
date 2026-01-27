@@ -110,6 +110,13 @@ export function BookingIntakePage() {
     setSelectedPets((prev) => {
       const updated = [...prev]
       const pet = updated[currentPetIndex]
+
+      // Guard against undefined pet
+      if (!pet) {
+        console.error('No pet selected at index', currentPetIndex)
+        return prev
+      }
+
       const existingIndex = pet.services.findIndex((s) => s.serviceId === serviceId)
 
       if (existingIndex >= 0) {
@@ -185,7 +192,7 @@ export function BookingIntakePage() {
         )}
       </div>
 
-      {/* Selected Groomer Display */}
+      {/* Selected Groomer Display with Service Queue */}
       <Card className="bg-accent-50 border-accent-200">
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-accent-100">
@@ -234,6 +241,44 @@ export function BookingIntakePage() {
             Change
           </Button>
         </div>
+
+        {/* Selected Services Queue */}
+        {currentPet && currentPet.services.length > 0 && (
+          <div className="mt-4 border-t border-accent-200 pt-4">
+            <p className="text-xs font-semibold text-accent-600 uppercase tracking-wide mb-2">
+              Selected Services for {petName}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {currentPet.services.map((selected) => {
+                const service = services.find((s) => s.id === selected.serviceId)
+                if (!service) return null
+                return (
+                  <div
+                    key={selected.serviceId}
+                    className="flex items-center gap-2 rounded-lg border-2 border-[#1e293b] bg-white px-3 py-1.5 shadow-[2px_2px_0px_0px_#1e293b]"
+                  >
+                    <span className="text-sm font-medium text-gray-900">{service.name}</span>
+                    <span className="text-sm font-bold text-primary-600">{formatCurrency(service.basePrice)}</span>
+                    <button
+                      onClick={() => toggleService(service.id)}
+                      className="ml-1 text-gray-400 hover:text-danger-500 transition-colors"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+            <p className="mt-3 text-right text-sm font-semibold text-accent-900">
+              Total: {formatCurrency(
+                currentPet.services.reduce((total, selected) => {
+                  const service = services.find((s) => s.id === selected.serviceId)
+                  return total + (service?.basePrice || 0)
+                }, 0)
+              )}
+            </p>
+          </div>
+        )}
       </Card>
 
       {/* Pet Progress */}
