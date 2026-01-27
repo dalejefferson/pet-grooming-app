@@ -1,0 +1,42 @@
+{
+  "name": "Ralph Workflow",
+  "version": "1.0",
+  "workflows": {
+    "default": [
+      "install_deps.sh",
+      "implement",
+      "lint_fix.sh",
+      "run_tests.sh",
+      "build.sh",
+      "commit_changes.sh"
+    ],
+    "quick": [
+      "implement",
+      "commit_changes.sh"
+    ],
+    "full": [
+      "install_deps.sh",
+      "implement",
+      "lint_fix.sh",
+      "run_tests.sh",
+      "build.sh",
+      "commit_changes.sh",
+      "create_pr.sh"
+    ]
+  },
+  "allowed_scripts": [
+    "install_deps.sh",
+    "run_tests.sh",
+    "lint_fix.sh",
+    "build.sh",
+    "commit_changes.sh",
+    "create_pr.sh"
+  ],
+  "forbidden_commands": [
+    "rm -rf /",
+    "sudo",
+    "chmod 777",
+    "curl | bash",
+    "wget | bash"
+  ]
+}
