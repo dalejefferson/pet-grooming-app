@@ -338,5 +338,5 @@ export function useTheme(): ThemeContextValue {
   return context
 }
 
-// Export theme colors for direct access if needed
-export { themeColors }
+// Export theme colors and valid themes for direct access if needed
+export { themeColors, validThemes }

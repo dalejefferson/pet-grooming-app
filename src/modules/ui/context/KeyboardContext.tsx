@@ -7,6 +7,7 @@ interface KeyboardContextType {
   registerCalendarViewCycle: (cycle: () => void) => void
   registerBookAppointment: (open: () => void) => void
   registerSidebarNavigate: (navigate: (direction: 'up' | 'down') => void) => void
+  registerThemeCycle: (cycle: () => void) => void
 }
 
 const KeyboardContext = createContext<KeyboardContextType | null>(null)
@@ -19,6 +20,7 @@ export function KeyboardProvider({ children }: { children: ReactNode }) {
   const calendarViewCycleRef = useRef<(() => void) | null>(null)
   const bookAppointmentRef = useRef<(() => void) | null>(null)
   const sidebarNavigateRef = useRef<((direction: 'up' | 'down') => void) | null>(null)
+  const themeCycleRef = useRef<(() => void) | null>(null)
 
   const registerSidebarToggle = useCallback((toggle: () => void) => {
     sidebarToggleRef.current = toggle
@@ -34,6 +36,10 @@ export function KeyboardProvider({ children }: { children: ReactNode }) {
 
   const registerSidebarNavigate = useCallback((navigate: (direction: 'up' | 'down') => void) => {
     sidebarNavigateRef.current = navigate
+  }, [])
+
+  const registerThemeCycle = useCallback((cycle: () => void) => {
+    themeCycleRef.current = cycle
   }, [])
 
   useEffect(() => {
@@ -73,6 +79,12 @@ export function KeyboardProvider({ children }: { children: ReactNode }) {
         e.preventDefault()
         sidebarNavigateRef.current?.('down')
       }
+
+      // Shift + C: Cycle through color themes
+      if (e.shiftKey && !e.metaKey && !e.ctrlKey && e.key.toLowerCase() === 'c') {
+        e.preventDefault()
+        themeCycleRef.current?.()
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
@@ -80,7 +92,7 @@ export function KeyboardProvider({ children }: { children: ReactNode }) {
   }, [location.pathname])
 
   return (
-    <KeyboardContext.Provider value={{ registerSidebarToggle, registerCalendarViewCycle, registerBookAppointment, registerSidebarNavigate }}>
+    <KeyboardContext.Provider value={{ registerSidebarToggle, registerCalendarViewCycle, registerBookAppointment, registerSidebarNavigate, registerThemeCycle }}>
       {children}
     </KeyboardContext.Provider>
   )

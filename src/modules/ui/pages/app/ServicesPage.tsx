@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import { Card, Button, Modal } from '../../components/common'
+import { Card, Button, Modal, HistorySection } from '../../components/common'
 import { ServiceForm, ServiceDisplayCard, EditServiceModal } from '../../components/services'
-import { useServices, useCreateService, useUpdateService, useDeleteService } from '@/hooks'
+import { useServices, useCreateService, useUpdateService, useDeleteService, useDeletedHistory, useAddToHistory } from '@/hooks'
 import { cn } from '@/lib/utils'
 import type { Service } from '@/types'
 import { useTheme, useUndo } from '../../context'
@@ -11,9 +11,11 @@ export function ServicesPage() {
   const { colors } = useTheme()
   const { showUndo } = useUndo()
   const { data: services = [], isLoading } = useServices()
+  const { data: deletedItems = [] } = useDeletedHistory('service')
   const createService = useCreateService()
   const updateService = useUpdateService()
   const deleteService = useDeleteService()
+  const addToHistory = useAddToHistory()
 
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingService, setEditingService] = useState<Service | null>(null)
@@ -37,6 +39,14 @@ export function ServicesPage() {
 
     await deleteService.mutateAsync(id)
 
+    // Add to history for restore functionality
+    await addToHistory.mutateAsync({
+      entityType: 'service',
+      entityId: serviceToDelete.id,
+      entityName: serviceToDelete.name,
+      data: serviceToDelete,
+    })
+
     showUndo({
       type: 'service',
       label: serviceToDelete.name,
@@ -54,6 +64,14 @@ export function ServicesPage() {
     const serviceToDelete = editingService
     await deleteService.mutateAsync(serviceToDelete.id)
     setEditingService(null)
+
+    // Add to history for restore functionality
+    await addToHistory.mutateAsync({
+      entityType: 'service',
+      entityId: serviceToDelete.id,
+      entityName: serviceToDelete.name,
+      data: serviceToDelete,
+    })
 
     showUndo({
       type: 'service',
@@ -133,6 +151,12 @@ export function ServicesPage() {
           />
         )}
       </Modal>
+
+      <HistorySection
+        items={deletedItems}
+        entityType="service"
+        title="Recently Deleted Services"
+      />
       </div>
     </div>
   )

@@ -257,3 +257,15 @@ export interface FeatureFlags {
   petPhotos: boolean
   inventoryManagement: boolean
 }
+
+// Deleted item history types
+export type DeletedEntityType = 'client' | 'pet' | 'groomer' | 'service'
+
+export interface DeletedItem<T = unknown> {
+  id: string
+  entityType: DeletedEntityType
+  entityId: string
+  entityName: string
+  data: T
+  deletedAt: string
+}

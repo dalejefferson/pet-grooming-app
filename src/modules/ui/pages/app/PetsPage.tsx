@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, AlertTriangle, User, Trash2 } from 'lucide-react'
-import { Card, Input, Badge } from '../../components/common'
-import { usePets, useClients, useDeletePet, useCreatePet } from '@/hooks'
+import { Card, Input, Badge, HistorySection } from '../../components/common'
+import { usePets, useClients, useDeletePet, useCreatePet, useDeletedHistory, useAddToHistory } from '@/hooks'
 import type { Pet, Client } from '@/types'
 import { BEHAVIOR_LEVEL_LABELS } from '@/config/constants'
 import { useTheme, useUndo } from '../../context'
@@ -85,14 +85,24 @@ export function PetsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const { data: pets = [], isLoading } = usePets()
   const { data: clients = [] } = useClients()
+  const { data: deletedItems = [] } = useDeletedHistory('pet')
   const deletePet = useDeletePet()
   const createPet = useCreatePet()
+  const addToHistory = useAddToHistory()
 
   const handleDeletePet = async (petId: string) => {
     const petToDelete = pets.find(p => p.id === petId)
     if (!petToDelete) return
 
     await deletePet.mutateAsync(petId)
+
+    // Add to history for restore functionality
+    await addToHistory.mutateAsync({
+      entityType: 'pet',
+      entityId: petToDelete.id,
+      entityName: petToDelete.name,
+      data: petToDelete,
+    })
 
     showUndo({
       type: 'pet',
@@ -157,6 +167,12 @@ export function PetsPage() {
           })}
         </div>
       )}
+
+      <HistorySection
+        items={deletedItems}
+        entityType="pet"
+        title="Recently Deleted Pets"
+      />
       </div>
     </div>
   )

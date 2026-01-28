@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Plus, Phone, Trash2 } from 'lucide-react'
-import { Card, Button, Input, Badge, Modal, ImageUpload } from '../../components/common'
-import { useClients, useClientPets, useCreateClient, useDeleteClient } from '@/hooks'
+import { Card, Button, Input, Badge, Modal, ImageUpload, HistorySection } from '../../components/common'
+import { useClients, useClientPets, useCreateClient, useDeleteClient, useDeletedHistory, useAddToHistory } from '@/hooks'
 import { formatPhone, cn } from '@/lib/utils'
 import type { Client } from '@/types'
 import { useTheme, useUndo } from '../../context'
@@ -185,8 +185,10 @@ export function ClientsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   const { data: clients = [], isLoading } = useClients()
+  const { data: deletedItems = [] } = useDeletedHistory('client')
   const createClient = useCreateClient()
   const deleteClient = useDeleteClient()
+  const addToHistory = useAddToHistory()
 
   const handleDeleteClient = async (clientId: string) => {
     // Find and store the client data before deleting
@@ -195,6 +197,14 @@ export function ClientsPage() {
 
     // Delete immediately (no confirm dialog)
     await deleteClient.mutateAsync(clientId)
+
+    // Add to history for restore functionality
+    await addToHistory.mutateAsync({
+      entityType: 'client',
+      entityId: clientToDelete.id,
+      entityName: `${clientToDelete.firstName} ${clientToDelete.lastName}`,
+      data: clientToDelete,
+    })
 
     // Show undo toast
     showUndo({
@@ -286,6 +296,12 @@ export function ClientsPage() {
           accentColor={colors.accentColorDark}
         />
       </Modal>
+
+      <HistorySection
+        items={deletedItems}
+        entityType="client"
+        title="Recently Deleted Clients"
+      />
       </div>
     </div>
   )

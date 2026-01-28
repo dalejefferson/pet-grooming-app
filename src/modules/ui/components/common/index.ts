@@ -39,3 +39,6 @@ export type { DocumentUploadProps } from './DocumentUpload'
 
 export { ComboBox } from './ComboBox'
 export type { ComboBoxProps, ComboBoxOption } from './ComboBox'
+
+export { HistorySection } from './HistorySection'
+export type { HistorySectionProps } from './HistorySection'

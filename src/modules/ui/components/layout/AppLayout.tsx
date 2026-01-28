@@ -3,7 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { cn } from '@/lib/utils'
-import { useKeyboardShortcuts } from '../../context'
+import { useKeyboardShortcuts, useTheme, validThemes } from '../../context'
 import { CreateAppointmentModal } from '../calendar'
 import type { PetServiceSelection } from '../calendar'
 import { useClients, useClientPets, useServices, useGroomers, useCreateAppointment } from '@/hooks'
@@ -33,7 +33,8 @@ export function AppLayout() {
   const [selectedClientId, setSelectedClientId] = useState('')
   const isMobile = useIsMobile()
   const location = useLocation()
-  const { registerSidebarToggle, registerBookAppointment, registerSidebarNavigate } = useKeyboardShortcuts()
+  const { registerSidebarToggle, registerBookAppointment, registerSidebarNavigate, registerThemeCycle } = useKeyboardShortcuts()
+  const { currentTheme, setTheme } = useTheme()
   const navigate = useNavigate()
 
   // Sidebar routes for keyboard navigation
@@ -82,6 +83,13 @@ export function AppLayout() {
     setShowBookModal(true)
   }, [])
 
+  // Create a stable theme cycle callback
+  const cycleTheme = useCallback(() => {
+    const currentIndex = validThemes.indexOf(currentTheme)
+    const nextIndex = (currentIndex + 1) % validThemes.length
+    setTheme(validThemes[nextIndex])
+  }, [currentTheme, setTheme])
+
   // Handle appointment creation
   const handleCreateAppointment = async (data: { clientId: string; petServices: PetServiceSelection[]; groomerId: string; notes: string; startTime: string; endTime: string }) => {
     try {
@@ -111,7 +119,8 @@ export function AppLayout() {
   useEffect(() => {
     registerSidebarToggle(toggleSidebar)
     registerBookAppointment(openBookAppointment)
-  }, [registerSidebarToggle, registerBookAppointment, toggleSidebar, openBookAppointment])
+    registerThemeCycle(cycleTheme)
+  }, [registerSidebarToggle, registerBookAppointment, registerThemeCycle, toggleSidebar, openBookAppointment, cycleTheme])
 
   // Register sidebar navigation keyboard shortcut
   useEffect(() => {

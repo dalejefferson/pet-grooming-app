@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Search, Plus } from 'lucide-react'
-import { Card, Button, Input, Modal } from '../../components/common'
+import { Card, Button, Input, Modal, HistorySection } from '../../components/common'
 import { GroomerForm, GroomerCard } from '../../components/groomers'
-import { useGroomers, useCreateGroomer, useUpdateGroomer, useDeleteGroomer } from '@/hooks'
+import { useGroomers, useCreateGroomer, useUpdateGroomer, useDeleteGroomer, useDeletedHistory, useAddToHistory } from '@/hooks'
 import { cn } from '@/lib/utils'
 import type { Groomer } from '@/types'
 import { useTheme, useUndo } from '../../context'
@@ -15,9 +15,11 @@ export function GroomersPage() {
   const [editingGroomer, setEditingGroomer] = useState<Groomer | null>(null)
 
   const { data: groomers = [], isLoading } = useGroomers()
+  const { data: deletedItems = [] } = useDeletedHistory('groomer')
   const createGroomer = useCreateGroomer()
   const updateGroomer = useUpdateGroomer()
   const deleteGroomer = useDeleteGroomer()
+  const addToHistory = useAddToHistory()
 
   const filteredGroomers = groomers.filter((groomer) => {
     if (!searchQuery) return true
@@ -51,6 +53,14 @@ export function GroomersPage() {
     if (!groomerToDelete) return
 
     await deleteGroomer.mutateAsync(groomerId)
+
+    // Add to history for restore functionality
+    await addToHistory.mutateAsync({
+      entityType: 'groomer',
+      entityId: groomerToDelete.id,
+      entityName: `${groomerToDelete.firstName} ${groomerToDelete.lastName}`,
+      data: groomerToDelete,
+    })
 
     showUndo({
       type: 'groomer',
@@ -172,6 +182,12 @@ export function GroomersPage() {
           />
         )}
       </Modal>
+
+      <HistorySection
+        items={deletedItems}
+        entityType="groomer"
+        title="Recently Deleted Groomers"
+      />
       </div>
     </div>
   )

@@ -1,5 +1,5 @@
 export { BookingProvider, useBookingContext } from './BookingContext'
-export { ThemeProvider, useTheme, themeColors } from './ThemeContext'
+export { ThemeProvider, useTheme, themeColors, validThemes } from './ThemeContext'
 export type { ThemeName, ThemeColors } from './ThemeContext'
 export { KeyboardProvider, useKeyboardShortcuts } from './KeyboardContext'
 export { UndoProvider, useUndo } from './UndoContext'

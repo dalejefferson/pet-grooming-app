@@ -1,4 +1,4 @@
-export const APP_NAME = import.meta.env.VITE_APP_NAME || 'Pet Grooming Pro'
+export const APP_NAME = import.meta.env.VITE_APP_NAME || 'Sit Pretty Club'
 export const APP_URL = import.meta.env.VITE_APP_URL || 'http://localhost:5173'
 
 export const APPOINTMENT_STATUS_COLORS: Record<string, string> = {
