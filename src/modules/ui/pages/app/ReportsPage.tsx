@@ -17,7 +17,7 @@ import {
   NewClientsChart,
   ReportsChartStyles,
   DATE_RANGES,
-  STATUS_COLORS,
+  getThemedStatusColors,
 } from '../../components/reports'
 import type { DateRange } from '../../components/reports'
 
@@ -65,7 +65,7 @@ export function ReportsPage() {
     }))
   }, [filteredAppointments, dateRange.days, today])
 
-  // Appointments by status data
+  // Appointments by status data (uses theme colors)
   const statusData = useMemo(() => {
     const statusCounts: Record<AppointmentStatus, number> = {
       requested: 0,
@@ -81,14 +81,16 @@ export function ReportsPage() {
       statusCounts[apt.status]++
     })
 
+    const themedStatusColors = getThemedStatusColors(colors)
+
     return Object.entries(statusCounts)
       .filter(([, count]) => count > 0)
       .map(([status, count]) => ({
         status: status.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
         count,
-        fill: STATUS_COLORS[status as AppointmentStatus],
+        fill: themedStatusColors[status as AppointmentStatus],
       }))
-  }, [filteredAppointments])
+  }, [filteredAppointments, colors])
 
   // Top services data
   const topServicesData = useMemo(() => {

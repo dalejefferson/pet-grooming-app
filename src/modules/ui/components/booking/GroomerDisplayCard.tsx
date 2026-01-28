@@ -111,7 +111,8 @@ export function GroomerDisplayCard({
                   <span className="text-sm font-bold text-primary-600">{formatCurrency(service.basePrice)}</span>
                   <button
                     onClick={() => onToggleService(service.id)}
-                    className="ml-1 text-gray-400 hover:text-danger-500 transition-colors"
+                    aria-label={`Remove ${service.name}`}
+                    className="ml-1 text-gray-500 hover:text-danger-500 transition-colors cursor-pointer"
                   >
                     ×
                   </button>

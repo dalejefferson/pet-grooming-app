@@ -152,7 +152,8 @@ export const ComboBox = forwardRef<HTMLInputElement, ComboBoxProps>(
               <button
                 type="button"
                 onClick={handleClear}
-                className="p-1 text-gray-400 hover:text-gray-600 rounded"
+                aria-label="Clear selection"
+                className="p-1 text-gray-500 hover:text-gray-700 rounded cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -160,7 +161,8 @@ export const ComboBox = forwardRef<HTMLInputElement, ComboBoxProps>(
             <button
               type="button"
               onClick={() => setIsOpen(!isOpen)}
-              className="p-1 text-gray-400 hover:text-gray-600 rounded"
+              aria-label={isOpen ? 'Close dropdown' : 'Open dropdown'}
+              className="p-1 text-gray-500 hover:text-gray-700 rounded cursor-pointer"
             >
               <ChevronDown className={cn('h-4 w-4 transition-transform', isOpen && 'rotate-180')} />
             </button>

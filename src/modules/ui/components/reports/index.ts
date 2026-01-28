@@ -19,4 +19,5 @@ export {
   PASTEL_COLORS,
   STATUS_COLORS,
   DATE_RANGES,
+  getThemedStatusColors,
 } from './types'

@@ -151,6 +151,7 @@ export function Sidebar({ collapsed, onToggle, isMobile = false, onClose }: Side
             onClick={handleNavClick}
             onMouseEnter={(e) => showTooltip(item.label, e.currentTarget)}
             onMouseLeave={hideTooltip}
+            aria-label={item.label}
             className={({ isActive }) =>
               cn(
                 'group relative flex items-center rounded-xl text-sm transition-all duration-150',
@@ -184,6 +185,7 @@ export function Sidebar({ collapsed, onToggle, isMobile = false, onClose }: Side
           onClick={handleNavClick}
           onMouseEnter={(e) => showTooltip('Settings', e.currentTarget)}
           onMouseLeave={hideTooltip}
+          aria-label="Settings"
           className={({ isActive }) =>
             cn(
               'group relative flex items-center rounded-xl text-sm transition-all duration-150',
@@ -213,6 +215,7 @@ export function Sidebar({ collapsed, onToggle, isMobile = false, onClose }: Side
           }}
           onMouseEnter={(e) => showTooltip('Log out', e.currentTarget)}
           onMouseLeave={hideTooltip}
+          aria-label="Log out"
           className={cn(
             'group relative nav-link-inactive flex items-center rounded-xl text-sm transition-all duration-150',
             isMobile ? 'min-h-[44px] w-full gap-3 px-3 py-2.5' : (

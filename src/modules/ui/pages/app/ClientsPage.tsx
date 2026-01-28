@@ -110,7 +110,7 @@ function ClientCard({ client, accentColor }: { client: Client; accentColor: stri
 
   return (
     <Link to={`/app/clients/${client.id}`}>
-      <Card className="aspect-square flex flex-col items-center justify-center p-4 text-center transition-all hover:shadow-md hover:-translate-y-1">
+      <Card className="aspect-square flex flex-col items-center justify-center p-4 text-center transition-all cursor-pointer hover:shadow-md hover:-translate-y-1">
         {/* Profile Image */}
         <div
           className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-[#1e293b] text-2xl font-bold text-[#334155] shadow-[3px_3px_0px_0px_#1e293b] overflow-hidden"

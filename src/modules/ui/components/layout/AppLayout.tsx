@@ -27,13 +27,10 @@ export function AppLayout() {
   const isMobile = useIsMobile()
   const location = useLocation()
 
-  // Close mobile sidebar and collapse desktop sidebar when route changes
+  // Close mobile sidebar when route changes (desktop sidebar state is user-controlled)
   useEffect(() => {
     if (isMobile) {
       setSidebarOpen(false)
-    } else {
-      // Auto-collapse sidebar on desktop when navigating to a different tab
-      setSidebarCollapsed(true)
     }
   }, [location.pathname, isMobile])
 

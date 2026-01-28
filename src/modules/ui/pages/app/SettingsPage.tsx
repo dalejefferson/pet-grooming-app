@@ -193,10 +193,10 @@ export function SettingsPage() {
               <button
                 key={theme.name}
                 onClick={() => setTheme(theme.name)}
-                className={`relative flex flex-col items-center gap-3 rounded-xl border-2 border-[#1e293b] p-4 transition-all hover:scale-[1.02] ${
+                className={`relative flex flex-col items-center gap-3 rounded-xl border-2 border-[#1e293b] p-4 transition-all cursor-pointer ${
                   isSelected
                     ? 'shadow-[4px_4px_0px_0px_#1e293b] bg-white'
-                    : 'bg-white/50 hover:bg-white/80'
+                    : 'bg-white/50 hover:bg-white/80 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b]'
                 }`}
               >
                 {/* Selected indicator */}

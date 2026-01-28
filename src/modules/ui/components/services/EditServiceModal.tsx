@@ -75,8 +75,9 @@ export function EditServiceModal({
                   variant="ghost"
                   size="sm"
                   onClick={() => handleRemoveModifier(modifier.id)}
+                  aria-label={`Remove ${modifier.name} modifier`}
                 >
-                  <Trash2 className="h-4 w-4 text-gray-400" />
+                  <Trash2 className="h-4 w-4 text-gray-500 hover:text-danger-500" />
                 </Button>
               </div>
             ))}

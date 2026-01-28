@@ -68,10 +68,10 @@ export function DashboardPage() {
       {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Link key={stat.label} to={stat.link} className="group">
-            <Card className="cursor-pointer transition-all duration-200 hover:shadow-md hover:ring-2 hover:ring-primary-200 group-hover:bg-gray-50">
+          <Link key={stat.label} to={stat.link}>
+            <Card className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]">
               <div className="flex items-center gap-4">
-                <div className={cn('rounded-lg p-3 transition-transform duration-200 group-hover:scale-105', stat.color)}>
+                <div className={cn('rounded-lg p-3', stat.color)}>
                   <stat.icon className="h-6 w-6" />
                 </div>
                 <div>
@@ -108,8 +108,10 @@ export function DashboardPage() {
                     : [...prev, status]
                 )
               }}
+              aria-label={`${selectedStatuses.includes(status) ? 'Hide' : 'Show'} ${APPOINTMENT_STATUS_LABELS[status].toLowerCase()} appointments`}
+              aria-pressed={selectedStatuses.includes(status)}
               className={cn(
-                'rounded-lg border-2 border-[#1e293b] px-3 py-1 text-xs font-medium transition-all',
+                'rounded-lg border-2 border-[#1e293b] px-3 py-1 text-xs font-medium transition-all cursor-pointer',
                 selectedStatuses.includes(status)
                   ? `${APPOINTMENT_STATUS_COLORS[status]} shadow-[2px_2px_0px_0px_#1e293b]`
                   : 'bg-white text-gray-500 hover:bg-gray-50'
@@ -168,31 +170,31 @@ export function DashboardPage() {
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Link
             to="/app/calendar"
-            className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
+            className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
           >
-            <Calendar className="h-5 w-5 text-primary-600" />
+            <Calendar className="h-5 w-5" style={{ color: colors.accentColorDark }} />
             <span className="font-medium text-gray-900">View Calendar</span>
           </Link>
           <Link
             to="/app/clients"
-            className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
+            className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
           >
-            <Users className="h-5 w-5 text-primary-600" />
+            <Users className="h-5 w-5" style={{ color: colors.accentColorDark }} />
             <span className="font-medium text-gray-900">Manage Clients</span>
           </Link>
           <Link
             to="/app/services"
-            className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
+            className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
           >
-            <TrendingUp className="h-5 w-5 text-primary-600" />
+            <TrendingUp className="h-5 w-5" style={{ color: colors.accentColorDark }} />
             <span className="font-medium text-gray-900">Edit Services</span>
           </Link>
           <Link
             to={`/book/paws-claws/start`}
             target="_blank"
-            className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
+            className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
           >
-            <Dog className="h-5 w-5 text-primary-600" />
+            <Dog className="h-5 w-5" style={{ color: colors.accentColorDark }} />
             <span className="font-medium text-gray-900">Booking Portal</span>
           </Link>
         </div>

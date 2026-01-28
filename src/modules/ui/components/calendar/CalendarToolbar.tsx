@@ -78,6 +78,8 @@ function ViewToggle({ view, onViewChange, accentColorDark }: ViewToggleProps) {
         <button
           key={btn.value}
           onClick={() => onViewChange(btn.value)}
+          aria-label={`Switch to ${btn.label.toLowerCase()} view`}
+          aria-pressed={view === btn.value}
           className={cn(
             'rounded-lg px-3 sm:px-4 py-2 sm:py-1.5 text-sm min-h-[44px] sm:min-h-0 font-semibold transition-all',
             view === btn.value
@@ -144,6 +146,8 @@ function StatusFilters({ selectedStatuses, onStatusFilterChange }: StatusFilters
           <button
             key={status.value}
             onClick={() => handleStatusToggle(status.value)}
+            aria-label={`${isActive ? 'Hide' : 'Show'} ${status.label.toLowerCase()} appointments`}
+            aria-pressed={isActive}
             className={cn(
               'rounded-lg px-3 py-1.5 text-xs font-semibold transition-all border-2',
               isActive
@@ -167,6 +171,7 @@ function StatusFilters({ selectedStatuses, onStatusFilterChange }: StatusFilters
       {selectedStatuses.length > 0 && (
         <button
           onClick={() => onStatusFilterChange([])}
+          aria-label="Clear all status filters"
           className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[#64748b] hover:text-[#1e293b] hover:bg-gray-100 transition-colors"
         >
           Clear
