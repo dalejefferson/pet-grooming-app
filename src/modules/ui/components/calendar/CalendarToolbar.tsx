@@ -1,3 +1,4 @@
+import { useState, useCallback, useRef } from 'react'
 import { Search, X } from 'lucide-react'
 import { Card } from '../common'
 import { cn } from '@/lib/utils'
@@ -6,20 +7,45 @@ import type { CalendarToolbarProps, ViewType } from './types'
 import type { AppointmentStatus } from '@/types'
 import { STATUS_BG_COLORS, STATUS_BORDER_COLORS, STATUS_TEXT_COLORS } from './types'
 
+// Tooltip state and component for status filter buttons
+interface TooltipState {
+  visible: boolean
+  label: string
+  left: number
+  top: number
+}
+
+function StatusTooltip({ visible, label, left, top }: TooltipState) {
+  if (!visible) return null
+
+  return (
+    <div
+      className="pointer-events-none fixed z-50 whitespace-nowrap rounded-xl border-2 border-[#1e293b] bg-white px-3 py-1.5 text-sm font-medium text-[#1e293b] shadow-[2px_2px_0px_0px_#1e293b] transition-opacity duration-150"
+      style={{
+        left: `${left}px`,
+        top: `${top}px`,
+        opacity: visible ? 1 : 0,
+      }}
+    >
+      {label}
+    </div>
+  )
+}
+
 const viewButtons: { value: ViewType; label: string }[] = [
   { value: 'day', label: 'Day' },
   { value: 'week', label: 'Week' },
   { value: 'month', label: 'Month' },
 ]
 
-const statusOptions: { value: AppointmentStatus; label: string }[] = [
-  { value: 'requested', label: 'Requested' },
-  { value: 'confirmed', label: 'Confirmed' },
-  { value: 'checked_in', label: 'Checked In' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'cancelled', label: 'Cancelled' },
-  { value: 'no_show', label: 'No Show' },
+const statusOptions: { value: AppointmentStatus; label: string; abbrev: string }[] = [
+  { value: 'requested', label: 'Requested', abbrev: 'R' },
+  { value: 'confirmed', label: 'Confirmed', abbrev: 'C' },
+  { value: 'checked_in', label: 'Checked In', abbrev: 'I' },
+  { value: 'in_progress', label: 'In Progress', abbrev: 'P' },
+  { value: 'completed', label: 'Completed', abbrev: 'D' },
+  { value: 'cancelled', label: 'Cancelled', abbrev: 'X' },
+  { value: 'no_show', label: 'No Show', abbrev: 'N' },
 ]
 
 // Helper sub-components
@@ -81,7 +107,7 @@ function ViewToggle({ view, onViewChange, accentColorDark }: ViewToggleProps) {
           aria-label={`Switch to ${btn.label.toLowerCase()} view`}
           aria-pressed={view === btn.value}
           className={cn(
-            'rounded-lg px-4 py-1.5 text-sm font-semibold transition-all',
+            'w-16 rounded-lg px-2 py-1.5 text-sm font-semibold transition-all text-center',
             view === btn.value
               ? 'text-[#1e293b] shadow-inner border-2 border-[#1e293b]'
               : 'bg-transparent text-[#334155] hover:bg-[var(--accent-color-light)]'
@@ -130,6 +156,9 @@ interface StatusFiltersProps {
 }
 
 function StatusFilters({ selectedStatuses, onStatusFilterChange }: StatusFiltersProps) {
+  const [tooltip, setTooltip] = useState<TooltipState>({ visible: false, label: '', left: 0, top: 0 })
+  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const handleStatusToggle = (status: AppointmentStatus) => {
     if (selectedStatuses.includes(status)) {
       onStatusFilterChange(selectedStatuses.filter((s) => s !== status))
@@ -138,46 +167,71 @@ function StatusFilters({ selectedStatuses, onStatusFilterChange }: StatusFilters
     }
   }
 
+  const showTooltip = useCallback((label: string, element: HTMLElement) => {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current)
+      hideTimeoutRef.current = null
+    }
+
+    const rect = element.getBoundingClientRect()
+    // Position tooltip centered below the button
+    const left = rect.left + rect.width / 2 - 40 // Approximate centering
+    const top = rect.bottom + 8 // 8px below the button
+    setTooltip({ visible: true, label, left, top })
+  }, [])
+
+  const hideTooltip = useCallback(() => {
+    hideTimeoutRef.current = setTimeout(() => {
+      setTooltip(prev => ({ ...prev, visible: false }))
+    }, 50)
+  }, [])
+
   return (
-    <div className="flex flex-nowrap gap-2 overflow-x-auto">
-      {statusOptions.map((status) => {
-        const isActive = selectedStatuses.includes(status.value)
-        return (
+    <>
+      <div className="flex flex-nowrap items-center gap-1 overflow-x-auto">
+        {statusOptions.map((status) => {
+          const isActive = selectedStatuses.includes(status.value)
+          return (
+            <button
+              key={status.value}
+              onClick={() => handleStatusToggle(status.value)}
+              onMouseEnter={(e) => showTooltip(status.label, e.currentTarget)}
+              onMouseLeave={hideTooltip}
+              aria-label={`${isActive ? 'Hide' : 'Show'} ${status.label.toLowerCase()} appointments`}
+              aria-pressed={isActive}
+              className={cn(
+                'h-9 w-9 flex items-center justify-center rounded-xl border-2 border-[#1e293b] text-xs font-bold transition-all',
+                isActive
+                  ? 'shadow-[2px_2px_0px_0px_#1e293b] -translate-y-0.5'
+                  : 'bg-white hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_0px_#1e293b]'
+              )}
+              style={
+                isActive
+                  ? {
+                      backgroundColor: STATUS_BG_COLORS[status.value],
+                      color: STATUS_TEXT_COLORS[status.value],
+                    }
+                  : undefined
+              }
+            >
+              {status.abbrev}
+            </button>
+          )
+        })}
+        {selectedStatuses.length > 0 && (
           <button
-            key={status.value}
-            onClick={() => handleStatusToggle(status.value)}
-            aria-label={`${isActive ? 'Hide' : 'Show'} ${status.label.toLowerCase()} appointments`}
-            aria-pressed={isActive}
-            className={cn(
-              'rounded-lg px-3 py-1.5 text-xs font-semibold transition-all border-2',
-              isActive
-                ? 'shadow-[2px_2px_0px_0px_#1e293b] -translate-y-0.5'
-                : 'border-transparent bg-gray-100 text-[#64748b] hover:bg-gray-200'
-            )}
-            style={
-              isActive
-                ? {
-                    backgroundColor: STATUS_BG_COLORS[status.value],
-                    borderColor: STATUS_BORDER_COLORS[status.value],
-                    color: STATUS_TEXT_COLORS[status.value],
-                  }
-                : undefined
-            }
+            onClick={() => onStatusFilterChange([])}
+            onMouseEnter={(e) => showTooltip('Clear all filters', e.currentTarget)}
+            onMouseLeave={hideTooltip}
+            aria-label="Clear all status filters"
+            className="h-9 w-9 flex items-center justify-center rounded-xl border-2 border-[#1e293b] bg-white text-xs font-bold text-[#64748b] hover:text-[#1e293b] hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_0px_#1e293b] transition-all"
           >
-            {status.label}
+            ✕
           </button>
-        )
-      })}
-      {selectedStatuses.length > 0 && (
-        <button
-          onClick={() => onStatusFilterChange([])}
-          aria-label="Clear all status filters"
-          className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[#64748b] hover:text-[#1e293b] hover:bg-gray-100 transition-colors"
-        >
-          Clear
-        </button>
-      )}
-    </div>
+        )}
+      </div>
+      <StatusTooltip {...tooltip} />
+    </>
   )
 }
 

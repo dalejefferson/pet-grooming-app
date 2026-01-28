@@ -1,24 +1,103 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { Calendar, Users, Dog, Clock, TrendingUp, AlertCircle } from 'lucide-react'
 import { Card, CardTitle, Badge } from '../../components/common'
-import { useAppointmentsByDay, useClients, usePets } from '@/hooks'
+import { AppointmentDetailsDrawer, StatusChangeModal } from '../../components/calendar'
+import { useAppointmentsByDay, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useDeleteAppointment, useCreateAppointment } from '@/hooks'
+import { useUndo } from '@/modules/ui/context'
 import { format } from 'date-fns'
 import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_STATUS_COLORS } from '@/config/constants'
 import { cn } from '@/lib/utils'
 import { useTheme } from '../../context'
-import type { AppointmentStatus } from '@/types'
+import type { AppointmentStatus, Appointment } from '@/types'
 
 export function DashboardPage() {
   const { colors } = useTheme()
+  const { showUndo } = useUndo()
   const today = new Date()
   const { data: todayAppointments = [] } = useAppointmentsByDay(today)
   const { data: clients = [] } = useClients()
   const { data: pets = [] } = usePets()
+  const { data: groomers = [] } = useGroomers()
+
+  // Appointment editing state
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const [showStatusNotesModal, setShowStatusNotesModal] = useState(false)
+  const [pendingStatusChange, setPendingStatusChange] = useState<'no_show' | 'cancelled' | null>(null)
+  const [statusNotes, setStatusNotes] = useState('')
+
+  // Mutations
+  const updateStatus = useUpdateAppointmentStatus()
+  const deleteAppointment = useDeleteAppointment()
+  const createAppointment = useCreateAppointment()
 
   const [selectedStatuses, setSelectedStatuses] = useState<AppointmentStatus[]>([
     'requested', 'confirmed', 'checked_in', 'in_progress'
   ])
+
+  // Status change handlers
+  const handleStatusChange = async (status: AppointmentStatus) => {
+    if (!selectedAppointment) return
+    if (status === 'no_show' || status === 'cancelled') {
+      setPendingStatusChange(status)
+      setStatusNotes(selectedAppointment.statusNotes || '')
+      setShowStatusNotesModal(true)
+    } else {
+      await updateStatus.mutateAsync({ id: selectedAppointment.id, status, statusNotes: undefined })
+      setSelectedAppointment((prev) => (prev ? { ...prev, status, statusNotes: undefined } : null))
+    }
+  }
+
+  const handleQuickStatusChange = (status: 'no_show' | 'cancelled') => {
+    if (!selectedAppointment) return
+    setPendingStatusChange(status)
+    setStatusNotes(selectedAppointment.statusNotes || '')
+    setShowStatusNotesModal(true)
+  }
+
+  const handleConfirmStatusWithNotes = async () => {
+    if (!selectedAppointment || !pendingStatusChange) return
+    await updateStatus.mutateAsync({ id: selectedAppointment.id, status: pendingStatusChange, statusNotes: statusNotes || undefined })
+    setSelectedAppointment((prev) => (prev ? { ...prev, status: pendingStatusChange, statusNotes: statusNotes || undefined } : null))
+    setShowStatusNotesModal(false)
+    setPendingStatusChange(null)
+    setStatusNotes('')
+  }
+
+  const handleCancelStatusNotes = () => {
+    setShowStatusNotesModal(false)
+    setPendingStatusChange(null)
+    setStatusNotes('')
+  }
+
+  const handleDeleteAppointment = useCallback(async (appointmentId: string) => {
+    const appointment = todayAppointments.find(a => a.id === appointmentId)
+    if (!appointment) return
+
+    const client = clients.find(c => c.id === appointment.clientId)
+    const petNames = appointment.pets.map(p => pets.find(pet => pet.id === p.petId)?.name).filter(Boolean).join(', ')
+
+    await deleteAppointment.mutateAsync(appointmentId)
+    setSelectedAppointment(null)
+
+    showUndo({
+      type: 'appointment',
+      label: client ? `${client.firstName} ${client.lastName} - ${petNames}` : 'Appointment',
+      data: appointment,
+      onUndo: async () => {
+        await createAppointment.mutateAsync({
+          clientId: appointment.clientId,
+          pets: appointment.pets,
+          groomerId: appointment.groomerId,
+          startTime: appointment.startTime,
+          endTime: appointment.endTime,
+          status: appointment.status,
+          depositPaid: appointment.depositPaid,
+          totalAmount: appointment.totalAmount,
+        })
+      },
+    })
+  }, [todayAppointments, clients, pets, deleteAppointment, createAppointment, showUndo])
 
   const upcomingAppointments = todayAppointments
     .filter((a) => selectedStatuses.length === 0 || selectedStatuses.includes(a.status))
@@ -128,37 +207,42 @@ export function DashboardPage() {
           </div>
         ) : (
           <div className="max-h-[280px] overflow-y-auto space-y-3">
-            {upcomingAppointments.map((appointment) => (
-              <div
-                key={appointment.id}
-                className="flex items-center justify-between rounded-lg border border-gray-200 p-3"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="text-center">
-                    <p className="text-lg font-semibold text-gray-900">
-                      {format(new Date(appointment.startTime), 'h:mm')}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {format(new Date(appointment.startTime), 'a')}
-                    </p>
-                  </div>
-                  <div className="h-10 w-px bg-gray-200" />
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      {appointment.pets.length} pet{appointment.pets.length > 1 ? 's' : ''}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Client #{appointment.clientId.split('-')[1]}
-                    </p>
-                  </div>
-                </div>
-                <Badge
-                  className={cn(APPOINTMENT_STATUS_COLORS[appointment.status])}
+            {upcomingAppointments.map((appointment) => {
+              const client = clients.find(c => c.id === appointment.clientId)
+              const appointmentPets = appointment.pets.map(p => pets.find(pet => pet.id === p.petId)).filter(Boolean)
+              return (
+                <button
+                  key={appointment.id}
+                  onClick={() => setSelectedAppointment(appointment)}
+                  className="w-full flex items-center justify-between rounded-xl border-2 border-[#1e293b] bg-white p-3 shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b] text-left"
                 >
-                  {APPOINTMENT_STATUS_LABELS[appointment.status]}
-                </Badge>
-              </div>
-            ))}
+                  <div className="flex items-center gap-3">
+                    <div className="text-center">
+                      <p className="text-lg font-semibold text-gray-900">
+                        {format(new Date(appointment.startTime), 'h:mm')}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {format(new Date(appointment.startTime), 'a')}
+                      </p>
+                    </div>
+                    <div className="h-10 w-px bg-gray-200" />
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {appointmentPets.map(p => p?.name).join(', ') || `${appointment.pets.length} pet${appointment.pets.length > 1 ? 's' : ''}`}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {client ? `${client.firstName} ${client.lastName}` : `Client #${appointment.clientId.split('-')[1]}`}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge
+                    className={cn(APPOINTMENT_STATUS_COLORS[appointment.status])}
+                  >
+                    {APPOINTMENT_STATUS_LABELS[appointment.status]}
+                  </Badge>
+                </button>
+              )
+            })}
           </div>
         )}
       </Card>
@@ -199,6 +283,30 @@ export function DashboardPage() {
         </div>
       </Card>
       </div>
+
+      {/* Appointment Details Drawer */}
+      <AppointmentDetailsDrawer
+        appointment={selectedAppointment}
+        onClose={() => setSelectedAppointment(null)}
+        clients={clients}
+        pets={pets}
+        groomers={groomers}
+        onStatusChange={handleStatusChange}
+        onQuickStatusChange={handleQuickStatusChange}
+        onDelete={handleDeleteAppointment}
+        isDeleting={deleteAppointment.isPending}
+      />
+
+      {/* Status Change Modal for No Show / Cancelled */}
+      <StatusChangeModal
+        isOpen={showStatusNotesModal}
+        onClose={handleCancelStatusNotes}
+        pendingStatus={pendingStatusChange}
+        notes={statusNotes}
+        onNotesChange={setStatusNotes}
+        onConfirm={handleConfirmStatusWithNotes}
+        isUpdating={updateStatus.isPending}
+      />
     </div>
   )
 }
