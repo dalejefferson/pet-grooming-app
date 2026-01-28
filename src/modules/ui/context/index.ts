@@ -3,3 +3,4 @@ export { ThemeProvider, useTheme, themeColors, validThemes } from './ThemeContex
 export type { ThemeName, ThemeColors } from './ThemeContext'
 export { KeyboardProvider, useKeyboardShortcuts } from './KeyboardContext'
 export { UndoProvider, useUndo } from './UndoContext'
+export { ShortcutTipsProvider, useShortcutTips } from './ShortcutTipsContext'
