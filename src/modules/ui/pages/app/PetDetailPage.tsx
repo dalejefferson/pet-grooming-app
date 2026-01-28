@@ -12,6 +12,7 @@ import {
   GroomingNotesCard,
   VaccinationSection,
 } from '../../components/pets'
+import type { PetInfoFormData } from '../../components/pets'
 
 export function PetDetailPage() {
   const { colors } = useTheme()
@@ -47,6 +48,14 @@ export function PetDetailPage() {
     await updatePet.mutateAsync({ id: pet.id, data: { groomingNotes: notes } })
   }
 
+  const handleSaveInfo = async (data: PetInfoFormData) => {
+    await updatePet.mutateAsync({ id: pet.id, data })
+  }
+
+  const handleSaveMedicalNotes = async (notes: string) => {
+    await updatePet.mutateAsync({ id: pet.id, data: { medicalNotes: notes } })
+  }
+
   const handleAddVaccination = async (vaccination: { name: string; dateAdministered: string; expirationDate: string; documentUrl?: string }) => {
     await addVaccination.mutateAsync({ petId: pet.id, vaccination })
   }
@@ -65,9 +74,18 @@ export function PetDetailPage() {
         <PetHeader pet={pet} onImageChange={handleImageChange} />
 
         <div className="grid gap-6 lg:grid-cols-3">
-          <PetInfoCard pet={pet} client={client} />
+          <PetInfoCard
+            pet={pet}
+            client={client}
+            onSaveInfo={handleSaveInfo}
+            isSaving={updatePet.isPending}
+          />
           <BehaviorLevelCard pet={pet} onBehaviorChange={handleBehaviorChange} />
-          <MedicalNotesCard pet={pet} />
+          <MedicalNotesCard
+            pet={pet}
+            onSaveMedicalNotes={handleSaveMedicalNotes}
+            isSaving={updatePet.isPending}
+          />
         </div>
 
         <GroomingNotesCard

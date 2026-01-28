@@ -2,7 +2,7 @@ export { PetHeader } from './PetHeader'
 export type { PetHeaderProps } from './PetHeader'
 
 export { PetInfoCard } from './PetInfoCard'
-export type { PetInfoCardProps } from './PetInfoCard'
+export type { PetInfoCardProps, PetInfoFormData } from './PetInfoCard'
 
 export { BehaviorLevelCard } from './BehaviorLevelCard'
 export type { BehaviorLevelCardProps } from './BehaviorLevelCard'
