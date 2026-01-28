@@ -1,8 +1,9 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
+import { hexToRgb, luminance } from '@/lib/utils/contrast'
 
 // Theme types
-export type ThemeName = 'mint' | 'lavender' | 'peach' | 'ocean' | 'rose' | 'sunset' | 'forest' | 'sky'
+export type ThemeName = 'mint' | 'lavender' | 'peach' | 'ocean' | 'rose' | 'sunset' | 'forest' | 'sky' | 'skyButter' | 'oceanCitrus' | 'blueMango' | 'aquaSunset' | 'mintCreamsicle' | 'mintBlush'
 
 export interface ThemeColors {
   sidebarGradient: string
@@ -17,6 +18,24 @@ export interface ThemeColors {
   gradientFrom: string
   gradientVia: string
   gradientTo: string
+  // Text colors for contrast on themed backgrounds
+  textOnPrimary: string // Color for text on primary/accent background
+  textOnAccent: string // Color for text on accentColorDark background
+}
+
+// Constants for text colors
+const TEXT_DARK = '#1e293b' // ink color for light backgrounds
+const TEXT_LIGHT = '#ffffff' // white for dark backgrounds
+
+/**
+ * Determines the best text color for a given background color.
+ * Uses WCAG luminance calculation - if background is light (luminance > 0.5), use dark text.
+ */
+function getTextColorForBackground(bgColor: string): string {
+  const rgb = hexToRgb(bgColor)
+  const lum = luminance(rgb.r, rgb.g, rgb.b)
+  // If luminance > 0.5, the background is light, so use dark text
+  return lum > 0.5 ? TEXT_DARK : TEXT_LIGHT
 }
 
 interface ThemeContextValue {
@@ -26,6 +45,8 @@ interface ThemeContextValue {
 }
 
 // Color palette definitions
+// textOnPrimary: text color for accentColor background
+// textOnAccent: text color for accentColorDark background
 const themeColors: Record<ThemeName, ThemeColors> = {
   mint: {
     sidebarGradient: 'bg-gradient-to-b from-[#ecfccb] to-[#d1fae5]',
@@ -39,6 +60,8 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientFrom: '#ecfccb',
     gradientVia: '#d1fae5',
     gradientTo: '#fef9c3',
+    textOnPrimary: getTextColorForBackground('#d1fae5'), // light mint -> dark text
+    textOnAccent: getTextColorForBackground('#a7f3d0'), // light mint -> dark text
   },
   lavender: {
     sidebarGradient: 'bg-gradient-to-b from-[#e9d5ff] to-[#ddd6fe]',
@@ -52,6 +75,8 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientFrom: '#e9d5ff',
     gradientVia: '#ddd6fe',
     gradientTo: '#f3e8ff',
+    textOnPrimary: getTextColorForBackground('#e9d5ff'), // light lavender -> dark text
+    textOnAccent: getTextColorForBackground('#c4b5fd'), // light purple -> dark text
   },
   peach: {
     sidebarGradient: 'bg-gradient-to-b from-[#fed7aa] to-[#fecaca]',
@@ -65,6 +90,8 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientFrom: '#fed7aa',
     gradientVia: '#fecaca',
     gradientTo: '#ffedd5',
+    textOnPrimary: getTextColorForBackground('#fed7aa'), // light peach -> dark text
+    textOnAccent: getTextColorForBackground('#fdba74'), // medium peach -> dark text
   },
   ocean: {
     sidebarGradient: 'bg-gradient-to-b from-[#a5f3fc] to-[#99f6e4]',
@@ -78,6 +105,8 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientFrom: '#a5f3fc',
     gradientVia: '#99f6e4',
     gradientTo: '#cffafe',
+    textOnPrimary: getTextColorForBackground('#a5f3fc'), // light cyan -> dark text
+    textOnAccent: getTextColorForBackground('#67e8f9'), // medium cyan -> dark text
   },
   rose: {
     sidebarGradient: 'bg-gradient-to-b from-[#fecdd3] to-[#fbcfe8]',
@@ -91,6 +120,8 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientFrom: '#fecdd3',
     gradientVia: '#fbcfe8',
     gradientTo: '#fce7f3',
+    textOnPrimary: getTextColorForBackground('#fecdd3'), // light rose -> dark text
+    textOnAccent: getTextColorForBackground('#fda4af'), // medium rose -> dark text
   },
   sunset: {
     sidebarGradient: 'bg-gradient-to-b from-[#fde68a] to-[#fed7aa]',
@@ -104,6 +135,8 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientFrom: '#fde68a',
     gradientVia: '#fed7aa',
     gradientTo: '#fef3c7',
+    textOnPrimary: getTextColorForBackground('#fde68a'), // light yellow -> dark text
+    textOnAccent: getTextColorForBackground('#fcd34d'), // medium yellow -> dark text
   },
   forest: {
     sidebarGradient: 'bg-gradient-to-b from-[#bbf7d0] to-[#a7f3d0]',
@@ -117,6 +150,8 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientFrom: '#bbf7d0',
     gradientVia: '#a7f3d0',
     gradientTo: '#dcfce7',
+    textOnPrimary: getTextColorForBackground('#bbf7d0'), // light green -> dark text
+    textOnAccent: getTextColorForBackground('#86efac'), // medium green -> dark text
   },
   sky: {
     sidebarGradient: 'bg-gradient-to-b from-[#bae6fd] to-[#e0f2fe]',
@@ -130,6 +165,99 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientFrom: '#bae6fd',
     gradientVia: '#e0f2fe',
     gradientTo: '#f0f9ff',
+    textOnPrimary: getTextColorForBackground('#bae6fd'), // light blue -> dark text
+    textOnAccent: getTextColorForBackground('#7dd3fc'), // medium blue -> dark text
+  },
+  // New vibrant palettes
+  skyButter: {
+    sidebarGradient: 'bg-gradient-to-b from-[#4CC9FE] to-[#37AFE1]',
+    pageGradient: 'bg-gradient-to-br from-[#FFFECB] via-[#F5F4B3] to-[#4CC9FE]',
+    pageGradientLight: 'bg-gradient-to-br from-[#FFFECB]/30 to-[#4CC9FE]/30',
+    accentColor: '#4CC9FE',
+    accentColorLight: '#FFFECB',
+    accentColorDark: '#37AFE1',
+    secondaryAccent: '#F5F4B3', // light yellow
+    inkBorder: '#1e293b',
+    gradientFrom: '#FFFECB',
+    gradientVia: '#F5F4B3',
+    gradientTo: '#4CC9FE',
+    textOnPrimary: getTextColorForBackground('#4CC9FE'), // medium-dark blue -> check
+    textOnAccent: getTextColorForBackground('#37AFE1'), // medium-dark blue -> likely white
+  },
+  oceanCitrus: {
+    sidebarGradient: 'bg-gradient-to-b from-[#80D8C3] to-[#4DA8DA]',
+    pageGradient: 'bg-gradient-to-br from-[#F5F5F5] via-[#FFD66B] to-[#80D8C3]',
+    pageGradientLight: 'bg-gradient-to-br from-[#F5F5F5]/30 to-[#80D8C3]/30',
+    accentColor: '#80D8C3',
+    accentColorLight: '#F5F5F5',
+    accentColorDark: '#4DA8DA',
+    secondaryAccent: '#FFD66B', // gold
+    inkBorder: '#1e293b',
+    gradientFrom: '#F5F5F5',
+    gradientVia: '#FFD66B',
+    gradientTo: '#80D8C3',
+    textOnPrimary: getTextColorForBackground('#80D8C3'), // medium teal -> dark text
+    textOnAccent: getTextColorForBackground('#4DA8DA'), // medium blue -> check
+  },
+  blueMango: {
+    sidebarGradient: 'bg-gradient-to-b from-[#FFDE63] to-[#799EFF]',
+    pageGradient: 'bg-gradient-to-br from-[#FEFFC4] via-[#FFDE63] to-[#799EFF]',
+    pageGradientLight: 'bg-gradient-to-br from-[#FEFFC4]/30 to-[#799EFF]/30',
+    accentColor: '#FFDE63',
+    accentColorLight: '#FEFFC4',
+    accentColorDark: '#799EFF',
+    secondaryAccent: '#FFBC4C', // orange
+    inkBorder: '#1e293b',
+    gradientFrom: '#FEFFC4',
+    gradientVia: '#FFDE63',
+    gradientTo: '#799EFF',
+    textOnPrimary: getTextColorForBackground('#FFDE63'), // yellow -> dark text
+    textOnAccent: getTextColorForBackground('#799EFF'), // light periwinkle -> check
+  },
+  aquaSunset: {
+    sidebarGradient: 'bg-gradient-to-b from-[#FEEE91] to-[#8CE4FF]',
+    pageGradient: 'bg-gradient-to-br from-[#8CE4FF] via-[#FEEE91] to-[#FFA239]',
+    pageGradientLight: 'bg-gradient-to-br from-[#8CE4FF]/30 to-[#FFA239]/30',
+    accentColor: '#FEEE91',
+    accentColorLight: '#8CE4FF',
+    accentColorDark: '#FFA239',
+    secondaryAccent: '#FF5656', // coral
+    inkBorder: '#1e293b',
+    gradientFrom: '#8CE4FF',
+    gradientVia: '#FEEE91',
+    gradientTo: '#FFA239',
+    textOnPrimary: getTextColorForBackground('#FEEE91'), // very light yellow -> dark text
+    textOnAccent: getTextColorForBackground('#FFA239'), // orange -> dark text
+  },
+  mintCreamsicle: {
+    sidebarGradient: 'bg-gradient-to-b from-[#6AECE1] to-[#26CCC2]',
+    pageGradient: 'bg-gradient-to-br from-[#6AECE1] via-[#FFF57E] to-[#FFB76C]',
+    pageGradientLight: 'bg-gradient-to-br from-[#6AECE1]/30 to-[#FFB76C]/30',
+    accentColor: '#6AECE1',
+    accentColorLight: '#FFF57E',
+    accentColorDark: '#26CCC2',
+    secondaryAccent: '#FFB76C', // orange
+    inkBorder: '#1e293b',
+    gradientFrom: '#6AECE1',
+    gradientVia: '#FFF57E',
+    gradientTo: '#FFB76C',
+    textOnPrimary: getTextColorForBackground('#6AECE1'), // medium teal -> dark text
+    textOnAccent: getTextColorForBackground('#26CCC2'), // medium teal -> check
+  },
+  mintBlush: {
+    sidebarGradient: 'bg-gradient-to-b from-[#F0FFDF] to-[#A8DF8E]',
+    pageGradient: 'bg-gradient-to-br from-[#F0FFDF] via-[#FFD8DF] to-[#FFAAB8]',
+    pageGradientLight: 'bg-gradient-to-br from-[#F0FFDF]/30 to-[#FFAAB8]/30',
+    accentColor: '#FFD8DF',
+    accentColorLight: '#F0FFDF',
+    accentColorDark: '#A8DF8E',
+    secondaryAccent: '#FFAAB8', // rose
+    inkBorder: '#1e293b',
+    gradientFrom: '#F0FFDF',
+    gradientVia: '#FFD8DF',
+    gradientTo: '#FFAAB8',
+    textOnPrimary: getTextColorForBackground('#FFD8DF'), // light pink -> dark text
+    textOnAccent: getTextColorForBackground('#A8DF8E'), // light mint -> dark text
   },
 }
 
@@ -139,7 +267,7 @@ const STORAGE_KEY = 'app-theme'
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
 
 // All valid theme names
-const validThemes: ThemeName[] = ['mint', 'lavender', 'peach', 'ocean', 'rose', 'sunset', 'forest', 'sky']
+const validThemes: ThemeName[] = ['mint', 'lavender', 'peach', 'ocean', 'rose', 'sunset', 'forest', 'sky', 'skyButter', 'oceanCitrus', 'blueMango', 'aquaSunset', 'mintCreamsicle', 'mintBlush']
 
 // Helper to get initial theme from localStorage
 function getInitialTheme(): ThemeName {
@@ -178,6 +306,8 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     root.style.setProperty('--gradient-from', colors.gradientFrom)
     root.style.setProperty('--gradient-via', colors.gradientVia)
     root.style.setProperty('--gradient-to', colors.gradientTo)
+    root.style.setProperty('--text-on-primary', colors.textOnPrimary)
+    root.style.setProperty('--text-on-accent', colors.textOnAccent)
   }, [currentTheme])
 
   const setTheme = (theme: ThemeName) => {
