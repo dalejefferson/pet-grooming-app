@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Search, Plus, Phone } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Search, Plus, Phone, Trash2 } from 'lucide-react'
 import { Card, Button, Input, Badge, Modal, ImageUpload } from '../../components/common'
-import { useClients, useClientPets, useCreateClient } from '@/hooks'
+import { useClients, useClientPets, useCreateClient, useDeleteClient } from '@/hooks'
 import { formatPhone, cn } from '@/lib/utils'
 import type { Client } from '@/types'
 import { useTheme } from '../../context'
@@ -104,58 +104,78 @@ function ClientForm({
   )
 }
 
-function ClientCard({ client, accentColor }: { client: Client; accentColor: string }) {
+function ClientCard({ client, accentColor, onDelete }: { client: Client; accentColor: string; onDelete: () => void }) {
+  const navigate = useNavigate()
   const { data: pets = [] } = useClientPets(client.id)
   const initials = (client.firstName.charAt(0) + client.lastName.charAt(0)).toUpperCase()
 
+  const handleCardClick = () => {
+    navigate(`/app/clients/${client.id}`)
+  }
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onDelete()
+  }
+
   return (
-    <Link to={`/app/clients/${client.id}`}>
-      <Card className="aspect-square flex flex-col items-center justify-center p-4 text-center transition-all cursor-pointer hover:shadow-md hover:-translate-y-1">
-        {/* Profile Image */}
-        <div
-          className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-[#1e293b] text-2xl font-bold text-[#334155] shadow-[3px_3px_0px_0px_#1e293b] overflow-hidden"
-          style={{ backgroundColor: client.imageUrl ? undefined : accentColor }}
-        >
-          {client.imageUrl ? (
-            <img src={client.imageUrl} alt={`${client.firstName} ${client.lastName}`} className="h-full w-full object-cover" />
-          ) : (
-            <span>{initials}</span>
-          )}
-        </div>
+    <Card
+      className="aspect-square flex flex-col items-center justify-center p-4 text-center transition-all cursor-pointer hover:shadow-[4px_4px_0px_0px_#1e293b] hover:-translate-y-0.5 relative group"
+      onClick={handleCardClick}
+    >
+      {/* Delete Button - Top Right */}
+      <button
+        onClick={handleDeleteClick}
+        className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/80 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
+        aria-label="Delete client"
+      >
+        <Trash2 className="h-3.5 w-3.5 text-red-500" />
+      </button>
 
-        {/* Name */}
-        <div className="mt-3 flex items-center justify-center gap-2">
-          <h3 className="font-semibold text-gray-900 truncate">
-            {client.firstName} {client.lastName}
-          </h3>
-          {client.isNewClient && (
-            <Badge variant="primary" size="sm">New</Badge>
-          )}
-        </div>
-
-        {/* Contact */}
-        <div className="mt-2 space-y-1 text-sm text-gray-600">
-          <div className="flex items-center justify-center gap-1.5">
-            <Phone className="h-3.5 w-3.5" />
-            {formatPhone(client.phone)}
-          </div>
-        </div>
-
-        {/* Pets */}
-        {pets.length > 0 && (
-          <div className="mt-3 flex flex-wrap justify-center gap-1">
-            {pets.slice(0, 3).map((pet) => (
-              <Badge key={pet.id} variant="secondary" size="sm">
-                {pet.name}
-              </Badge>
-            ))}
-            {pets.length > 3 && (
-              <Badge variant="outline" size="sm">+{pets.length - 3}</Badge>
-            )}
-          </div>
+      {/* Profile Image */}
+      <div
+        className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-[#1e293b] text-2xl font-bold text-[#334155] shadow-[3px_3px_0px_0px_#1e293b] overflow-hidden"
+        style={{ backgroundColor: client.imageUrl ? undefined : accentColor }}
+      >
+        {client.imageUrl ? (
+          <img src={client.imageUrl} alt={`${client.firstName} ${client.lastName}`} className="h-full w-full object-cover" />
+        ) : (
+          <span>{initials}</span>
         )}
-      </Card>
-    </Link>
+      </div>
+
+      {/* Name */}
+      <div className="mt-3 flex items-center justify-center gap-2">
+        <h3 className="font-semibold text-gray-900 truncate">
+          {client.firstName} {client.lastName}
+        </h3>
+        {client.isNewClient && (
+          <Badge variant="primary" size="sm">New</Badge>
+        )}
+      </div>
+
+      {/* Contact */}
+      <div className="mt-2 space-y-1 text-sm text-gray-600">
+        <div className="flex items-center justify-center gap-1.5">
+          <Phone className="h-3.5 w-3.5" />
+          {formatPhone(client.phone)}
+        </div>
+      </div>
+
+      {/* Pets */}
+      {pets.length > 0 && (
+        <div className="mt-3 flex flex-wrap justify-center gap-1">
+          {pets.slice(0, 3).map((pet) => (
+            <Badge key={pet.id} variant="secondary" size="sm">
+              {pet.name}
+            </Badge>
+          ))}
+          {pets.length > 3 && (
+            <Badge variant="outline" size="sm">+{pets.length - 3}</Badge>
+          )}
+        </div>
+      )}
+    </Card>
   )
 }
 
@@ -165,6 +185,13 @@ export function ClientsPage() {
   const [showAddModal, setShowAddModal] = useState(false)
   const { data: clients = [], isLoading } = useClients()
   const createClient = useCreateClient()
+  const deleteClient = useDeleteClient()
+
+  const handleDeleteClient = async (id: string) => {
+    if (confirm('Are you sure you want to delete this client?')) {
+      await deleteClient.mutateAsync(id)
+    }
+  }
 
   const filteredClients = clients.filter((client) => {
     if (!searchQuery) return true
@@ -220,7 +247,12 @@ export function ClientsPage() {
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {filteredClients.map((client) => (
-            <ClientCard key={client.id} client={client} accentColor={colors.accentColor} />
+            <ClientCard
+              key={client.id}
+              client={client}
+              accentColor={colors.accentColor}
+              onDelete={() => handleDeleteClient(client.id)}
+            />
           ))}
         </div>
       )}

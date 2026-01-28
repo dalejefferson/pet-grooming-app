@@ -1,10 +1,12 @@
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Phone, Mail, MapPin, Dog, Plus, Edit2, Link as LinkIcon } from 'lucide-react'
+import { ArrowLeft, Phone, Mail, MapPin, Dog, Plus, Edit2, Calendar } from 'lucide-react'
 import { Card, CardTitle, Button, Badge, LoadingPage, Modal, Input, Select, Textarea, ImageUpload } from '../../components/common'
-import { useClient, useClientPets, useUpdateClient, useCreatePet, useOrganization } from '@/hooks'
+import { CreateAppointmentModal } from '../../components/calendar'
+import type { PetServiceSelection } from '../../components/calendar'
+import { useClient, useClientPets, useUpdateClient, useCreatePet, useOrganization, useServices, useGroomers, useCreateAppointment } from '@/hooks'
 import { formatPhone, cn } from '@/lib/utils'
 import { BEHAVIOR_LEVEL_LABELS, COAT_TYPE_LABELS, WEIGHT_RANGE_LABELS } from '@/config/constants'
-import type { Pet } from '@/types'
+import type { Pet, AppointmentStatus } from '@/types'
 import { useState } from 'react'
 import { useTheme } from '../../context'
 
@@ -131,10 +133,17 @@ export function ClientDetailPage() {
   const { clientId } = useParams<{ clientId: string }>()
   const { data: client, isLoading } = useClient(clientId || '')
   const { data: pets = [] } = useClientPets(clientId || '')
-  const { data: organization } = useOrganization()
+  // Organization hook kept for potential future use
+  useOrganization()
   const updateClient = useUpdateClient()
   const createPet = useCreatePet()
+  const { data: services = [] } = useServices()
+  const { data: groomers = [] } = useGroomers()
+  const createAppointment = useCreateAppointment()
   const [showAddPetModal, setShowAddPetModal] = useState(false)
+  const [showBookModal, setShowBookModal] = useState(false)
+  const [bookStartTime, setBookStartTime] = useState('')
+  const [bookEndTime, setBookEndTime] = useState('')
   const [isEditingNotes, setIsEditingNotes] = useState(false)
   const [notes, setNotes] = useState('')
 
@@ -159,6 +168,30 @@ export function ClientDetailPage() {
   const handleAddPet = async (data: Omit<Pet, 'id' | 'createdAt' | 'updatedAt'>) => {
     await createPet.mutateAsync(data)
     setShowAddPetModal(false)
+  }
+
+  const handleCreateAppointment = async (data: { clientId: string; petServices: PetServiceSelection[]; groomerId: string; notes: string; startTime: string; endTime: string }) => {
+    try {
+      await createAppointment.mutateAsync({
+        organizationId: 'org-1',
+        clientId: data.clientId,
+        pets: data.petServices.filter((ps) => ps.serviceIds.length > 0).map((ps) => ({
+          petId: ps.petId,
+          services: ps.serviceIds.map((serviceId) => {
+            const service = services.find((s) => s.id === serviceId)
+            return { serviceId, appliedModifiers: [], finalDuration: service?.baseDurationMinutes || 60, finalPrice: service?.basePrice || 0 }
+          }),
+        })),
+        groomerId: data.groomerId || undefined,
+        startTime: new Date(data.startTime).toISOString(),
+        endTime: new Date(data.endTime).toISOString(),
+        status: 'confirmed' as AppointmentStatus,
+        internalNotes: data.notes || undefined,
+        depositPaid: false,
+        totalAmount: data.petServices.reduce((total, ps) => total + ps.serviceIds.reduce((sum, sid) => sum + (services.find((s) => s.id === sid)?.basePrice || 0), 0), 0),
+      })
+      setShowBookModal(false)
+    } catch { /* Error handled by react-query */ }
   }
 
   const clientInitials = (client.firstName.charAt(0) + client.lastName.charAt(0)).toUpperCase()
@@ -192,14 +225,17 @@ export function ClientDetailPage() {
               )}
             </div>
           </div>
-          {organization && (
-            <Link to={`/book/${organization.slug}/start?clientId=${client.id}`}>
-              <Button variant="accent">
-                <LinkIcon className="mr-2 h-4 w-4" />
-                Book Appointment
-              </Button>
-            </Link>
-          )}
+          <Button
+            variant="accent"
+            onClick={() => {
+              setBookStartTime('')
+              setBookEndTime('')
+              setShowBookModal(true)
+            }}
+          >
+            <Calendar className="mr-2 h-4 w-4" />
+            Book Appointment
+          </Button>
         </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -356,6 +392,21 @@ export function ClientDetailPage() {
           accentColor={colors.accentColorDark}
         />
       </Modal>
+
+      <CreateAppointmentModal
+        isOpen={showBookModal}
+        onClose={() => setShowBookModal(false)}
+        clients={client ? [client] : []}
+        clientPets={pets}
+        services={services}
+        groomers={groomers}
+        initialStartTime={bookStartTime}
+        initialEndTime={bookEndTime}
+        onClientChange={() => {}}
+        selectedClientId={client?.id || ''}
+        onCreateAppointment={handleCreateAppointment}
+        isCreating={createAppointment.isPending}
+      />
       </div>
     </div>
   )

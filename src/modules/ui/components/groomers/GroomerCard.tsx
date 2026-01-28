@@ -30,13 +30,13 @@ export function GroomerCard({
   return (
     <Card
       colorVariant={groomer.isActive ? 'white' : 'lemon'}
-      className="aspect-square flex flex-col items-center justify-center p-4 text-center relative cursor-pointer hover:shadow-[4px_4px_0px_0px_#1e293b] transition-shadow"
+      className="aspect-square flex flex-col items-center justify-center p-4 text-center relative cursor-pointer hover:shadow-[4px_4px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 group"
       onClick={handleCardClick}
     >
       {/* Delete Button - Top Right */}
       <button
         onClick={handleDeleteClick}
-        className="absolute top-1.5 right-1.5 p-1 rounded-lg hover:bg-red-50 transition-colors"
+        className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/80 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
         aria-label="Delete groomer"
       >
         <Trash2 className="h-3.5 w-3.5 text-danger-500" />

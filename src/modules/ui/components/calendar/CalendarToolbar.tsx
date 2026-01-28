@@ -36,7 +36,7 @@ function NavButtons({ onPrevious, onNext, onToday, accentColor, accentColorDark 
     <div className="flex items-center gap-1.5">
       <button
         onClick={onPrevious}
-        className="flex h-10 w-10 sm:h-9 sm:w-9 items-center justify-center rounded-xl border-2 border-[#1e293b] bg-white shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#1e293b]"
+        className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-[#1e293b] bg-white shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#1e293b]"
         aria-label="Previous"
       >
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -45,7 +45,7 @@ function NavButtons({ onPrevious, onNext, onToday, accentColor, accentColorDark 
       </button>
       <button
         onClick={onToday}
-        className="rounded-xl border-2 border-[#1e293b] px-4 py-2 sm:px-3 sm:py-1.5 text-sm font-semibold text-[#334155] shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#1e293b]"
+        className="rounded-xl border-2 border-[#1e293b] px-3 py-1.5 text-sm font-semibold text-[#334155] shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#1e293b]"
         style={{ backgroundColor: accentColor }}
         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = accentColorDark)}
         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = accentColor)}
@@ -54,7 +54,7 @@ function NavButtons({ onPrevious, onNext, onToday, accentColor, accentColorDark 
       </button>
       <button
         onClick={onNext}
-        className="flex h-10 w-10 sm:h-9 sm:w-9 items-center justify-center rounded-xl border-2 border-[#1e293b] bg-white shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#1e293b]"
+        className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-[#1e293b] bg-white shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#1e293b]"
         aria-label="Next"
       >
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -81,7 +81,7 @@ function ViewToggle({ view, onViewChange, accentColorDark }: ViewToggleProps) {
           aria-label={`Switch to ${btn.label.toLowerCase()} view`}
           aria-pressed={view === btn.value}
           className={cn(
-            'rounded-lg px-3 sm:px-4 py-2 sm:py-1.5 text-sm min-h-[44px] sm:min-h-0 font-semibold transition-all',
+            'rounded-lg px-4 py-1.5 text-sm font-semibold transition-all',
             view === btn.value
               ? 'text-[#1e293b] shadow-inner border-2 border-[#1e293b]'
               : 'bg-transparent text-[#334155] hover:bg-[var(--accent-color-light)]'
@@ -109,7 +109,7 @@ function SearchInput({ searchQuery, onSearchChange }: SearchInputProps) {
         value={searchQuery}
         onChange={(e) => onSearchChange(e.target.value)}
         placeholder="Search clients or pets..."
-        className="w-full sm:w-64 rounded-xl border-2 border-[#1e293b] bg-white py-3 sm:py-2 pl-10 pr-10 text-sm text-[#1e293b] placeholder-[#94a3b8] shadow-[2px_2px_0px_0px_#1e293b] transition-all focus:outline-none focus:shadow-[3px_3px_0px_0px_#1e293b] focus:-translate-y-0.5"
+        className="w-56 rounded-xl border-2 border-[#1e293b] bg-white py-2 pl-10 pr-10 text-sm text-[#1e293b] placeholder-[#94a3b8] shadow-[2px_2px_0px_0px_#1e293b] transition-all focus:outline-none focus:shadow-[3px_3px_0px_0px_#1e293b] focus:-translate-y-0.5"
       />
       {searchQuery && (
         <button
@@ -139,7 +139,7 @@ function StatusFilters({ selectedStatuses, onStatusFilterChange }: StatusFilters
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-nowrap gap-2 overflow-x-auto">
       {statusOptions.map((status) => {
         const isActive = selectedStatuses.includes(status.value)
         return (
@@ -185,7 +185,7 @@ function StatusFilters({ selectedStatuses, onStatusFilterChange }: StatusFilters
  * CalendarToolbar component provides navigation controls, view switcher,
  * search functionality, and status filters for the calendar.
  *
- * Single row layout with flex-wrap for mobile responsiveness.
+ * Single row layout with no wrapping for consistent display across all views.
  */
 export function CalendarToolbar({
   view,
@@ -205,8 +205,8 @@ export function CalendarToolbar({
 
   return (
     <Card className="bg-white/80 backdrop-blur-sm">
-      {/* Single row with flex-wrap for mobile */}
-      <div className="flex flex-wrap items-center gap-3">
+      {/* Single row - no wrapping */}
+      <div className="flex flex-nowrap items-center gap-3 overflow-x-auto">
         {/* Title */}
         <h1 className="text-lg font-bold text-[#1e293b]">Calendar</h1>
 

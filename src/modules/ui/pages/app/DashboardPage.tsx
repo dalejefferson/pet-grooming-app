@@ -22,7 +22,6 @@ export function DashboardPage() {
 
   const upcomingAppointments = todayAppointments
     .filter((a) => selectedStatuses.length === 0 || selectedStatuses.includes(a.status))
-    .slice(0, 5)
 
   const todayDateParam = format(today, 'yyyy-MM-dd')
 
@@ -128,7 +127,7 @@ export function DashboardPage() {
             <p className="mt-2 text-gray-600">No upcoming appointments today</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="max-h-[280px] overflow-y-auto space-y-3">
             {upcomingAppointments.map((appointment) => (
               <div
                 key={appointment.id}

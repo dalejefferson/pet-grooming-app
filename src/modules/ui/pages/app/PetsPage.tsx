@@ -1,17 +1,96 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Search, AlertTriangle, User } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Search, AlertTriangle, User, Trash2 } from 'lucide-react'
 import { Card, Input, Badge } from '../../components/common'
-import { usePets, useClients } from '@/hooks'
+import { usePets, useClients, useDeletePet } from '@/hooks'
+import type { Pet, Client } from '@/types'
 import { BEHAVIOR_LEVEL_LABELS } from '@/config/constants'
 import { useTheme } from '../../context'
 import { cn } from '@/lib/utils'
+
+// PetCard component with hover delete button
+function PetCard({ pet, client, onDelete }: { pet: Pet; client?: Client; onDelete: () => void }) {
+  const navigate = useNavigate()
+
+  const handleCardClick = () => {
+    navigate(`/app/pets/${pet.id}`)
+  }
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onDelete()
+  }
+
+  return (
+    <Card
+      className="aspect-square flex flex-col items-center justify-center p-4 text-center transition-all cursor-pointer hover:shadow-[4px_4px_0px_0px_#1e293b] hover:-translate-y-0.5 relative group"
+      onClick={handleCardClick}
+    >
+      {/* Delete Button - Top Right */}
+      <button
+        onClick={handleDeleteClick}
+        className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/80 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
+        aria-label="Delete pet"
+      >
+        <Trash2 className="h-3.5 w-3.5 text-red-500" />
+      </button>
+
+      {/* Pet Image */}
+      <div className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-[#1e293b] bg-[#e0f2fe] text-2xl font-bold text-[#334155] shadow-[3px_3px_0px_0px_#1e293b] overflow-hidden">
+        {pet.imageUrl ? (
+          <img src={pet.imageUrl} alt={pet.name} className="h-full w-full object-cover" />
+        ) : (
+          <span>{pet.name.charAt(0).toUpperCase()}</span>
+        )}
+      </div>
+
+      {/* Name */}
+      <div className="mt-3 flex items-center justify-center gap-1.5">
+        <h3 className="font-semibold text-gray-900 truncate">{pet.name}</h3>
+        {pet.behaviorLevel >= 4 && (
+          <AlertTriangle className="h-4 w-4 shrink-0 text-warning-500" />
+        )}
+      </div>
+
+      {/* Breed */}
+      <p className="mt-1 text-sm text-gray-600 truncate">{pet.breed}</p>
+
+      {/* Owner */}
+      {client && (
+        <div className="mt-1 flex items-center justify-center gap-1 text-xs text-gray-500">
+          <User className="h-3 w-3 shrink-0" />
+          <span className="truncate">{client.firstName} {client.lastName}</span>
+        </div>
+      )}
+
+      {/* Badges */}
+      <div className="mt-3 flex flex-wrap justify-center gap-1">
+        <Badge variant="secondary" size="sm">
+          {pet.species}
+        </Badge>
+        <Badge
+          variant={pet.behaviorLevel <= 2 ? 'success' : pet.behaviorLevel >= 4 ? 'warning' : 'secondary'}
+          size="sm"
+        >
+          {BEHAVIOR_LEVEL_LABELS[pet.behaviorLevel]}
+        </Badge>
+      </div>
+    </Card>
+  )
+}
 
 export function PetsPage() {
   const { colors } = useTheme()
   const [searchQuery, setSearchQuery] = useState('')
   const { data: pets = [], isLoading } = usePets()
   const { data: clients = [] } = useClients()
+  const deletePet = useDeletePet()
+
+  const handleDeletePet = async (id: string) => {
+    if (confirm('Are you sure you want to delete this pet?')) {
+      await deletePet.mutateAsync(id)
+    }
+  }
 
   const filteredPets = pets.filter((pet) => {
     if (!searchQuery) return true
@@ -55,50 +134,12 @@ export function PetsPage() {
           {filteredPets.map((pet) => {
             const client = clients.find((c) => c.id === pet.clientId)
             return (
-              <Link key={pet.id} to={`/app/pets/${pet.id}`}>
-                <Card className="aspect-square flex flex-col items-center justify-center p-4 text-center transition-all cursor-pointer hover:shadow-md hover:-translate-y-1">
-                  {/* Pet Image */}
-                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-[#1e293b] bg-[#e0f2fe] text-2xl font-bold text-[#334155] shadow-[3px_3px_0px_0px_#1e293b] overflow-hidden">
-                    {pet.imageUrl ? (
-                      <img src={pet.imageUrl} alt={pet.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <span>{pet.name.charAt(0).toUpperCase()}</span>
-                    )}
-                  </div>
-
-                  {/* Name */}
-                  <div className="mt-3 flex items-center justify-center gap-1.5">
-                    <h3 className="font-semibold text-gray-900 truncate">{pet.name}</h3>
-                    {pet.behaviorLevel >= 4 && (
-                      <AlertTriangle className="h-4 w-4 shrink-0 text-warning-500" />
-                    )}
-                  </div>
-
-                  {/* Breed */}
-                  <p className="mt-1 text-sm text-gray-600 truncate">{pet.breed}</p>
-
-                  {/* Owner */}
-                  {client && (
-                    <div className="mt-1 flex items-center justify-center gap-1 text-xs text-gray-500">
-                      <User className="h-3 w-3 shrink-0" />
-                      <span className="truncate">{client.firstName} {client.lastName}</span>
-                    </div>
-                  )}
-
-                  {/* Badges */}
-                  <div className="mt-3 flex flex-wrap justify-center gap-1">
-                    <Badge variant="secondary" size="sm">
-                      {pet.species}
-                    </Badge>
-                    <Badge
-                      variant={pet.behaviorLevel <= 2 ? 'success' : pet.behaviorLevel >= 4 ? 'warning' : 'secondary'}
-                      size="sm"
-                    >
-                      {BEHAVIOR_LEVEL_LABELS[pet.behaviorLevel]}
-                    </Badge>
-                  </div>
-                </Card>
-              </Link>
+              <PetCard
+                key={pet.id}
+                pet={pet}
+                client={client}
+                onDelete={() => handleDeletePet(pet.id)}
+              />
             )
           })}
         </div>
