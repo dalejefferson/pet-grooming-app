@@ -170,7 +170,7 @@ export const ComboBox = forwardRef<HTMLInputElement, ComboBoxProps>(
 
           {/* Dropdown */}
           {isOpen && (
-            <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border-2 border-[#1e293b] bg-white py-1 shadow-[4px_4px_0px_0px_#1e293b]">
+            <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border-2 border-[#1e293b] bg-white py-1 shadow-[4px_4px_0px_0px_#1e293b] dropdown-enter">
               {filteredOptions.length > 0 ? (
                 filteredOptions.map((option) => (
                   <button

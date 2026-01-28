@@ -323,6 +323,126 @@ body {
   @apply py-2 px-3;
 }
 
+/* ============================================
+   ANIMATION UTILITIES
+   Subtle, performant animations for polish
+   ============================================ */
+
+/* Keyframes for entrance animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scale-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animation utility classes */
+.animate-fade-in {
+  animation: fade-in 150ms ease-out forwards;
+}
+
+.animate-fade-out {
+  animation: fade-out 150ms ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 150ms ease-out forwards;
+}
+
+.animate-scale-out {
+  animation: scale-out 100ms ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up 150ms ease-out forwards;
+}
+
+.animate-slide-down {
+  animation: slide-down 150ms ease-out forwards;
+}
+
+/* Stagger animation delays for lists */
+.stagger-1 { animation-delay: 25ms; }
+.stagger-2 { animation-delay: 50ms; }
+.stagger-3 { animation-delay: 75ms; }
+.stagger-4 { animation-delay: 100ms; }
+.stagger-5 { animation-delay: 125ms; }
+.stagger-6 { animation-delay: 150ms; }
+.stagger-7 { animation-delay: 175ms; }
+.stagger-8 { animation-delay: 200ms; }
+
+/* Start hidden for stagger animations */
+.stagger-item {
+  opacity: 0;
+}
+
+/* Modal animations */
+.modal-backdrop-enter {
+  animation: fade-in 150ms ease-out forwards;
+}
+
+.modal-content-enter {
+  animation: scale-in 150ms ease-out forwards;
+}
+
+/* Dropdown animations */
+.dropdown-enter {
+  animation: scale-in 150ms ease-out forwards;
+  transform-origin: top;
+}
+
+.dropdown-exit {
+  animation: scale-out 100ms ease-out forwards;
+  transform-origin: top;
+}
+
 /* Event popup/overlay styles */
 .rbc-overlay {
   @apply rounded-xl p-3 z-50;
