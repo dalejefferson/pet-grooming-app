@@ -1,8 +1,8 @@
-import { Menu, Bell } from 'lucide-react'
+import { Menu, Bell, Palette } from 'lucide-react'
 import { Button } from '../common'
 import { useCurrentUser, useOrganization } from '@/hooks'
 import { getInitials } from '@/lib/utils'
-import { useTheme } from '@/modules/ui/context'
+import { useTheme, type ThemeName, themeColors } from '@/modules/ui/context'
 
 interface HeaderProps {
   onMenuClick?: () => void
@@ -12,7 +12,15 @@ interface HeaderProps {
 export function Header({ onMenuClick, title }: HeaderProps) {
   const { data: user } = useCurrentUser()
   const { data: org } = useOrganization()
-  const { colors } = useTheme()
+  const { colors, currentTheme, setTheme } = useTheme()
+
+  const themeNames = Object.keys(themeColors) as ThemeName[]
+
+  const cycleTheme = () => {
+    const currentIndex = themeNames.indexOf(currentTheme)
+    const nextIndex = (currentIndex + 1) % themeNames.length
+    setTheme(themeNames[nextIndex])
+  }
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b-2 border-[#1e293b] bg-white px-4 lg:px-6">
@@ -34,6 +42,16 @@ export function Header({ onMenuClick, title }: HeaderProps) {
         <span className="hidden text-sm text-[#64748b] md:block truncate max-w-[200px]">
           {org?.name}
         </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={cycleTheme}
+          className="relative min-h-[44px] min-w-[44px] p-2"
+          aria-label="Change theme"
+          title={`Current theme: ${currentTheme}`}
+        >
+          <Palette className="h-5 w-5" />
+        </Button>
         <Button variant="ghost" size="sm" className="relative min-h-[44px] min-w-[44px] p-2">
           <Bell className="h-5 w-5" />
           <span

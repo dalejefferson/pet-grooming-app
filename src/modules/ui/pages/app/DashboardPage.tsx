@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Calendar, Users, Dog, Clock, TrendingUp, AlertCircle } from 'lucide-react'
 import { Card, CardTitle, Badge } from '../../components/common'
@@ -6,6 +7,7 @@ import { format } from 'date-fns'
 import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_STATUS_COLORS } from '@/config/constants'
 import { cn } from '@/lib/utils'
 import { useTheme } from '../../context'
+import type { AppointmentStatus } from '@/types'
 
 export function DashboardPage() {
   const { colors } = useTheme()
@@ -14,8 +16,12 @@ export function DashboardPage() {
   const { data: clients = [] } = useClients()
   const { data: pets = [] } = usePets()
 
+  const [selectedStatuses, setSelectedStatuses] = useState<AppointmentStatus[]>([
+    'requested', 'confirmed', 'checked_in', 'in_progress'
+  ])
+
   const upcomingAppointments = todayAppointments
-    .filter((a) => a.status !== 'completed' && a.status !== 'cancelled' && a.status !== 'no_show')
+    .filter((a) => selectedStatuses.length === 0 || selectedStatuses.includes(a.status))
     .slice(0, 5)
 
   const todayDateParam = format(today, 'yyyy-MM-dd')
@@ -90,6 +96,30 @@ export function DashboardPage() {
           </Link>
         </div>
 
+        {/* Status Filter Buttons */}
+        <div className="mb-4 flex flex-wrap gap-2">
+          {(['requested', 'confirmed', 'checked_in', 'in_progress', 'completed', 'cancelled', 'no_show'] as AppointmentStatus[]).map((status) => (
+            <button
+              key={status}
+              onClick={() => {
+                setSelectedStatuses(prev =>
+                  prev.includes(status)
+                    ? prev.filter(s => s !== status)
+                    : [...prev, status]
+                )
+              }}
+              className={cn(
+                'rounded-lg border-2 border-[#1e293b] px-3 py-1 text-xs font-medium transition-all',
+                selectedStatuses.includes(status)
+                  ? `${APPOINTMENT_STATUS_COLORS[status]} shadow-[2px_2px_0px_0px_#1e293b]`
+                  : 'bg-white text-gray-500 hover:bg-gray-50'
+              )}
+            >
+              {APPOINTMENT_STATUS_LABELS[status]}
+            </button>
+          ))}
+        </div>
+
         {upcomingAppointments.length === 0 ? (
           <div className="py-8 text-center">
             <Clock className="mx-auto h-12 w-12 text-gray-400" />
@@ -138,21 +168,21 @@ export function DashboardPage() {
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Link
             to="/app/calendar"
-            className="flex items-center gap-3 rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50"
+            className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
           >
             <Calendar className="h-5 w-5 text-primary-600" />
             <span className="font-medium text-gray-900">View Calendar</span>
           </Link>
           <Link
             to="/app/clients"
-            className="flex items-center gap-3 rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50"
+            className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
           >
             <Users className="h-5 w-5 text-primary-600" />
             <span className="font-medium text-gray-900">Manage Clients</span>
           </Link>
           <Link
             to="/app/services"
-            className="flex items-center gap-3 rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50"
+            className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
           >
             <TrendingUp className="h-5 w-5 text-primary-600" />
             <span className="font-medium text-gray-900">Edit Services</span>
@@ -160,7 +190,7 @@ export function DashboardPage() {
           <Link
             to={`/book/paws-claws/start`}
             target="_blank"
-            className="flex items-center gap-3 rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50"
+            className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
           >
             <Dog className="h-5 w-5 text-primary-600" />
             <span className="font-medium text-gray-900">Booking Portal</span>

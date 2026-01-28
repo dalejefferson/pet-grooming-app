@@ -277,7 +277,7 @@ function getInitialTheme(): ThemeName {
   if (stored && validThemes.includes(stored as ThemeName)) {
     return stored as ThemeName
   }
-  return 'mint'
+  return 'blueMango'
 }
 
 // ThemeProvider component

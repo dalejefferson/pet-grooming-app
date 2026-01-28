@@ -47,7 +47,7 @@ const DragAndDropCalendar = withDragAndDrop<CalendarEvent, object>(Calendar)
 export function CalendarPage() {
   const { colors } = useTheme()
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [view, setView] = useState<View>('week')
+  const [view, setView] = useState<View>('month')
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedStatuses, setSelectedStatuses] = useState<AppointmentStatus[]>([])
