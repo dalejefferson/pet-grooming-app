@@ -115,7 +115,7 @@ export function MiniCalendar({
       </div>
 
       {/* Calendar Days Grid */}
-      <div className="grid grid-cols-7 gap-0.5">
+      <div className="grid grid-cols-7 gap-0.5 overflow-hidden rounded-b-xl">
         {calendarDays.map((day) => {
           const isCurrentMonth = isSameMonth(day, currentMonth)
           const isSelected = isSameDay(day, selectedDate)
