@@ -273,9 +273,29 @@ export function CalendarPage() {
     return format(currentDate, 'EEEE, MMMM d, yyyy')
   }, [currentDate, view])
 
-  // Event style getter
+  // Event style getter - compact for month view, detailed for day/week
   const eventStyleGetter = useCallback((event: CalendarEvent) => {
     const status = event.resource.status
+    const isMonthView = view === 'month'
+
+    if (isMonthView) {
+      // Compact pill style for month view
+      return {
+        style: {
+          backgroundColor: STATUS_BG_COLORS[status],
+          color: STATUS_TEXT_COLORS[status],
+          border: `1px solid ${STATUS_BORDER_COLORS[status]}`,
+          borderRadius: '6px',
+          padding: '1px 6px',
+          fontSize: '11px',
+          fontWeight: '500',
+          boxShadow: 'none',
+          lineHeight: '1.3',
+        },
+      }
+    }
+
+    // Detailed style for day/week views
     return {
       style: {
         backgroundColor: STATUS_BG_COLORS[status],
@@ -288,7 +308,7 @@ export function CalendarPage() {
         boxShadow: '2px 2px 0px 0px #1e293b',
       },
     }
-  }, [])
+  }, [view])
 
   // Event wrapper component
   const EventWrapper = useCallback(
@@ -299,8 +319,8 @@ export function CalendarPage() {
   const components: Components<CalendarEvent, object> = useMemo(() => ({ event: EventWrapper, toolbar: () => null }), [EventWrapper])
 
   return (
-    <div className={cn('min-h-screen p-4 lg:p-6', colors.pageGradientLight)}>
-      <div className="space-y-6">
+    <div className={cn('min-h-screen p-4 lg:p-6 flex flex-col', colors.pageGradientLight)}>
+      <div className="flex flex-col gap-6 flex-1 min-h-0">
         <CalendarToolbar
           view={view as 'day' | 'week' | 'month'}
           searchQuery={searchQuery}
@@ -316,15 +336,15 @@ export function CalendarPage() {
           getDisplayDate={getDisplayDate}
         />
 
-        <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
           {(view === 'day' || view === 'week') && (
             <div className="flex-shrink-0 w-full lg:w-auto">
               <MiniCalendar currentMonth={miniCalendarMonth} selectedDate={currentDate} weekRange={weekRange} onDateSelect={handleMiniCalendarDateSelect} onMonthChange={handleMiniCalendarMonthChange} />
             </div>
           )}
 
-          <Card padding="none" className={cn('flex-1 overflow-hidden bg-white/80 backdrop-blur-sm', isDragging && 'cursor-grabbing')}>
-            <div className="p-2 sm:p-4 overflow-x-auto" style={{ height: view === 'month' ? 'calc(100vh - 380px)' : 'calc(100vh - 440px)', minHeight: view === 'month' ? '500px' : '400px' }}>
+          <Card padding="none" className={cn('flex-1 min-h-0 bg-white/80 backdrop-blur-sm', isDragging && 'cursor-grabbing')}>
+            <div className="p-2 sm:p-4 h-full min-h-[500px] overflow-x-auto">
               <div className="min-w-[600px] h-full">
                 <DragAndDropCalendar
                   localizer={localizer}

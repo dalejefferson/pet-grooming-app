@@ -220,6 +220,11 @@ body {
   @apply rounded-2xl overflow-hidden;
 }
 
+/* Header row container - ensure it stays inside rounded corners */
+.rbc-month-view .rbc-month-header {
+  @apply overflow-hidden;
+}
+
 .rbc-month-row {
   border-bottom: 1px solid #cbd5e1;
 }
@@ -246,6 +251,7 @@ body {
   background-color: #f8fafc;
 }
 
+/* Month view header - properly contained with no overflow */
 .rbc-month-view .rbc-header {
   border-bottom: 2px solid #1e293b;
   @apply py-3 font-bold text-sm;
@@ -253,12 +259,42 @@ body {
   background-color: #f0fdf4;
 }
 
-.rbc-month-view .rbc-event {
-  @apply text-xs py-0.5 px-1;
+/* First and last header cells - clean up corners */
+.rbc-month-view .rbc-header:first-child {
+  @apply rounded-tl-xl;
 }
 
+.rbc-month-view .rbc-header:last-child {
+  @apply rounded-tr-xl;
+}
+
+/* Month view events - compact single-line pills */
+.rbc-month-view .rbc-event {
+  @apply text-xs py-0.5 px-2 rounded-lg;
+  box-shadow: none;
+  border-width: 1px;
+  min-height: 18px;
+  max-height: 20px;
+}
+
+/* Hide full details in month view, show compact */
+.rbc-month-view .event-full-details {
+  @apply hidden;
+}
+
+.rbc-month-view .event-compact {
+  @apply block;
+}
+
+/* Ensure events don't overflow their cells */
 .rbc-month-view .rbc-row-segment {
-  @apply py-0.5;
+  @apply py-0.5 px-0.5;
+}
+
+/* Row content should not clip events harshly */
+.rbc-month-view .rbc-row-content {
+  @apply relative;
+  z-index: 4;
 }
 
 /* Day view styles */
