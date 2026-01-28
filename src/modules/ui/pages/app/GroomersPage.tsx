@@ -5,10 +5,11 @@ import { GroomerForm, GroomerCard } from '../../components/groomers'
 import { useGroomers, useCreateGroomer, useUpdateGroomer, useDeleteGroomer } from '@/hooks'
 import { cn } from '@/lib/utils'
 import type { Groomer } from '@/types'
-import { useTheme } from '../../context'
+import { useTheme, useUndo } from '../../context'
 
 export function GroomersPage() {
   const { colors } = useTheme()
+  const { showUndo } = useUndo()
   const [searchQuery, setSearchQuery] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingGroomer, setEditingGroomer] = useState<Groomer | null>(null)
@@ -45,10 +46,21 @@ export function GroomersPage() {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this groomer?')) {
-      await deleteGroomer.mutateAsync(id)
-    }
+  const handleDelete = async (groomerId: string) => {
+    const groomerToDelete = groomers.find(g => g.id === groomerId)
+    if (!groomerToDelete) return
+
+    await deleteGroomer.mutateAsync(groomerId)
+
+    showUndo({
+      type: 'groomer',
+      label: `${groomerToDelete.firstName} ${groomerToDelete.lastName}`,
+      data: groomerToDelete,
+      onUndo: async () => {
+        const { id, createdAt, updatedAt, ...groomerData } = groomerToDelete
+        await createGroomer.mutateAsync(groomerData)
+      }
+    })
   }
 
   return (

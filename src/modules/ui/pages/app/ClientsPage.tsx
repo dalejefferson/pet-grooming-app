@@ -5,7 +5,7 @@ import { Card, Button, Input, Badge, Modal, ImageUpload } from '../../components
 import { useClients, useClientPets, useCreateClient, useDeleteClient } from '@/hooks'
 import { formatPhone, cn } from '@/lib/utils'
 import type { Client } from '@/types'
-import { useTheme } from '../../context'
+import { useTheme, useUndo } from '../../context'
 
 function ClientForm({
   onSubmit,
@@ -181,16 +181,32 @@ function ClientCard({ client, accentColor, onDelete }: { client: Client; accentC
 
 export function ClientsPage() {
   const { colors } = useTheme()
+  const { showUndo } = useUndo()
   const [searchQuery, setSearchQuery] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   const { data: clients = [], isLoading } = useClients()
   const createClient = useCreateClient()
   const deleteClient = useDeleteClient()
 
-  const handleDeleteClient = async (id: string) => {
-    if (confirm('Are you sure you want to delete this client?')) {
-      await deleteClient.mutateAsync(id)
-    }
+  const handleDeleteClient = async (clientId: string) => {
+    // Find and store the client data before deleting
+    const clientToDelete = clients.find(c => c.id === clientId)
+    if (!clientToDelete) return
+
+    // Delete immediately (no confirm dialog)
+    await deleteClient.mutateAsync(clientId)
+
+    // Show undo toast
+    showUndo({
+      type: 'client',
+      label: `${clientToDelete.firstName} ${clientToDelete.lastName}`,
+      data: clientToDelete,
+      onUndo: async () => {
+        // Restore the client (create with same data, excluding id/timestamps)
+        const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...clientData } = clientToDelete
+        await createClient.mutateAsync(clientData)
+      }
+    })
   }
 
   const filteredClients = clients.filter((client) => {

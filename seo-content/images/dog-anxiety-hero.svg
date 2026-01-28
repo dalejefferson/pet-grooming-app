@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bgGradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F0FDFA"/>
+      <stop offset="100%" style="stop-color:#E0F2F1"/>
+    </linearGradient>
+    <linearGradient id="calmGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#14B8A6" stop-opacity="0.3"/>
+      <stop offset="100%" style="stop-color:#0EA5E9" stop-opacity="0.1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bgGradient3)"/>
+
+  <!-- Calming wave patterns -->
+  <path d="M0 350 Q100 330 200 350 Q300 370 400 350 Q500 330 600 350 Q700 370 800 350 L800 400 L0 400 Z" fill="#14B8A6" opacity="0.15"/>
+  <path d="M0 360 Q100 345 200 360 Q300 375 400 360 Q500 345 600 360 Q700 375 800 360 L800 400 L0 400 Z" fill="#0EA5E9" opacity="0.1"/>
+  <path d="M0 375 Q100 365 200 375 Q300 385 400 375 Q500 365 600 375 Q700 385 800 375 L800 400 L0 400 Z" fill="#0D9488" opacity="0.1"/>
+
+  <!-- Soft calming circles in background -->
+  <circle cx="150" cy="100" r="80" fill="url(#calmGradient)"/>
+  <circle cx="650" cy="120" r="100" fill="url(#calmGradient)"/>
+  <circle cx="100" cy="300" r="60" fill="url(#calmGradient)"/>
+
+  <!-- Dog body - sitting position, slightly hunched (anxious posture) -->
+  <ellipse cx="400" cy="320" rx="100" ry="60" fill="#14B8A6"/>
+  <ellipse cx="400" cy="310" rx="85" ry="50" fill="#5EEAD4"/>
+
+  <!-- Dog back legs -->
+  <ellipse cx="340" cy="350" rx="25" ry="35" fill="#14B8A6"/>
+  <ellipse cx="460" cy="350" rx="25" ry="35" fill="#14B8A6"/>
+
+  <!-- Dog front legs (tucked in, anxious) -->
+  <ellipse cx="370" cy="340" rx="18" ry="40" fill="#0D9488"/>
+  <ellipse cx="430" cy="340" rx="18" ry="40" fill="#0D9488"/>
+
+  <!-- Dog head - slightly lowered -->
+  <ellipse cx="400" cy="200" rx="70" ry="60" fill="#14B8A6"/>
+  <ellipse cx="400" cy="210" rx="60" ry="48" fill="#5EEAD4"/>
+
+  <!-- Dog ears - slightly back (anxious) -->
+  <ellipse cx="330" cy="160" rx="30" ry="45" fill="#0D9488" transform="rotate(-30 330 160)"/>
+  <ellipse cx="470" cy="160" rx="30" ry="45" fill="#0D9488" transform="rotate(30 470 160)"/>
+
+  <!-- Dog eyes - wide, worried look -->
+  <ellipse cx="375" cy="195" rx="18" ry="20" fill="white"/>
+  <ellipse cx="425" cy="195" rx="18" ry="20" fill="white"/>
+  <circle cx="378" cy="198" r="10" fill="#134E4A"/>
+  <circle cx="428" cy="198" r="10" fill="#134E4A"/>
+  <circle cx="380" cy="195" r="3" fill="white"/>
+  <circle cx="430" cy="195" r="3" fill="white"/>
+  <!-- Worried eyebrows -->
+  <path d="M358 178 Q370 172 388 180" stroke="#134E4A" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M412 180 Q430 172 442 178" stroke="#134E4A" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <!-- Dog nose -->
+  <ellipse cx="400" cy="240" rx="18" ry="14" fill="#134E4A"/>
+  <ellipse cx="396" cy="236" rx="4" ry="3" fill="#2D3748" opacity="0.5"/>
+
+  <!-- Dog mouth - slightly tense -->
+  <path d="M385 255 Q400 260 415 255" stroke="#134E4A" stroke-width="2" fill="none"/>
+
+  <!-- Dog tail - tucked -->
+  <path d="M300 300 Q270 320 280 340" stroke="#14B8A6" stroke-width="20" fill="none" stroke-linecap="round"/>
+
+  <!-- Comforting hand -->
+  <g transform="translate(500, 120)">
+    <!-- Arm -->
+    <path d="M150 -50 Q100 0 80 80 Q70 120 50 150" stroke="#FFDAB9" stroke-width="45" fill="none" stroke-linecap="round"/>
+    <!-- Hand -->
+    <ellipse cx="45" cy="160" rx="40" ry="30" fill="#FFDAB9"/>
+    <!-- Fingers gently touching dog -->
+    <ellipse cx="15" cy="180" rx="12" ry="20" fill="#FFDAB9" transform="rotate(-20 15 180)"/>
+    <ellipse cx="35" cy="190" rx="10" ry="22" fill="#FFDAB9" transform="rotate(-5 35 190)"/>
+    <ellipse cx="55" cy="192" rx="10" ry="22" fill="#FFDAB9" transform="rotate(5 55 192)"/>
+    <ellipse cx="75" cy="185" rx="10" ry="18" fill="#FFDAB9" transform="rotate(15 75 185)"/>
+    <!-- Sleeve hint -->
+    <path d="M140 -30 Q160 -20 170 0" stroke="#0D9488" stroke-width="50" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Calming emanation lines from hand -->
+  <g stroke="#14B8A6" stroke-width="2" opacity="0.4" fill="none">
+    <path d="M520 180 Q500 160 480 170" stroke-linecap="round"/>
+    <path d="M530 200 Q505 185 485 200" stroke-linecap="round"/>
+    <path d="M535 225 Q510 215 490 230" stroke-linecap="round"/>
+  </g>
+
+  <!-- Soft comfort indicators - gentle curves -->
+  <g stroke="#0EA5E9" stroke-width="2" opacity="0.3" fill="none">
+    <path d="M200 150 Q180 130 200 110"/>
+    <path d="M210 160 Q185 135 210 110"/>
+    <path d="M220 155 Q200 135 220 115"/>
+  </g>
+
+  <g stroke="#14B8A6" stroke-width="2" opacity="0.3" fill="none">
+    <path d="M600 320 Q620 300 600 280"/>
+    <path d="M610 330 Q635 305 610 280"/>
+  </g>
+
+  <!-- Small hearts (representing care) -->
+  <path d="M180 80 C180 70 190 70 190 80 C190 70 200 70 200 80 C200 95 190 105 190 105 C190 105 180 95 180 80" fill="#14B8A6" opacity="0.5"/>
+  <path d="M620 70 C620 62 628 62 628 70 C628 62 636 62 636 70 C636 82 628 90 628 90 C628 90 620 82 620 70" fill="#0EA5E9" opacity="0.4"/>
+  <path d="M700 250 C700 244 706 244 706 250 C706 244 712 244 712 250 C712 259 706 265 706 265 C706 265 700 259 700 250" fill="#14B8A6" opacity="0.4"/>
+
+  <!-- Soft glow around the interaction point -->
+  <ellipse cx="480" cy="200" rx="60" ry="50" fill="#14B8A6" opacity="0.1"/>
+  <ellipse cx="480" cy="200" rx="40" ry="35" fill="#5EEAD4" opacity="0.1"/>
+</svg>

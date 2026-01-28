@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, AlertTriangle, User, Trash2 } from 'lucide-react'
 import { Card, Input, Badge } from '../../components/common'
-import { usePets, useClients, useDeletePet } from '@/hooks'
+import { usePets, useClients, useDeletePet, useCreatePet } from '@/hooks'
 import type { Pet, Client } from '@/types'
 import { BEHAVIOR_LEVEL_LABELS } from '@/config/constants'
-import { useTheme } from '../../context'
+import { useTheme, useUndo } from '../../context'
 import { cn } from '@/lib/utils'
 
 // PetCard component with hover delete button
@@ -81,15 +81,28 @@ function PetCard({ pet, client, onDelete }: { pet: Pet; client?: Client; onDelet
 
 export function PetsPage() {
   const { colors } = useTheme()
+  const { showUndo } = useUndo()
   const [searchQuery, setSearchQuery] = useState('')
   const { data: pets = [], isLoading } = usePets()
   const { data: clients = [] } = useClients()
   const deletePet = useDeletePet()
+  const createPet = useCreatePet()
 
-  const handleDeletePet = async (id: string) => {
-    if (confirm('Are you sure you want to delete this pet?')) {
-      await deletePet.mutateAsync(id)
-    }
+  const handleDeletePet = async (petId: string) => {
+    const petToDelete = pets.find(p => p.id === petId)
+    if (!petToDelete) return
+
+    await deletePet.mutateAsync(petId)
+
+    showUndo({
+      type: 'pet',
+      label: petToDelete.name,
+      data: petToDelete,
+      onUndo: async () => {
+        const { id, createdAt, updatedAt, ...petData } = petToDelete
+        await createPet.mutateAsync(petData)
+      }
+    })
   }
 
   const filteredPets = pets.filter((pet) => {

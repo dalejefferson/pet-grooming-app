@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E0F2F1"/>
+      <stop offset="100%" style="stop-color:#E0F7FA"/>
+    </linearGradient>
+    <linearGradient id="dogGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#14B8A6"/>
+      <stop offset="100%" style="stop-color:#0D9488"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bgGradient)"/>
+
+  <!-- Decorative circles -->
+  <circle cx="100" cy="350" r="80" fill="#0D9488" opacity="0.1"/>
+  <circle cx="700" cy="50" r="60" fill="#0EA5E9" opacity="0.1"/>
+
+  <!-- Center dog -->
+  <g transform="translate(400, 200)">
+    <!-- Dog body -->
+    <ellipse cx="0" cy="30" rx="50" ry="40" fill="url(#dogGradient)"/>
+    <!-- Dog head -->
+    <circle cx="0" cy="-20" r="45" fill="#14B8A6"/>
+    <!-- Ears -->
+    <ellipse cx="-35" cy="-50" rx="15" ry="25" fill="#0D9488"/>
+    <ellipse cx="35" cy="-50" rx="15" ry="25" fill="#0D9488"/>
+    <!-- Snout -->
+    <ellipse cx="0" cy="-5" rx="20" ry="15" fill="#134E4A"/>
+    <!-- Nose -->
+    <ellipse cx="0" cy="-8" rx="8" ry="6" fill="#0f3d3a"/>
+    <!-- Eyes -->
+    <circle cx="-15" cy="-30" r="8" fill="#134E4A"/>
+    <circle cx="15" cy="-30" r="8" fill="#134E4A"/>
+    <circle cx="-13" cy="-32" r="3" fill="white"/>
+    <circle cx="17" cy="-32" r="3" fill="white"/>
+    <!-- Happy mouth -->
+    <path d="M -12 5 Q 0 15 12 5" stroke="#134E4A" stroke-width="3" fill="none"/>
+    <!-- Tail -->
+    <path d="M 45 20 Q 80 0 70 -20" stroke="#0D9488" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <!-- Legs -->
+    <rect x="-35" y="55" width="15" height="25" rx="7" fill="#0D9488"/>
+    <rect x="20" y="55" width="15" height="25" rx="7" fill="#0D9488"/>
+  </g>
+
+  <!-- Sun (Summer) - Top Left -->
+  <g transform="translate(150, 100)">
+    <circle cx="0" cy="0" r="35" fill="#0EA5E9"/>
+    <g stroke="#0EA5E9" stroke-width="4" stroke-linecap="round">
+      <line x1="0" y1="-50" x2="0" y2="-60"/>
+      <line x1="35" y1="-35" x2="42" y2="-42"/>
+      <line x1="50" y1="0" x2="60" y2="0"/>
+      <line x1="35" y1="35" x2="42" y2="42"/>
+      <line x1="0" y1="50" x2="0" y2="60"/>
+      <line x1="-35" y1="35" x2="-42" y2="42"/>
+      <line x1="-50" y1="0" x2="-60" y2="0"/>
+      <line x1="-35" y1="-35" x2="-42" y2="-42"/>
+    </g>
+    <circle cx="-10" cy="-8" r="5" fill="#E0F7FA" opacity="0.5"/>
+  </g>
+
+  <!-- Leaf (Fall) - Top Right -->
+  <g transform="translate(650, 100)">
+    <path d="M 0 -40 Q 40 -20 30 20 Q 15 40 0 45 Q -15 40 -30 20 Q -40 -20 0 -40" fill="#0D9488"/>
+    <path d="M 0 -35 L 0 45" stroke="#134E4A" stroke-width="3"/>
+    <path d="M 0 -15 L -15 -5" stroke="#134E4A" stroke-width="2"/>
+    <path d="M 0 5 L 15 15" stroke="#134E4A" stroke-width="2"/>
+    <path d="M 0 20 L -12 30" stroke="#134E4A" stroke-width="2"/>
+  </g>
+
+  <!-- Snowflake (Winter) - Bottom Right -->
+  <g transform="translate(650, 300)">
+    <g stroke="#0EA5E9" stroke-width="4" stroke-linecap="round">
+      <line x1="0" y1="-35" x2="0" y2="35"/>
+      <line x1="-30" y1="-17" x2="30" y2="17"/>
+      <line x1="-30" y1="17" x2="30" y2="-17"/>
+    </g>
+    <g stroke="#0EA5E9" stroke-width="3" stroke-linecap="round">
+      <line x1="0" y1="-25" x2="-8" y2="-30"/>
+      <line x1="0" y1="-25" x2="8" y2="-30"/>
+      <line x1="0" y1="25" x2="-8" y2="30"/>
+      <line x1="0" y1="25" x2="8" y2="30"/>
+      <line x1="-20" y1="-12" x2="-25" y2="-5"/>
+      <line x1="20" y1="12" x2="25" y2="5"/>
+      <line x1="-20" y1="12" x2="-25" y2="5"/>
+      <line x1="20" y1="-12" x2="25" y2="-5"/>
+    </g>
+    <circle cx="0" cy="0" r="6" fill="#14B8A6"/>
+  </g>
+
+  <!-- Flower (Spring) - Bottom Left -->
+  <g transform="translate(150, 300)">
+    <g fill="#14B8A6">
+      <ellipse cx="0" cy="-25" rx="15" ry="20"/>
+      <ellipse cx="24" cy="-8" rx="15" ry="20" transform="rotate(72 24 -8)"/>
+      <ellipse cx="15" cy="20" rx="15" ry="20" transform="rotate(144 15 20)"/>
+      <ellipse cx="-15" cy="20" rx="15" ry="20" transform="rotate(216 -15 20)"/>
+      <ellipse cx="-24" cy="-8" rx="15" ry="20" transform="rotate(288 -24 -8)"/>
+    </g>
+    <circle cx="0" cy="0" r="15" fill="#0EA5E9"/>
+    <circle cx="-4" cy="-4" r="4" fill="#E0F7FA" opacity="0.5"/>
+  </g>
+
+  <!-- Connecting dotted arcs -->
+  <g fill="none" stroke="#0D9488" stroke-width="2" stroke-dasharray="5,5" opacity="0.4">
+    <path d="M 200 100 Q 280 80 340 130"/>
+    <path d="M 600 100 Q 520 80 460 130"/>
+    <path d="M 200 300 Q 280 320 340 270"/>
+    <path d="M 600 300 Q 520 320 460 270"/>
+  </g>
+</svg>

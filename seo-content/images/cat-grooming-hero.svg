@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bgGradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E0F2F1"/>
+      <stop offset="100%" style="stop-color:#E0F7FA"/>
+    </linearGradient>
+    <linearGradient id="cushionGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0EA5E9"/>
+      <stop offset="100%" style="stop-color:#0D9488"/>
+    </linearGradient>
+    <linearGradient id="catGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#14B8A6"/>
+      <stop offset="100%" style="stop-color:#0D9488"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bgGradient3)"/>
+
+  <!-- Decorative elements -->
+  <circle cx="100" cy="100" r="50" fill="#14B8A6" opacity="0.1"/>
+  <circle cx="700" cy="80" r="35" fill="#0EA5E9" opacity="0.1"/>
+  <circle cx="750" cy="300" r="60" fill="#0D9488" opacity="0.08"/>
+  <circle cx="50" cy="350" r="40" fill="#14B8A6" opacity="0.1"/>
+
+  <!-- Cushion/pillow -->
+  <g transform="translate(400, 320)">
+    <ellipse cx="0" cy="0" rx="150" ry="40" fill="url(#cushionGradient)"/>
+    <ellipse cx="0" cy="-10" rx="130" ry="30" fill="#0EA5E9" opacity="0.3"/>
+    <!-- Cushion details -->
+    <path d="M -100 -5 Q -50 -20 0 -5 Q 50 -20 100 -5" stroke="#134E4A" stroke-width="2" fill="none" opacity="0.3"/>
+    <!-- Tassels -->
+    <circle cx="-140" cy="5" r="8" fill="#134E4A"/>
+    <circle cx="140" cy="5" r="8" fill="#134E4A"/>
+  </g>
+
+  <!-- Regal Cat -->
+  <g transform="translate(400, 200)">
+    <!-- Fluffy body -->
+    <ellipse cx="0" cy="70" rx="80" ry="60" fill="url(#catGradient)"/>
+    <!-- Fluffy chest -->
+    <ellipse cx="0" cy="40" rx="50" ry="45" fill="#14B8A6"/>
+    <!-- Fur texture on chest -->
+    <path d="M -30 20 Q -25 40 -20 25 Q -15 45 -10 30 Q -5 50 0 35 Q 5 55 10 30 Q 15 45 20 25 Q 25 40 30 20" stroke="#0D9488" stroke-width="2" fill="none" opacity="0.5"/>
+
+    <!-- Head -->
+    <ellipse cx="0" cy="-30" rx="55" ry="50" fill="#0D9488"/>
+
+    <!-- Ears -->
+    <path d="M -45 -70 L -55 -120 L -25 -80 Z" fill="#134E4A"/>
+    <path d="M 45 -70 L 55 -120 L 25 -80 Z" fill="#134E4A"/>
+    <!-- Inner ears -->
+    <path d="M -43 -75 L -50 -105 L -30 -80 Z" fill="#14B8A6" opacity="0.5"/>
+    <path d="M 43 -75 L 50 -105 L 30 -80 Z" fill="#14B8A6" opacity="0.5"/>
+
+    <!-- Face fur -->
+    <path d="M -50 -20 Q -55 -35 -45 -40 Q -40 -25 -50 -20" fill="#14B8A6" opacity="0.6"/>
+    <path d="M 50 -20 Q 55 -35 45 -40 Q 40 -25 50 -20" fill="#14B8A6" opacity="0.6"/>
+
+    <!-- Eyes - almond shaped, regal -->
+    <ellipse cx="-20" cy="-35" rx="12" ry="10" fill="#134E4A"/>
+    <ellipse cx="20" cy="-35" rx="12" ry="10" fill="#134E4A"/>
+    <!-- Pupils -->
+    <ellipse cx="-20" cy="-35" rx="5" ry="8" fill="#0EA5E9"/>
+    <ellipse cx="20" cy="-35" rx="5" ry="8" fill="#0EA5E9"/>
+    <!-- Eye shine -->
+    <circle cx="-17" cy="-38" r="3" fill="white"/>
+    <circle cx="23" cy="-38" r="3" fill="white"/>
+
+    <!-- Nose -->
+    <path d="M 0 -15 L -8 -5 L 8 -5 Z" fill="#134E4A"/>
+
+    <!-- Content smile -->
+    <path d="M -10 2 Q 0 10 10 2" stroke="#134E4A" stroke-width="2.5" fill="none"/>
+    <line x1="0" y1="-5" x2="0" y2="5" stroke="#134E4A" stroke-width="2"/>
+
+    <!-- Whiskers -->
+    <g stroke="#134E4A" stroke-width="1.5" opacity="0.6">
+      <line x1="-25" y1="-10" x2="-60" y2="-20"/>
+      <line x1="-25" y1="-5" x2="-65" y2="-5"/>
+      <line x1="-25" y1="0" x2="-60" y2="10"/>
+      <line x1="25" y1="-10" x2="60" y2="-20"/>
+      <line x1="25" y1="-5" x2="65" y2="-5"/>
+      <line x1="25" y1="0" x2="60" y2="10"/>
+    </g>
+
+    <!-- Front paws -->
+    <ellipse cx="-40" cy="115" rx="20" ry="15" fill="#0D9488"/>
+    <ellipse cx="40" cy="115" rx="20" ry="15" fill="#0D9488"/>
+    <!-- Paw details -->
+    <ellipse cx="-40" cy="112" rx="12" ry="8" fill="#134E4A" opacity="0.5"/>
+    <ellipse cx="40" cy="112" rx="12" ry="8" fill="#134E4A" opacity="0.5"/>
+
+    <!-- Fluffy tail curled -->
+    <path d="M 70 60 Q 120 40 130 80 Q 135 120 100 110 Q 80 105 90 85" stroke="#0D9488" stroke-width="25" fill="none" stroke-linecap="round"/>
+    <path d="M 92 88 Q 100 95 95 105" stroke="#14B8A6" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.5"/>
+  </g>
+
+  <!-- Grooming brush -->
+  <g transform="translate(180, 180) rotate(-30)">
+    <!-- Handle -->
+    <rect x="0" y="0" width="100" height="25" rx="5" fill="#134E4A"/>
+    <rect x="10" y="5" width="80" height="15" rx="3" fill="#0D9488" opacity="0.5"/>
+    <!-- Brush head -->
+    <rect x="100" y="-10" width="50" height="45" rx="8" fill="#0EA5E9"/>
+    <!-- Bristles -->
+    <g stroke="#134E4A" stroke-width="2" stroke-linecap="round">
+      <line x1="110" y1="35" x2="110" y2="50"/>
+      <line x1="120" y1="35" x2="120" y2="55"/>
+      <line x1="130" y1="35" x2="130" y2="50"/>
+      <line x1="140" y1="35" x2="140" y2="55"/>
+      <line x1="115" y1="35" x2="115" y2="48"/>
+      <line x1="125" y1="35" x2="125" y2="52"/>
+      <line x1="135" y1="35" x2="135" y2="48"/>
+    </g>
+  </g>
+
+  <!-- Sparkles/shine effects -->
+  <g fill="#0EA5E9">
+    <circle cx="520" cy="100" r="4"/>
+    <circle cx="280" cy="120" r="3"/>
+    <circle cx="600" cy="150" r="3"/>
+  </g>
+
+  <!-- Small floating hearts -->
+  <g fill="#14B8A6" opacity="0.6">
+    <path d="M 550 80 C 550 75 555 70 560 75 C 565 70 570 75 570 80 C 570 88 560 95 560 95 C 560 95 550 88 550 80" transform="scale(0.8)"/>
+    <path d="M 220 350 C 220 345 225 340 230 345 C 235 340 240 345 240 350 C 240 358 230 365 230 365 C 230 365 220 358 220 350" transform="scale(0.6)"/>
+  </g>
+</svg>

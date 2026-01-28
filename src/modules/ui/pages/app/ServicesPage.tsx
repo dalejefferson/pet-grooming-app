@@ -5,10 +5,11 @@ import { ServiceForm, ServiceDisplayCard, EditServiceModal } from '../../compone
 import { useServices, useCreateService, useUpdateService, useDeleteService } from '@/hooks'
 import { cn } from '@/lib/utils'
 import type { Service } from '@/types'
-import { useTheme } from '../../context'
+import { useTheme, useUndo } from '../../context'
 
 export function ServicesPage() {
   const { colors } = useTheme()
+  const { showUndo } = useUndo()
   const { data: services = [], isLoading } = useServices()
   const createService = useCreateService()
   const updateService = useUpdateService()
@@ -31,16 +32,38 @@ export function ServicesPage() {
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation() // Prevent card click from triggering
-    if (confirm('Are you sure you want to delete this service?')) {
-      await deleteService.mutateAsync(id)
-    }
+    const serviceToDelete = services.find(s => s.id === id)
+    if (!serviceToDelete) return
+
+    await deleteService.mutateAsync(id)
+
+    showUndo({
+      type: 'service',
+      label: serviceToDelete.name,
+      data: serviceToDelete,
+      onUndo: async () => {
+        const { id: _id, createdAt, updatedAt, ...serviceData } = serviceToDelete
+        await createService.mutateAsync(serviceData as Omit<Service, 'id' | 'createdAt' | 'updatedAt' | 'modifiers'>)
+      }
+    })
   }
 
   const handleDeleteFromModal = async () => {
-    if (editingService && confirm('Are you sure you want to delete this service?')) {
-      await deleteService.mutateAsync(editingService.id)
-      setEditingService(null)
-    }
+    if (!editingService) return
+
+    const serviceToDelete = editingService
+    await deleteService.mutateAsync(serviceToDelete.id)
+    setEditingService(null)
+
+    showUndo({
+      type: 'service',
+      label: serviceToDelete.name,
+      data: serviceToDelete,
+      onUndo: async () => {
+        const { id: _id, createdAt, updatedAt, ...serviceData } = serviceToDelete
+        await createService.mutateAsync(serviceData as Omit<Service, 'id' | 'createdAt' | 'updatedAt' | 'modifiers'>)
+      }
+    })
   }
 
   return (

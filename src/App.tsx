@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '@/modules/database'
-import { ThemeProvider } from '@/modules/ui/context'
+import { ThemeProvider, KeyboardProvider, UndoProvider } from '@/modules/ui/context'
 import { AppLayout, BookingLayout } from '@/modules/ui/components/layout'
 import { LoginPage } from '@/modules/auth'
 import {
@@ -33,6 +33,8 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <BrowserRouter>
+          <KeyboardProvider>
+          <UndoProvider>
           <Routes>
           {/* Auth routes */}
           <Route path="/login" element={<LoginPage />} />
@@ -70,6 +72,8 @@ function App() {
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
+          </UndoProvider>
+          </KeyboardProvider>
         </BrowserRouter>
       </ThemeProvider>
     </QueryClientProvider>

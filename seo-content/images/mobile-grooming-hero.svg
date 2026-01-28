@@ -1,0 +1,192 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#F0FDFA"/>
+
+  <!-- Road -->
+  <rect x="0" y="320" width="800" height="80" fill="#CBD5E1"/>
+  <rect x="0" y="355" width="800" height="10" fill="#94A3B8"/>
+
+  <!-- Road dashes -->
+  <rect x="50" y="358" width="40" height="4" fill="#F0FDFA"/>
+  <rect x="150" y="358" width="40" height="4" fill="#F0FDFA"/>
+  <rect x="250" y="358" width="40" height="4" fill="#F0FDFA"/>
+  <rect x="350" y="358" width="40" height="4" fill="#F0FDFA"/>
+  <rect x="450" y="358" width="40" height="4" fill="#F0FDFA"/>
+  <rect x="550" y="358" width="40" height="4" fill="#F0FDFA"/>
+  <rect x="650" y="358" width="40" height="4" fill="#F0FDFA"/>
+  <rect x="750" y="358" width="40" height="4" fill="#F0FDFA"/>
+
+  <!-- Decorative clouds -->
+  <g fill="white" opacity="0.8">
+    <ellipse cx="100" cy="60" rx="40" ry="25"/>
+    <ellipse cx="130" cy="55" rx="35" ry="22"/>
+    <ellipse cx="70" cy="55" rx="30" ry="20"/>
+
+    <ellipse cx="650" cy="80" rx="50" ry="30"/>
+    <ellipse cx="690" cy="75" rx="40" ry="25"/>
+    <ellipse cx="610" cy="75" rx="35" ry="22"/>
+  </g>
+
+  <!-- Sun -->
+  <circle cx="720" cy="80" r="40" fill="#FBBF24" opacity="0.3"/>
+  <circle cx="720" cy="80" r="30" fill="#FBBF24" opacity="0.5"/>
+
+  <!-- Grooming Van -->
+  <g transform="translate(150, 140)">
+    <!-- Van body -->
+    <rect x="0" y="80" width="350" height="140" rx="15" fill="#0D9488"/>
+
+    <!-- Van cabin -->
+    <path d="M0 120 L0 80 Q0 60 20 60 L100 60 L130 120 Z" fill="#0EA5E9"/>
+
+    <!-- Windshield -->
+    <path d="M15 115 L25 70 Q28 65 35 65 L90 65 L115 115 Z" fill="#14B8A6" opacity="0.6"/>
+
+    <!-- Side windows on van body -->
+    <rect x="160" y="100" width="60" height="50" rx="8" fill="#14B8A6" opacity="0.5"/>
+    <rect x="240" y="100" width="60" height="50" rx="8" fill="#14B8A6" opacity="0.5"/>
+
+    <!-- Van details - stripe -->
+    <rect x="0" y="160" width="350" height="15" fill="#14B8A6"/>
+
+    <!-- Paw prints on van -->
+    <g fill="white" opacity="0.9">
+      <!-- Paw 1 -->
+      <g transform="translate(180, 190)">
+        <ellipse cx="0" cy="8" rx="12" ry="10"/>
+        <circle cx="-10" cy="-5" r="5"/>
+        <circle cx="10" cy="-5" r="5"/>
+        <circle cx="-5" cy="-12" r="4"/>
+        <circle cx="5" cy="-12" r="4"/>
+      </g>
+
+      <!-- Paw 2 -->
+      <g transform="translate(280, 185) scale(0.8)">
+        <ellipse cx="0" cy="8" rx="12" ry="10"/>
+        <circle cx="-10" cy="-5" r="5"/>
+        <circle cx="10" cy="-5" r="5"/>
+        <circle cx="-5" cy="-12" r="4"/>
+        <circle cx="5" cy="-12" r="4"/>
+      </g>
+    </g>
+
+    <!-- Door handle -->
+    <rect x="310" y="140" width="25" height="8" rx="4" fill="#134E4A"/>
+
+    <!-- Headlight -->
+    <circle cx="15" cy="180" r="12" fill="#FBBF24"/>
+    <circle cx="15" cy="180" r="8" fill="white" opacity="0.7"/>
+
+    <!-- Tail light -->
+    <rect x="335" y="170" width="12" height="25" rx="4" fill="#EF4444"/>
+
+    <!-- Wheels -->
+    <g>
+      <circle cx="80" cy="220" r="35" fill="#334155"/>
+      <circle cx="80" cy="220" r="25" fill="#64748B"/>
+      <circle cx="80" cy="220" r="10" fill="#CBD5E1"/>
+
+      <circle cx="280" cy="220" r="35" fill="#334155"/>
+      <circle cx="280" cy="220" r="25" fill="#64748B"/>
+      <circle cx="280" cy="220" r="10" fill="#CBD5E1"/>
+    </g>
+
+    <!-- Roof rack with grooming equipment -->
+    <rect x="130" y="55" width="200" height="8" fill="#134E4A"/>
+    <rect x="150" y="35" width="40" height="25" rx="5" fill="#0EA5E9"/>
+    <rect x="210" y="30" width="60" height="30" rx="8" fill="#14B8A6"/>
+    <rect x="290" y="40" width="25" height="20" rx="5" fill="#0D9488"/>
+  </g>
+
+  <!-- Happy Dog looking out window -->
+  <g transform="translate(340, 200)">
+    <!-- Dog head -->
+    <ellipse cx="0" cy="0" rx="35" ry="32" fill="#FBBF24"/>
+
+    <!-- Dog ears -->
+    <ellipse cx="-30" cy="-15" rx="15" ry="25" fill="#D97706" transform="rotate(-15)"/>
+    <ellipse cx="30" cy="-15" rx="15" ry="25" fill="#D97706" transform="rotate(15)"/>
+
+    <!-- Dog face -->
+    <ellipse cx="0" cy="5" rx="30" ry="28" fill="#FBBF24"/>
+
+    <!-- Snout -->
+    <ellipse cx="0" cy="18" rx="18" ry="14" fill="#FCD34D"/>
+
+    <!-- Nose -->
+    <ellipse cx="0" cy="12" rx="8" ry="6" fill="#134E4A"/>
+    <ellipse cx="-2" cy="10" rx="3" ry="2" fill="#334155" opacity="0.5"/>
+
+    <!-- Happy eyes -->
+    <g>
+      <ellipse cx="-12" cy="-5" rx="8" ry="10" fill="white"/>
+      <circle cx="-12" cy="-3" r="5" fill="#134E4A"/>
+      <circle cx="-10" cy="-5" r="2" fill="white"/>
+
+      <ellipse cx="12" cy="-5" rx="8" ry="10" fill="white"/>
+      <circle cx="12" cy="-3" r="5" fill="#134E4A"/>
+      <circle cx="14" cy="-5" r="2" fill="white"/>
+    </g>
+
+    <!-- Happy eyebrows -->
+    <path d="M-22 -18 Q-12 -22 -5 -18" stroke="#D97706" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M22 -18 Q12 -22 5 -18" stroke="#D97706" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+    <!-- Big happy smile with tongue -->
+    <path d="M-15 25 Q0 38 15 25" stroke="#134E4A" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <ellipse cx="0" cy="32" rx="8" ry="10" fill="#F87171"/>
+  </g>
+
+  <!-- Motion lines -->
+  <g stroke="#0EA5E9" stroke-width="3" stroke-linecap="round" opacity="0.5">
+    <line x1="100" y1="200" x2="70" y2="200"/>
+    <line x1="110" y1="230" x2="60" y2="230"/>
+    <line x1="100" y1="260" x2="80" y2="260"/>
+  </g>
+
+  <!-- Grooming tools floating -->
+  <!-- Brush -->
+  <g transform="translate(620, 180) rotate(15)">
+    <rect x="-8" y="0" width="16" height="50" rx="4" fill="#0D9488"/>
+    <rect x="-15" y="-25" width="30" height="30" rx="5" fill="#14B8A6"/>
+    <line x1="-10" y1="-20" x2="-10" y2="0" stroke="#0D9488" stroke-width="2"/>
+    <line x1="-5" y1="-20" x2="-5" y2="0" stroke="#0D9488" stroke-width="2"/>
+    <line x1="0" y1="-20" x2="0" y2="0" stroke="#0D9488" stroke-width="2"/>
+    <line x1="5" y1="-20" x2="5" y2="0" stroke="#0D9488" stroke-width="2"/>
+    <line x1="10" y1="-20" x2="10" y2="0" stroke="#0D9488" stroke-width="2"/>
+  </g>
+
+  <!-- Scissors -->
+  <g transform="translate(680, 250) rotate(-20)">
+    <ellipse cx="-12" cy="0" rx="10" ry="7" fill="#CBD5E1"/>
+    <ellipse cx="12" cy="0" rx="10" ry="7" fill="#CBD5E1"/>
+    <rect x="-6" y="-12" width="5" height="28" rx="2" fill="#94A3B8"/>
+    <rect x="1" y="-12" width="5" height="28" rx="2" fill="#94A3B8"/>
+    <circle cx="0" cy="-4" r="4" fill="#64748B"/>
+  </g>
+
+  <!-- Sparkles/stars for energy -->
+  <g fill="#14B8A6">
+    <path d="M600 120 L605 130 L615 130 L607 138 L610 148 L600 142 L590 148 L593 138 L585 130 L595 130 Z"/>
+    <path d="M720 150 L723 157 L730 157 L725 162 L727 169 L720 165 L713 169 L715 162 L710 157 L717 157 Z" opacity="0.7"/>
+    <path d="M80 100 L83 107 L90 107 L85 112 L87 119 L80 115 L73 119 L75 112 L70 107 L77 107 Z" opacity="0.6"/>
+  </g>
+
+  <!-- Paw prints on ground -->
+  <g fill="#0D9488" opacity="0.2">
+    <g transform="translate(600, 340)">
+      <ellipse cx="0" cy="8" rx="10" ry="8"/>
+      <circle cx="-8" cy="-4" r="4"/>
+      <circle cx="8" cy="-4" r="4"/>
+      <circle cx="-4" cy="-10" r="3"/>
+      <circle cx="4" cy="-10" r="3"/>
+    </g>
+    <g transform="translate(660, 350) scale(0.8)">
+      <ellipse cx="0" cy="8" rx="10" ry="8"/>
+      <circle cx="-8" cy="-4" r="4"/>
+      <circle cx="8" cy="-4" r="4"/>
+      <circle cx="-4" cy="-10" r="3"/>
+      <circle cx="4" cy="-10" r="3"/>
+    </g>
+  </g>
+</svg>

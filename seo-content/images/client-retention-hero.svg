@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bgGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E0F2F1"/>
+      <stop offset="100%" style="stop-color:#B2DFDB"/>
+    </linearGradient>
+    <linearGradient id="personShirt" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0EA5E9"/>
+      <stop offset="100%" style="stop-color:#0D9488"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bgGradient1)"/>
+
+  <!-- Decorative circles -->
+  <circle cx="100" cy="80" r="40" fill="#14B8A6" opacity="0.2"/>
+  <circle cx="700" cy="320" r="60" fill="#0EA5E9" opacity="0.15"/>
+  <circle cx="650" cy="100" r="30" fill="#0D9488" opacity="0.2"/>
+
+  <!-- Person body -->
+  <ellipse cx="350" cy="340" rx="80" ry="40" fill="#0D9488"/>
+  <path d="M290 200 Q280 280 300 340 L400 340 Q420 280 410 200 Z" fill="url(#personShirt)"/>
+
+  <!-- Person arms hugging -->
+  <path d="M290 220 Q240 240 260 300 Q280 340 320 320" fill="#0EA5E9" stroke="#0D9488" stroke-width="2"/>
+  <path d="M410 220 Q460 240 480 280 Q500 320 480 340" fill="#0EA5E9" stroke="#0D9488" stroke-width="2"/>
+
+  <!-- Person head -->
+  <circle cx="350" cy="150" r="50" fill="#FFDAB9"/>
+  <ellipse cx="350" cy="120" rx="45" ry="30" fill="#134E4A"/>
+  <circle cx="335" cy="155" r="5" fill="#134E4A"/>
+  <circle cx="365" cy="155" r="5" fill="#134E4A"/>
+  <path d="M340 175 Q350 185 360 175" stroke="#134E4A" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <!-- Dog body -->
+  <ellipse cx="480" cy="300" rx="90" ry="70" fill="#14B8A6"/>
+  <ellipse cx="480" cy="310" rx="80" ry="55" fill="#5EEAD4"/>
+
+  <!-- Dog head -->
+  <circle cx="520" cy="200" r="60" fill="#14B8A6"/>
+  <circle cx="520" cy="210" r="50" fill="#5EEAD4"/>
+
+  <!-- Dog ears -->
+  <ellipse cx="470" cy="160" rx="25" ry="40" fill="#0D9488" transform="rotate(-20 470 160)"/>
+  <ellipse cx="570" cy="160" rx="25" ry="40" fill="#0D9488" transform="rotate(20 570 160)"/>
+
+  <!-- Dog face -->
+  <circle cx="500" cy="200" r="8" fill="#134E4A"/>
+  <circle cx="540" cy="200" r="8" fill="#134E4A"/>
+  <circle cx="502" cy="198" r="2" fill="white"/>
+  <circle cx="542" cy="198" r="2" fill="white"/>
+  <ellipse cx="520" cy="230" rx="15" ry="12" fill="#134E4A"/>
+  <path d="M505 245 Q520 265 535 245" stroke="#E57373" stroke-width="8" fill="none" stroke-linecap="round"/>
+
+  <!-- Dog tail wagging -->
+  <path d="M390 280 Q350 250 340 300 Q330 340 360 330" fill="#14B8A6" stroke="#0D9488" stroke-width="2"/>
+
+  <!-- Dog legs -->
+  <ellipse cx="420" cy="360" rx="20" ry="30" fill="#14B8A6"/>
+  <ellipse cx="540" cy="360" rx="20" ry="30" fill="#14B8A6"/>
+
+  <!-- Hearts floating -->
+  <path d="M200 100 C200 85 220 85 220 100 C220 85 240 85 240 100 C240 130 220 145 220 145 C220 145 200 130 200 100" fill="#E57373"/>
+  <path d="M600 80 C600 68 615 68 615 80 C615 68 630 68 630 80 C630 105 615 115 615 115 C615 115 600 105 600 80" fill="#F48FB1" opacity="0.8"/>
+  <path d="M150 200 C150 190 162 190 162 200 C162 190 174 190 174 200 C174 218 162 226 162 226 C162 226 150 218 150 200" fill="#EF9A9A" opacity="0.7"/>
+  <path d="M580 180 C580 172 590 172 590 180 C590 172 600 172 600 180 C600 193 590 200 590 200 C590 200 580 193 580 180" fill="#E57373" opacity="0.6"/>
+  <path d="M250 60 C250 52 260 52 260 60 C260 52 270 52 270 60 C270 73 260 80 260 80 C260 80 250 73 250 60" fill="#F48FB1" opacity="0.5"/>
+
+  <!-- Small decorative hearts -->
+  <path d="M680 200 C680 195 686 195 686 200 C686 195 692 195 692 200 C692 208 686 212 686 212 C686 212 680 208 680 200" fill="#E57373" opacity="0.7"/>
+  <path d="M130 300 C130 295 136 295 136 300 C136 295 142 295 142 300 C142 308 136 312 136 312 C136 312 130 308 130 300" fill="#EF9A9A" opacity="0.6"/>
+</svg>

@@ -73,6 +73,8 @@ export interface AppointmentDetailsDrawerProps {
   groomers: Groomer[]
   onStatusChange: (status: AppointmentStatus) => Promise<void>
   onQuickStatusChange: (status: 'no_show' | 'cancelled') => void
+  onDelete?: (appointmentId: string) => Promise<void>
+  isDeleting?: boolean
 }
 
 // Create appointment modal props

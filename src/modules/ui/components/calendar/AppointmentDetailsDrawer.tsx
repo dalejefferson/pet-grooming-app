@@ -1,6 +1,6 @@
 import { format } from 'date-fns'
-import { AlertTriangle, UserX, XCircle } from 'lucide-react'
-import { Drawer, Badge, Select } from '../common'
+import { AlertTriangle, UserX, XCircle, Trash2 } from 'lucide-react'
+import { Drawer, Badge, Select, Button } from '../common'
 import { APPOINTMENT_STATUS_LABELS } from '@/config/constants'
 import { formatCurrency, formatDuration, cn } from '@/lib/utils'
 import { STATUS_BG_COLORS, STATUS_BORDER_COLORS } from './types'
@@ -24,6 +24,8 @@ export function AppointmentDetailsDrawer({
   groomers,
   onStatusChange,
   onQuickStatusChange,
+  onDelete,
+  isDeleting,
 }: AppointmentDetailsDrawerProps) {
   const selectedClient = appointment
     ? clients.find((c) => c.id === appointment.clientId)
@@ -211,6 +213,22 @@ export function AppointmentDetailsDrawer({
               </span>
             </div>
           </div>
+
+          {/* Delete Button */}
+          {onDelete && (
+            <div className="border-t-2 border-[#1e293b] pt-4">
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => onDelete(appointment.id)}
+                disabled={isDeleting}
+                className="w-full"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {isDeleting ? 'Deleting...' : 'Delete Appointment'}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </Drawer>

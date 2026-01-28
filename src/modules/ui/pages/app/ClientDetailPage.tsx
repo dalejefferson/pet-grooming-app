@@ -226,7 +226,7 @@ export function ClientDetailPage() {
             </div>
           </div>
           <Button
-            variant="accent"
+            variant="themed"
             onClick={() => {
               setBookStartTime('')
               setBookEndTime('')
@@ -245,13 +245,13 @@ export function ClientDetailPage() {
           <div className="mt-4 space-y-3">
             <div className="flex items-center gap-3">
               <Mail className="h-5 w-5 text-gray-400" />
-              <a href={`mailto:${client.email}`} className="text-primary-600 hover:underline">
+              <a href={`mailto:${client.email}`} className="hover:underline" style={{ color: colors.accentColorDark }}>
                 {client.email}
               </a>
             </div>
             <div className="flex items-center gap-3">
               <Phone className="h-5 w-5 text-gray-400" />
-              <a href={`tel:${client.phone}`} className="text-primary-600 hover:underline">
+              <a href={`tel:${client.phone}`} className="hover:underline" style={{ color: colors.accentColorDark }}>
                 {formatPhone(client.phone)}
               </a>
             </div>
@@ -320,7 +320,7 @@ export function ClientDetailPage() {
       <Card>
         <div className="flex items-center justify-between">
           <CardTitle>Pets</CardTitle>
-          <Button size="sm" onClick={() => setShowAddPetModal(true)}>
+          <Button variant="themed" size="sm" onClick={() => setShowAddPetModal(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Pet
           </Button>

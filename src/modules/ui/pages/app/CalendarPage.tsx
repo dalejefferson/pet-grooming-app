@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Calendar, dateFnsLocalizer, type View, type Components, type SlotInfo } from 'react-big-calendar'
 import withDragAndDrop, { type EventInteractionArgs } from 'react-big-calendar/lib/addons/dragAndDrop'
 import { format, parse, startOfWeek, endOfWeek, getDay, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from 'date-fns'
@@ -7,11 +8,11 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
 
 import { Card, MiniCalendar } from '../../components/common'
-import { useAppointmentsByWeek, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useUpdateAppointment, useClientPets, useServices, useCreateAppointment } from '@/hooks'
+import { useAppointmentsByWeek, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useUpdateAppointment, useClientPets, useServices, useCreateAppointment, useDeleteAppointment } from '@/hooks'
 import { CALENDAR_BUSINESS_HOURS } from '@/config/constants'
 import { cn } from '@/lib/utils'
 import type { Appointment, AppointmentStatus } from '@/types'
-import { useTheme } from '../../context'
+import { useTheme, useKeyboardShortcuts, useUndo } from '../../context'
 
 import {
   HoverPopup,
@@ -46,6 +47,9 @@ const DragAndDropCalendar = withDragAndDrop<CalendarEvent, object>(Calendar)
 
 export function CalendarPage() {
   const { colors } = useTheme()
+  const { registerCalendarViewCycle } = useKeyboardShortcuts()
+  const { showUndo } = useUndo()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<View>('month')
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
@@ -84,6 +88,7 @@ export function CalendarPage() {
   const updateStatus = useUpdateAppointmentStatus()
   const updateAppointment = useUpdateAppointment()
   const createAppointment = useCreateAppointment()
+  const deleteAppointment = useDeleteAppointment()
 
   // Build calendar events from appointments
   const events: CalendarEvent[] = useMemo(() => {
@@ -136,6 +141,27 @@ export function CalendarPage() {
   const handleSelectEvent = useCallback((event: CalendarEvent) => setSelectedAppointment(event.resource), [])
   const handleNavigate = useCallback((date: Date) => setCurrentDate(date), [])
   const handleViewChange = useCallback((newView: View) => setView(newView), [])
+
+  // Cycle through views: day -> week -> month -> day
+  const cycleView = useCallback(() => {
+    setView(currentView => {
+      if (currentView === 'day') return 'week'
+      if (currentView === 'week') return 'month'
+      return 'day'
+    })
+  }, [])
+
+  useEffect(() => {
+    registerCalendarViewCycle(cycleView)
+  }, [registerCalendarViewCycle, cycleView])
+
+  // Handle book query param from keyboard shortcut
+  useEffect(() => {
+    if (searchParams.get('book') === 'true') {
+      setShowCreateModal(true)
+      setSearchParams({}, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
 
   // Status change handlers
   const handleStatusChange = async (status: AppointmentStatus) => {
@@ -261,6 +287,41 @@ export function CalendarPage() {
 
   const handleCloseCreateModal = useCallback(() => { setShowCreateModal(false); setSelectedClientId('') }, [])
 
+  // Delete appointment handler with undo support
+  const handleDeleteAppointment = useCallback(async (appointmentId: string) => {
+    const appointment = appointments.find(a => a.id === appointmentId)
+    if (!appointment) return
+
+    const client = clients.find(c => c.id === appointment.clientId)
+    const petNames = appointment.pets.map(p => pets.find(pet => pet.id === p.petId)?.name).filter(Boolean).join(', ')
+
+    await deleteAppointment.mutateAsync(appointmentId)
+    setSelectedAppointment(null)
+
+    showUndo({
+      type: 'appointment',
+      label: client ? `${client.firstName} ${client.lastName} - ${petNames}` : 'Appointment',
+      data: appointment,
+      onUndo: async () => {
+        await createAppointment.mutateAsync({
+          organizationId: appointment.organizationId,
+          clientId: appointment.clientId,
+          pets: appointment.pets,
+          groomerId: appointment.groomerId,
+          startTime: appointment.startTime,
+          endTime: appointment.endTime,
+          status: appointment.status,
+          internalNotes: appointment.internalNotes,
+          clientNotes: appointment.clientNotes,
+          statusNotes: appointment.statusNotes,
+          depositPaid: appointment.depositPaid,
+          depositAmount: appointment.depositAmount,
+          totalAmount: appointment.totalAmount,
+        })
+      },
+    })
+  }, [appointments, clients, pets, deleteAppointment, createAppointment, showUndo])
+
   // Display date formatter
   const getDisplayDate = useCallback(() => {
     if (view === 'month') return format(currentDate, 'MMMM yyyy')
@@ -381,7 +442,7 @@ export function CalendarPage() {
 
         {hoveredAppointment && hoverPosition && <HoverPopup appointment={hoveredAppointment} position={hoverPosition} clients={clients} pets={pets} groomers={groomers} />}
 
-        <AppointmentDetailsDrawer appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} clients={clients} pets={pets} groomers={groomers} onStatusChange={handleStatusChange} onQuickStatusChange={handleQuickStatusChange} />
+        <AppointmentDetailsDrawer appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} clients={clients} pets={pets} groomers={groomers} onStatusChange={handleStatusChange} onQuickStatusChange={handleQuickStatusChange} onDelete={handleDeleteAppointment} isDeleting={deleteAppointment.isPending} />
 
         <CreateAppointmentModal isOpen={showCreateModal} onClose={handleCloseCreateModal} clients={clients} clientPets={clientPets} services={services} groomers={groomers} initialStartTime={createStartTime} initialEndTime={createEndTime} onClientChange={setSelectedClientId} selectedClientId={selectedClientId} onCreateAppointment={handleCreateAppointment} isCreating={createAppointment.isPending} />
 

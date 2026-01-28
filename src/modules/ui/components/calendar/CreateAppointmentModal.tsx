@@ -3,6 +3,7 @@ import { AlertTriangle, Plus, Clock, User, Scissors } from 'lucide-react'
 import { Modal, Button, Input, Textarea, Select } from '../common'
 import { formatCurrency, formatDuration, cn } from '@/lib/utils'
 import type { CreateAppointmentModalProps, PetServiceSelection } from './types'
+import { useTheme } from '../../context'
 
 /**
  * CreateAppointmentModal provides a form for creating new appointments
@@ -22,6 +23,7 @@ export function CreateAppointmentModal({
   onCreateAppointment,
   isCreating,
 }: CreateAppointmentModalProps) {
+  const { colors } = useTheme()
   const [selectedPetServices, setSelectedPetServices] = useState<PetServiceSelection[]>([])
   const [selectedGroomerId, setSelectedGroomerId] = useState<string>('')
   const [appointmentNotes, setAppointmentNotes] = useState('')
@@ -158,7 +160,7 @@ export function CreateAppointmentModal({
         ) : (
           <>
             {/* Time Section */}
-            <div className="rounded-xl border-2 border-[#1e293b] bg-[#ecfccb]/30 p-3 sm:p-4 shadow-[2px_2px_0px_0px_#1e293b]">
+            <div className="rounded-xl border-2 border-[#1e293b] p-3 sm:p-4 shadow-[2px_2px_0px_0px_#1e293b]" style={{ backgroundColor: `${colors.gradientFrom}50` }}>
               <div className="flex items-center gap-2 mb-3">
                 <Clock className="h-5 w-5 text-[#334155]" />
                 <h3 className="font-semibold text-[#1e293b]">Appointment Time</h3>
@@ -185,7 +187,7 @@ export function CreateAppointmentModal({
             </div>
 
             {/* Client Selection */}
-            <div className="rounded-xl border-2 border-[#1e293b] bg-[#d1fae5]/30 p-4 shadow-[2px_2px_0px_0px_#1e293b]">
+            <div className="rounded-xl border-2 border-[#1e293b] p-4 shadow-[2px_2px_0px_0px_#1e293b]" style={{ backgroundColor: `${colors.accentColor}50` }}>
               <div className="flex items-center gap-2 mb-3">
                 <User className="h-5 w-5 text-[#334155]" />
                 <h3 className="font-semibold text-[#1e293b]">Client</h3>
@@ -204,7 +206,7 @@ export function CreateAppointmentModal({
 
             {/* Pet Selection */}
             {selectedClientId && (
-              <div className="rounded-xl border-2 border-[#1e293b] bg-[#fce7f3]/30 p-4 shadow-[2px_2px_0px_0px_#1e293b]">
+              <div className="rounded-xl border-2 border-[#1e293b] p-4 shadow-[2px_2px_0px_0px_#1e293b]" style={{ backgroundColor: `${colors.secondaryAccent}50` }}>
                 <h3 className="font-semibold text-[#1e293b] mb-3">Pets</h3>
                 {clientPets.length === 0 ? (
                   <p className="text-sm text-[#64748b]">No pets found for this client.</p>
@@ -283,7 +285,7 @@ export function CreateAppointmentModal({
             )}
 
             {/* Groomer Selection */}
-            <div className="rounded-xl border-2 border-[#1e293b] bg-[#e9d5ff]/30 p-4 shadow-[2px_2px_0px_0px_#1e293b]">
+            <div className="rounded-xl border-2 border-[#1e293b] p-4 shadow-[2px_2px_0px_0px_#1e293b]" style={{ backgroundColor: `${colors.gradientVia}50` }}>
               <div className="flex items-center gap-2 mb-3">
                 <Scissors className="h-5 w-5 text-[#334155]" />
                 <h3 className="font-semibold text-[#1e293b]">Groomer (Optional)</h3>
@@ -331,7 +333,7 @@ export function CreateAppointmentModal({
                   Cancel
                 </Button>
                 <Button
-                  variant="accent"
+                  variant="themed"
                   onClick={handleSubmit}
                   disabled={
                     !selectedClientId ||

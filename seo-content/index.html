@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sit Pretty Club Blog - Pet Grooming Resources & Guides</title>
+    <meta name="description" content="Expert pet grooming guides, business tips, and industry insights from Sit Pretty Club. Everything you need to grow your grooming business.">
+    <meta name="keywords" content="pet grooming blog, dog grooming tips, grooming business, pet grooming software">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #1a202c;
+            background: linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 100%);
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0D9488 0%, #0EA5E9 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .logo span {
+            color: #a7f3d0;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .intro {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .intro h2 {
+            color: #134E4A;
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .intro p {
+            color: #4a5568;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .article-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 10px 20px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(13, 148, 136, 0.15);
+        }
+
+        .article-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 100%);
+        }
+
+        .article-content {
+            padding: 25px;
+        }
+
+        .article-category {
+            display: inline-block;
+            background: #f0fdfa;
+            color: #0D9488;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .article-content h3 {
+            color: #134E4A;
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .article-content h3 a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .article-content h3 a:hover {
+            color: #0D9488;
+        }
+
+        .article-content p {
+            color: #4a5568;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+        }
+
+        .read-more {
+            display: inline-flex;
+            align-items: center;
+            color: #0D9488;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .read-more:hover {
+            color: #0EA5E9;
+        }
+
+        .read-more svg {
+            margin-left: 6px;
+            transition: transform 0.2s;
+        }
+
+        .read-more:hover svg {
+            transform: translateX(4px);
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, #134E4A 0%, #0D9488 100%);
+            color: white;
+            text-align: center;
+            padding: 60px 20px;
+            margin-top: 60px;
+            border-radius: 20px;
+        }
+
+        .cta-section h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .cta-section p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 25px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #0D9488;
+            padding: 15px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .price-note {
+            margin-top: 15px;
+            font-size: 0.95rem;
+            opacity: 0.8;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #4a5568;
+        }
+
+        footer a {
+            color: #0D9488;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2rem;
+            }
+
+            header {
+                padding: 40px 20px;
+            }
+
+            .articles-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-section h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Sit Pretty <span>Club</span></div>
+        <p>Expert guides to help you build and grow a thriving pet grooming business</p>
+    </header>
+
+    <div class="container">
+        <div class="intro">
+            <h2>The Pet Grooming Knowledge Hub</h2>
+            <p>Whether you're just starting out or looking to scale your grooming empire, our in-depth guides cover everything from handling anxious pets to building a six-figure business.</p>
+        </div>
+
+        <div class="articles-grid">
+            <!-- Article 1 -->
+            <article class="article-card">
+                <img src="images/no-shows-hero.svg" alt="Reduce No-Shows">
+                <div class="article-content">
+                    <span class="article-category">Business Operations</span>
+                    <h3><a href="01-reduce-no-shows.html">How to Reduce No-Shows at Your Pet Grooming Salon (7 Proven Strategies)</a></h3>
+                    <p>Stop losing money to missed appointments. These battle-tested strategies can cut your no-show rate by up to 80%.</p>
+                    <a href="01-reduce-no-shows.html" class="read-more">
+                        Read Article
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </article>
+
+            <!-- Article 2 -->
+            <article class="article-card">
+                <img src="images/pricing-strategy-hero.svg" alt="Pricing Strategies">
+                <div class="article-content">
+                    <span class="article-category">Pricing</span>
+                    <h3><a href="02-pricing-strategies.html">Pet Grooming Pricing Strategies: How to Charge What You're Worth</a></h3>
+                    <p>Most groomers undercharge by 20-40%. Learn the psychology and math behind pricing that grows your business.</p>
+                    <a href="02-pricing-strategies.html" class="read-more">
+                        Read Article
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </article>
+
+            <!-- Article 3 -->
+            <article class="article-card">
+                <img src="images/mobile-grooming-hero.svg" alt="Mobile Grooming Business">
+                <div class="article-content">
+                    <span class="article-category">Startup Guide</span>
+                    <h3><a href="03-start-mobile-grooming.html">How to Start a Mobile Pet Grooming Business: Complete 2026 Guide</a></h3>
+                    <p>Your complete roadmap to launching a mobile grooming business, from choosing a van to booking your first client.</p>
+                    <a href="03-start-mobile-grooming.html" class="read-more">
+                        Read Article
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </article>
+
+            <!-- Article 4 -->
+            <article class="article-card">
+                <img src="images/client-retention-hero.svg" alt="Client Retention">
+                <div class="article-content">
+                    <span class="article-category">Growth</span>
+                    <h3><a href="04-client-retention.html">Client Retention for Pet Groomers: Turn One-Time Visits Into Lifelong Customers</a></h3>
+                    <p>It costs 5x more to acquire a new client than keep an existing one. Here's how to build unshakeable loyalty.</p>
+                    <a href="04-client-retention.html" class="read-more">
+                        Read Article
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </article>
+
+            <!-- Article 5 -->
+            <article class="article-card">
+                <img src="images/grooming-tools-hero.svg" alt="Essential Grooming Tools">
+                <div class="article-content">
+                    <span class="article-category">Equipment</span>
+                    <h3><a href="05-essential-grooming-tools.html">Essential Pet Grooming Tools: The Complete Equipment Guide for Professionals</a></h3>
+                    <p>From clippers to shears to brushes - know exactly what you need and how to maintain it for peak performance.</p>
+                    <a href="05-essential-grooming-tools.html" class="read-more">
+                        Read Article
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </article>
+
+            <!-- Article 6 -->
+            <article class="article-card">
+                <img src="images/dog-anxiety-hero.svg" alt="Handling Anxious Dogs">
+                <div class="article-content">
+                    <span class="article-category">Pet Care</span>
+                    <h3><a href="06-handling-anxious-dogs.html">How to Groom Anxious Dogs: A Professional's Guide to Stress-Free Sessions</a></h3>
+                    <p>Transform nervous wrecks into calm clients with these proven calming techniques used by top groomers.</p>
+                    <a href="06-handling-anxious-dogs.html" class="read-more">
+                        Read Article
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </article>
+
+            <!-- Article 7 -->
+            <article class="article-card">
+                <img src="images/seasonal-grooming-hero.svg" alt="Seasonal Grooming Guide">
+                <div class="article-content">
+                    <span class="article-category">Pet Care</span>
+                    <h3><a href="07-seasonal-grooming-guide.html">Seasonal Pet Grooming Guide: What Your Clients Need to Know Year-Round</a></h3>
+                    <p>Each season brings unique grooming needs. Position yourself as the expert with this comprehensive guide.</p>
+                    <a href="07-seasonal-grooming-guide.html" class="read-more">
+                        Read Article
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </article>
+
+            <!-- Article 8 -->
+            <article class="article-card">
+                <img src="images/software-comparison-hero.svg" alt="Software Comparison">
+                <div class="article-content">
+                    <span class="article-category">Technology</span>
+                    <h3><a href="08-grooming-software-comparison.html">Best Pet Grooming Software 2026: Honest Comparison Guide</a></h3>
+                    <p>We compared the top grooming software options so you don't have to. See which one fits your business best.</p>
+                    <a href="08-grooming-software-comparison.html" class="read-more">
+                        Read Article
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </article>
+
+            <!-- Article 9 -->
+            <article class="article-card">
+                <img src="images/cat-grooming-hero.svg" alt="Cat Grooming Services">
+                <div class="article-content">
+                    <span class="article-category">Services</span>
+                    <h3><a href="09-cat-grooming-services.html">Adding Cat Grooming Services: Expand Your Business and Double Your Clientele</a></h3>
+                    <p>47 million cat-owning households are looking for groomers. Here's how to tap into this underserved market.</p>
+                    <a href="09-cat-grooming-services.html" class="read-more">
+                        Read Article
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </article>
+
+            <!-- Article 10 -->
+            <article class="article-card">
+                <img src="images/business-growth-hero.svg" alt="Business Growth">
+                <div class="article-content">
+                    <span class="article-category">Growth</span>
+                    <h3><a href="10-grow-grooming-business.html">How to Grow Your Pet Grooming Business: From Side Hustle to Six Figures</a></h3>
+                    <p>The complete roadmap to scaling your grooming business with proven strategies from six-figure salon owners.</p>
+                    <a href="10-grow-grooming-business.html" class="read-more">
+                        Read Article
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </article>
+        </div>
+
+        <div class="cta-section">
+            <h2>Ready to Grow Your Grooming Business?</h2>
+            <p>Sit Pretty Club gives you the scheduling, client management, and automation tools you need - at a price that makes sense for your business.</p>
+            <a href="https://sitpretty.com" class="cta-button">Start Your Free Trial</a>
+            <p class="price-note">Plans start at just $49.99/month. No credit card required.</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 <a href="https://sitpretty.com">Sit Pretty Club</a>. All rights reserved.</p>
+    </footer>
+</body>
+</html>

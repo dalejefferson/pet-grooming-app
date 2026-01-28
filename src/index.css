@@ -256,7 +256,7 @@ body {
   border-bottom: 2px solid #1e293b;
   @apply py-3 font-bold text-sm;
   color: #1e293b;
-  background-color: #f0fdf4;
+  background-color: var(--accent-color-light);
 }
 
 /* First and last header cells - clean up corners */

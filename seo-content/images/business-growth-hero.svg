@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bgGradient4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E0F2F1"/>
+      <stop offset="100%" style="stop-color:#E0F7FA"/>
+    </linearGradient>
+    <linearGradient id="chartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#0D9488" stop-opacity="0.2"/>
+      <stop offset="100%" style="stop-color:#14B8A6" stop-opacity="0.6"/>
+    </linearGradient>
+    <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0D9488"/>
+      <stop offset="100%" style="stop-color:#0EA5E9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bgGradient4)"/>
+
+  <!-- Decorative circles -->
+  <circle cx="80" cy="80" r="40" fill="#14B8A6" opacity="0.1"/>
+  <circle cx="720" cy="350" r="50" fill="#0EA5E9" opacity="0.1"/>
+  <circle cx="650" cy="50" r="25" fill="#0D9488" opacity="0.1"/>
+
+  <!-- Chart container -->
+  <g transform="translate(100, 50)">
+    <!-- Chart background -->
+    <rect x="0" y="0" width="600" height="300" rx="15" fill="white" opacity="0.5"/>
+
+    <!-- Grid lines -->
+    <g stroke="#0D9488" stroke-width="1" opacity="0.2">
+      <line x1="50" y1="50" x2="550" y2="50"/>
+      <line x1="50" y1="100" x2="550" y2="100"/>
+      <line x1="50" y1="150" x2="550" y2="150"/>
+      <line x1="50" y1="200" x2="550" y2="200"/>
+      <line x1="50" y1="250" x2="550" y2="250"/>
+    </g>
+
+    <!-- Y-axis -->
+    <line x1="50" y1="30" x2="50" y2="270" stroke="#134E4A" stroke-width="2"/>
+    <!-- X-axis -->
+    <line x1="50" y1="270" x2="570" y2="270" stroke="#134E4A" stroke-width="2"/>
+
+    <!-- Area under curve -->
+    <path d="M 80 250 Q 150 230 200 200 Q 280 170 340 150 Q 420 100 480 70 Q 520 50 540 40 L 540 270 L 80 270 Z" fill="url(#chartGradient)"/>
+
+    <!-- Growth line -->
+    <path d="M 80 250 Q 150 230 200 200 Q 280 170 340 150 Q 420 100 480 70 Q 520 50 540 40" stroke="url(#lineGradient)" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- Paw print markers along the line -->
+    <!-- Paw 1 -->
+    <g transform="translate(80, 250)">
+      <ellipse cx="0" cy="0" rx="10" ry="8" fill="#0D9488"/>
+      <circle cx="-6" cy="-10" r="4" fill="#0D9488"/>
+      <circle cx="6" cy="-10" r="4" fill="#0D9488"/>
+      <circle cx="-10" cy="-3" r="3.5" fill="#0D9488"/>
+      <circle cx="10" cy="-3" r="3.5" fill="#0D9488"/>
+    </g>
+
+    <!-- Paw 2 -->
+    <g transform="translate(200, 200)">
+      <ellipse cx="0" cy="0" rx="10" ry="8" fill="#14B8A6"/>
+      <circle cx="-6" cy="-10" r="4" fill="#14B8A6"/>
+      <circle cx="6" cy="-10" r="4" fill="#14B8A6"/>
+      <circle cx="-10" cy="-3" r="3.5" fill="#14B8A6"/>
+      <circle cx="10" cy="-3" r="3.5" fill="#14B8A6"/>
+    </g>
+
+    <!-- Paw 3 -->
+    <g transform="translate(340, 150)">
+      <ellipse cx="0" cy="0" rx="10" ry="8" fill="#0D9488"/>
+      <circle cx="-6" cy="-10" r="4" fill="#0D9488"/>
+      <circle cx="6" cy="-10" r="4" fill="#0D9488"/>
+      <circle cx="-10" cy="-3" r="3.5" fill="#0D9488"/>
+      <circle cx="10" cy="-3" r="3.5" fill="#0D9488"/>
+    </g>
+
+    <!-- Paw 4 -->
+    <g transform="translate(480, 70)">
+      <ellipse cx="0" cy="0" rx="10" ry="8" fill="#14B8A6"/>
+      <circle cx="-6" cy="-10" r="4" fill="#14B8A6"/>
+      <circle cx="6" cy="-10" r="4" fill="#14B8A6"/>
+      <circle cx="-10" cy="-3" r="3.5" fill="#14B8A6"/>
+      <circle cx="10" cy="-3" r="3.5" fill="#14B8A6"/>
+    </g>
+
+    <!-- Final paw with glow -->
+    <g transform="translate(540, 40)">
+      <circle cx="0" cy="0" r="25" fill="#0EA5E9" opacity="0.2"/>
+      <circle cx="0" cy="0" r="18" fill="#0EA5E9" opacity="0.3"/>
+      <ellipse cx="0" cy="0" rx="10" ry="8" fill="#0EA5E9"/>
+      <circle cx="-6" cy="-10" r="4" fill="#0EA5E9"/>
+      <circle cx="6" cy="-10" r="4" fill="#0EA5E9"/>
+      <circle cx="-10" cy="-3" r="3.5" fill="#0EA5E9"/>
+      <circle cx="10" cy="-3" r="3.5" fill="#0EA5E9"/>
+    </g>
+  </g>
+
+  <!-- Stars -->
+  <g fill="#0EA5E9">
+    <!-- Star 1 -->
+    <path d="M 680 80 L 685 95 L 700 95 L 688 105 L 692 120 L 680 112 L 668 120 L 672 105 L 660 95 L 675 95 Z"/>
+    <!-- Star 2 -->
+    <path d="M 720 150 L 723 160 L 733 160 L 725 167 L 728 177 L 720 172 L 712 177 L 715 167 L 707 160 L 717 160 Z" transform="scale(0.8) translate(90, 30)"/>
+    <!-- Star 3 -->
+    <path d="M 100 320 L 103 330 L 113 330 L 105 337 L 108 347 L 100 342 L 92 347 L 95 337 L 87 330 L 97 330 Z" transform="scale(0.7)"/>
+  </g>
+
+  <!-- Coins -->
+  <g transform="translate(680, 250)">
+    <!-- Coin stack -->
+    <ellipse cx="0" cy="40" rx="25" ry="8" fill="#134E4A"/>
+    <rect x="-25" y="25" width="50" height="15" fill="#0D9488"/>
+    <ellipse cx="0" cy="25" rx="25" ry="8" fill="#14B8A6"/>
+
+    <ellipse cx="10" cy="15" rx="25" ry="8" fill="#134E4A"/>
+    <rect x="-15" y="0" width="50" height="15" fill="#0D9488"/>
+    <ellipse cx="10" cy="0" rx="25" ry="8" fill="#14B8A6"/>
+
+    <!-- Coin detail -->
+    <circle cx="10" cy="0" r="12" fill="#0D9488" opacity="0.3"/>
+  </g>
+
+  <!-- Upward arrow -->
+  <g transform="translate(620, 120)">
+    <path d="M 0 50 L 0 10 L -15 25 M 0 10 L 15 25" stroke="#14B8A6" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Small percentage badge -->
+  <g transform="translate(580, 80)">
+    <circle cx="0" cy="0" r="25" fill="#14B8A6"/>
+    <circle cx="0" cy="0" r="20" fill="#0D9488"/>
+    <!-- Up arrow inside -->
+    <path d="M 0 8 L 0 -5 L -7 2 M 0 -5 L 7 2" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

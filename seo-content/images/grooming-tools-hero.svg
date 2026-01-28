@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bgGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F0FDFA"/>
+      <stop offset="100%" style="stop-color:#CCFBF1"/>
+    </linearGradient>
+    <linearGradient id="metalGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#E5E7EB"/>
+      <stop offset="50%" style="stop-color:#F9FAFB"/>
+      <stop offset="100%" style="stop-color:#D1D5DB"/>
+    </linearGradient>
+    <linearGradient id="handleGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0D9488"/>
+      <stop offset="100%" style="stop-color:#134E4A"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bgGradient2)"/>
+
+  <!-- Decorative dots pattern -->
+  <circle cx="50" cy="50" r="5" fill="#14B8A6" opacity="0.3"/>
+  <circle cx="100" cy="80" r="4" fill="#0EA5E9" opacity="0.3"/>
+  <circle cx="750" cy="60" r="6" fill="#0D9488" opacity="0.3"/>
+  <circle cx="700" cy="350" r="5" fill="#14B8A6" opacity="0.3"/>
+  <circle cx="80" cy="350" r="4" fill="#0EA5E9" opacity="0.3"/>
+
+  <!-- Scissors (large, center-left) -->
+  <g transform="translate(120, 120) rotate(-30)">
+    <!-- Blade 1 -->
+    <path d="M0 0 L120 -15 L130 0 L120 15 L0 0" fill="url(#metalGradient)" stroke="#9CA3AF" stroke-width="1"/>
+    <!-- Blade 2 -->
+    <path d="M0 0 L120 15 L130 0 L120 -15 L0 0" fill="url(#metalGradient)" stroke="#9CA3AF" stroke-width="1" transform="rotate(40)"/>
+    <!-- Pivot -->
+    <circle cx="0" cy="0" r="12" fill="#0D9488"/>
+    <circle cx="0" cy="0" r="6" fill="#134E4A"/>
+    <!-- Handles -->
+    <ellipse cx="-40" cy="-30" rx="30" ry="20" fill="url(#handleGradient)" transform="rotate(-20)"/>
+    <ellipse cx="-40" cy="50" rx="30" ry="20" fill="url(#handleGradient)" transform="rotate(20)"/>
+    <ellipse cx="-40" cy="-30" rx="18" ry="10" fill="#134E4A" opacity="0.5" transform="rotate(-20)"/>
+    <ellipse cx="-40" cy="50" rx="18" ry="10" fill="#134E4A" opacity="0.5" transform="rotate(20)"/>
+  </g>
+
+  <!-- Slicker Brush (top center) -->
+  <g transform="translate(350, 80)">
+    <!-- Brush head -->
+    <rect x="0" y="0" width="120" height="60" rx="8" fill="#0EA5E9"/>
+    <rect x="5" y="5" width="110" height="50" rx="5" fill="#0D9488"/>
+    <!-- Bristles -->
+    <g stroke="#D1D5DB" stroke-width="1.5">
+      <line x1="15" y1="55" x2="15" y2="75"/>
+      <line x1="25" y1="55" x2="25" y2="78"/>
+      <line x1="35" y1="55" x2="35" y2="75"/>
+      <line x1="45" y1="55" x2="45" y2="78"/>
+      <line x1="55" y1="55" x2="55" y2="75"/>
+      <line x1="65" y1="55" x2="65" y2="78"/>
+      <line x1="75" y1="55" x2="75" y2="75"/>
+      <line x1="85" y1="55" x2="85" y2="78"/>
+      <line x1="95" y1="55" x2="95" y2="75"/>
+      <line x1="105" y1="55" x2="105" y2="78"/>
+    </g>
+    <!-- Handle -->
+    <rect x="45" y="-50" width="30" height="55" rx="5" fill="url(#handleGradient)"/>
+    <rect x="50" y="-45" width="20" height="10" rx="3" fill="#134E4A" opacity="0.4"/>
+  </g>
+
+  <!-- Electric Clippers (right side) -->
+  <g transform="translate(580, 100) rotate(15)">
+    <!-- Body -->
+    <rect x="0" y="0" width="60" height="150" rx="10" fill="url(#handleGradient)"/>
+    <rect x="5" y="10" width="50" height="40" rx="5" fill="#134E4A" opacity="0.3"/>
+    <!-- Power button -->
+    <circle cx="30" cy="80" r="8" fill="#14B8A6"/>
+    <circle cx="30" cy="80" r="5" fill="#5EEAD4"/>
+    <!-- Blade -->
+    <rect x="-5" y="-25" width="70" height="30" rx="3" fill="url(#metalGradient)" stroke="#9CA3AF" stroke-width="1"/>
+    <!-- Blade teeth -->
+    <g fill="#6B7280">
+      <rect x="0" y="-25" width="3" height="8"/>
+      <rect x="8" y="-25" width="3" height="8"/>
+      <rect x="16" y="-25" width="3" height="8"/>
+      <rect x="24" y="-25" width="3" height="8"/>
+      <rect x="32" y="-25" width="3" height="8"/>
+      <rect x="40" y="-25" width="3" height="8"/>
+      <rect x="48" y="-25" width="3" height="8"/>
+      <rect x="56" y="-25" width="3" height="8"/>
+    </g>
+    <!-- Cord hint -->
+    <path d="M30 150 Q30 170 50 180 Q70 190 70 210" stroke="#134E4A" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Comb (bottom left) -->
+  <g transform="translate(100, 280)">
+    <!-- Comb body -->
+    <rect x="0" y="0" width="150" height="30" rx="5" fill="#0EA5E9"/>
+    <!-- Teeth -->
+    <g fill="#14B8A6">
+      <rect x="10" y="30" width="4" height="40" rx="1"/>
+      <rect x="22" y="30" width="4" height="40" rx="1"/>
+      <rect x="34" y="30" width="4" height="40" rx="1"/>
+      <rect x="46" y="30" width="4" height="40" rx="1"/>
+      <rect x="58" y="30" width="4" height="40" rx="1"/>
+      <rect x="70" y="30" width="4" height="40" rx="1"/>
+      <rect x="82" y="30" width="4" height="40" rx="1"/>
+      <rect x="94" y="30" width="4" height="40" rx="1"/>
+      <rect x="106" y="30" width="4" height="40" rx="1"/>
+      <rect x="118" y="30" width="4" height="40" rx="1"/>
+      <rect x="130" y="30" width="4" height="40" rx="1"/>
+    </g>
+  </g>
+
+  <!-- Nail Clippers (bottom center) -->
+  <g transform="translate(350, 290) rotate(-10)">
+    <!-- Handles -->
+    <path d="M0 0 L80 0 L85 20 L80 40 L0 40 L-5 20 Z" fill="url(#handleGradient)"/>
+    <!-- Cutting head -->
+    <path d="M80 10 L120 5 L125 20 L120 35 L80 30 Z" fill="url(#metalGradient)" stroke="#9CA3AF" stroke-width="1"/>
+    <!-- Hole -->
+    <circle cx="30" cy="20" r="10" fill="#134E4A"/>
+    <circle cx="30" cy="20" r="6" fill="#0D9488"/>
+  </g>
+
+  <!-- Pin Brush (bottom right) -->
+  <g transform="translate(550, 260)">
+    <!-- Brush pad -->
+    <ellipse cx="60" cy="50" rx="70" ry="40" fill="#14B8A6"/>
+    <ellipse cx="60" cy="45" rx="60" ry="32" fill="#5EEAD4"/>
+    <!-- Pins -->
+    <g fill="#D1D5DB">
+      <circle cx="25" cy="35" r="3"/>
+      <circle cx="40" cy="30" r="3"/>
+      <circle cx="55" cy="28" r="3"/>
+      <circle cx="70" cy="30" r="3"/>
+      <circle cx="85" cy="35" r="3"/>
+      <circle cx="30" cy="50" r="3"/>
+      <circle cx="45" cy="45" r="3"/>
+      <circle cx="60" cy="43" r="3"/>
+      <circle cx="75" cy="45" r="3"/>
+      <circle cx="90" cy="50" r="3"/>
+      <circle cx="35" cy="65" r="3"/>
+      <circle cx="50" cy="60" r="3"/>
+      <circle cx="65" cy="58" r="3"/>
+      <circle cx="80" cy="60" r="3"/>
+    </g>
+    <!-- Handle -->
+    <rect x="40" y="85" width="40" height="60" rx="8" fill="url(#handleGradient)"/>
+  </g>
+
+  <!-- Spray Bottle (far right) -->
+  <g transform="translate(700, 180)">
+    <!-- Bottle body -->
+    <path d="M20 60 L20 150 Q20 170 40 170 Q60 170 60 150 L60 60 Z" fill="#0EA5E9" opacity="0.7"/>
+    <path d="M25 70 L25 140 Q25 155 40 155 Q55 155 55 140 L55 70 Z" fill="#5EEAD4" opacity="0.5"/>
+    <!-- Neck -->
+    <rect x="30" y="40" width="20" height="25" fill="#0D9488"/>
+    <!-- Spray head -->
+    <rect x="25" y="20" width="30" height="25" rx="5" fill="url(#handleGradient)"/>
+    <!-- Trigger -->
+    <path d="M55 30 L75 25 L80 35 L75 45 L55 40 Z" fill="#14B8A6"/>
+    <!-- Nozzle -->
+    <rect x="15" y="28" width="15" height="8" rx="2" fill="#134E4A"/>
+  </g>
+
+  <!-- Decorative sparkles -->
+  <g fill="#0EA5E9" opacity="0.6">
+    <path d="M200 50 L205 60 L200 70 L195 60 Z"/>
+    <path d="M200 50 L210 55 L200 60 L190 55 Z"/>
+  </g>
+  <g fill="#14B8A6" opacity="0.5">
+    <path d="M650 300 L653 307 L650 314 L647 307 Z"/>
+    <path d="M650 300 L657 303 L650 306 L643 303 Z"/>
+  </g>
+</svg>

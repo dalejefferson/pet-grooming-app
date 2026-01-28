@@ -4,6 +4,7 @@ import { useTheme, themeColors, type ThemeName } from '../../context'
 import { useState, useEffect } from 'react'
 import type { Organization } from '@/types'
 import { cn } from '@/lib/utils'
+import { ChevronDown } from 'lucide-react'
 
 // Theme configuration for the picker
 const themeOptions: { name: ThemeName; label: string; swatches: string[] }[] = [
@@ -85,6 +86,7 @@ export function SettingsPage() {
   const { currentTheme, setTheme, colors } = useTheme()
   const [formData, setFormData] = useState<Partial<Organization>>({})
   const [hasChanges, setHasChanges] = useState(false)
+  const [themeExpanded, setThemeExpanded] = useState(false)
 
   useEffect(() => {
     if (organization) {
@@ -180,19 +182,55 @@ export function SettingsPage() {
         </div>
       </Card>
 
+      {/* Quick Keys Section */}
+      <Card>
+        <CardTitle>Quick Keys</CardTitle>
+        <p className="text-sm text-gray-500 mb-4">Keyboard shortcuts for faster navigation</p>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <span className="text-sm text-gray-700">Collapse Sidebar</span>
+            <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border border-gray-300 rounded">Shift + S</kbd>
+          </div>
+          <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <span className="text-sm text-gray-700">Toggle Calendar View</span>
+            <div className="flex gap-1">
+              <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border border-gray-300 rounded">Tab</kbd>
+              <span className="text-xs text-gray-400">(on Calendar page)</span>
+            </div>
+          </div>
+          <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <span className="text-sm text-gray-700">Navigate Sidebar</span>
+            <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border border-gray-300 rounded">Shift + ↑↓</kbd>
+          </div>
+          <div className="flex items-center justify-between py-2">
+            <span className="text-sm text-gray-700">Book Appointment</span>
+            <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border border-gray-300 rounded">Shift + A</kbd>
+          </div>
+        </div>
+      </Card>
+
       {/* Appearance Section */}
       <Card>
-        <CardTitle>Theme</CardTitle>
+        <div
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setThemeExpanded(!themeExpanded)}
+        >
+          <CardTitle>Theme</CardTitle>
+          <ChevronDown className={cn("h-5 w-5 transition-transform", themeExpanded && "rotate-180")} />
+        </div>
         <p className="mt-2 text-sm text-gray-600">
           Choose your color palette
         </p>
         <div className="mt-4 grid gap-4 grid-cols-2 sm:grid-cols-4">
-          {themeOptions.map((theme) => {
+          {(themeExpanded ? themeOptions : themeOptions.slice(0, 3)).map((theme) => {
             const isSelected = currentTheme === theme.name
             return (
               <button
                 key={theme.name}
-                onClick={() => setTheme(theme.name)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setTheme(theme.name)
+                }}
                 className={`relative flex flex-col items-center gap-3 rounded-xl border-2 border-[#1e293b] p-4 transition-all cursor-pointer ${
                   isSelected
                     ? 'shadow-[4px_4px_0px_0px_#1e293b] bg-white'
@@ -231,6 +269,14 @@ export function SettingsPage() {
             )
           })}
         </div>
+        {!themeExpanded && themeOptions.length > 3 && (
+          <button
+            onClick={() => setThemeExpanded(true)}
+            className="mt-3 text-sm text-primary-600 hover:underline"
+          >
+            Show all {themeOptions.length} themes
+          </button>
+        )}
       </Card>
       </div>
     </div>
