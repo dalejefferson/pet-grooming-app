@@ -76,3 +76,33 @@ export interface ReportStats {
   completedAppointments: number
   totalClients: number
 }
+
+export interface GroomerPerformanceDataPoint {
+  name: string
+  revenue: number
+  appointments: number
+}
+
+export interface ServiceCategoryDataPoint {
+  category: string  // "Bath", "Haircut", "Nail", "Specialty", "Package"
+  revenue: number
+}
+
+export interface ClientRetentionDataPoint {
+  name: string  // "New Clients" or "Repeat Clients"
+  value: number
+}
+
+export interface NoShowCancellationData {
+  noShowCount: number
+  cancelledCount: number
+  completedCount: number
+  totalAppointments: number
+  estimatedLostRevenue: number
+}
+
+export interface PeakHoursData {
+  // 7 days x hours grid - key is "day-hour" like "0-9" for Sunday 9am
+  grid: Record<string, number>
+  maxCount: number
+}

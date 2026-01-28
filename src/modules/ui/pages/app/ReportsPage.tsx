@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
 import { Download, FileText } from 'lucide-react'
 import { Button } from '../../components/common'
-import { useAppointments, useClients, useServices } from '@/hooks'
-import { format, subDays, parseISO, isWithinInterval, startOfDay } from 'date-fns'
+import { useAppointments, useClients, useServices, useGroomers } from '@/hooks'
+import { format, subDays, parseISO, isWithinInterval, startOfDay, getDay, getHours } from 'date-fns'
 import { cn } from '@/lib/utils'
 import type { AppointmentStatus } from '@/types'
 import { useTheme } from '../../context'
@@ -15,6 +15,11 @@ import {
   AppointmentsChart,
   TopServicesChart,
   NewClientsChart,
+  GroomerPerformanceChart,
+  ClientRetentionChart,
+  NoShowCancellationChart,
+  PeakHoursChart,
+  ServiceCategoryRevenueChart,
   ReportsChartStyles,
   DATE_RANGES,
   getThemedStatusColors,
@@ -27,6 +32,7 @@ export function ReportsPage() {
   const { data: appointments = [] } = useAppointments()
   const { data: clients = [] } = useClients()
   const { data: services = [] } = useServices()
+  const { data: groomers = [] } = useGroomers()
 
   const today = startOfDay(new Date())
   const startDate = subDays(today, dateRange.days)
@@ -139,6 +145,132 @@ export function ReportsPage() {
     }))
   }, [clients, startDate, today, dateRange.days])
 
+  // Groomer performance data
+  const groomerPerformanceData = useMemo(() => {
+    const groomerStats: Record<string, { revenue: number; appointments: number }> = {}
+
+    filteredAppointments
+      .filter((apt) => apt.status === 'completed' && apt.groomerId)
+      .forEach((apt) => {
+        const groomerId = apt.groomerId!
+        if (!groomerStats[groomerId]) {
+          groomerStats[groomerId] = { revenue: 0, appointments: 0 }
+        }
+        groomerStats[groomerId].revenue += apt.totalAmount
+        groomerStats[groomerId].appointments += 1
+      })
+
+    return Object.entries(groomerStats)
+      .map(([groomerId, stats]) => {
+        const groomer = groomers.find((g) => g.id === groomerId)
+        return {
+          name: groomer ? `${groomer.firstName} ${groomer.lastName}` : 'Unknown',
+          revenue: stats.revenue,
+          appointments: stats.appointments,
+        }
+      })
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5)
+  }, [filteredAppointments, groomers])
+
+  // Client retention data
+  const clientRetentionData = useMemo(() => {
+    const clientAppointmentCounts: Record<string, number> = {}
+
+    appointments.forEach((apt) => {
+      clientAppointmentCounts[apt.clientId] = (clientAppointmentCounts[apt.clientId] || 0) + 1
+    })
+
+    const repeatClients = Object.values(clientAppointmentCounts).filter((count) => count >= 2).length
+    const newClients = Object.values(clientAppointmentCounts).filter((count) => count === 1).length
+
+    return [
+      { name: 'New Clients', value: newClients },
+      { name: 'Repeat Clients', value: repeatClients },
+    ]
+  }, [appointments])
+
+  // No-show and cancellation data
+  const noShowCancellationData = useMemo(() => {
+    const noShowCount = filteredAppointments.filter((apt) => apt.status === 'no_show').length
+    const cancelledCount = filteredAppointments.filter((apt) => apt.status === 'cancelled').length
+    const completedCount = filteredAppointments.filter((apt) => apt.status === 'completed').length
+    const totalAppointments = filteredAppointments.length
+
+    // Estimate lost revenue based on average completed appointment value
+    const avgRevenue = completedCount > 0
+      ? filteredAppointments
+          .filter((apt) => apt.status === 'completed')
+          .reduce((sum, apt) => sum + apt.totalAmount, 0) / completedCount
+      : 0
+    const estimatedLostRevenue = (noShowCount + cancelledCount) * avgRevenue
+
+    return {
+      noShowCount,
+      cancelledCount,
+      completedCount,
+      totalAppointments,
+      estimatedLostRevenue,
+    }
+  }, [filteredAppointments])
+
+  // Peak hours heatmap data
+  const peakHoursData = useMemo(() => {
+    const grid: Record<string, number> = {}
+    let maxCount = 0
+
+    // Initialize grid (0-6 for days, 8-18 for hours)
+    for (let day = 0; day < 7; day++) {
+      for (let hour = 8; hour <= 18; hour++) {
+        grid[`${day}-${hour}`] = 0
+      }
+    }
+
+    filteredAppointments.forEach((apt) => {
+      const aptDate = parseISO(apt.startTime)
+      const day = getDay(aptDate) // 0 = Sunday, 6 = Saturday
+      const hour = getHours(aptDate)
+      if (hour >= 8 && hour <= 18) {
+        const key = `${day}-${hour}`
+        grid[key] = (grid[key] || 0) + 1
+        maxCount = Math.max(maxCount, grid[key])
+      }
+    })
+
+    return { grid, maxCount }
+  }, [filteredAppointments])
+
+  // Service category revenue data
+  const serviceCategoryRevenueData = useMemo(() => {
+    const categoryRevenue: Record<string, number> = {
+      Bath: 0,
+      Haircut: 0,
+      Nail: 0,
+      Specialty: 0,
+      Package: 0,
+    }
+
+    filteredAppointments
+      .filter((apt) => apt.status === 'completed')
+      .forEach((apt) => {
+        apt.pets.forEach((pet) => {
+          pet.services.forEach((svc) => {
+            const service = services.find((s) => s.id === svc.serviceId)
+            if (service) {
+              const category = service.category.charAt(0).toUpperCase() + service.category.slice(1)
+              if (categoryRevenue[category] !== undefined) {
+                categoryRevenue[category] += svc.finalPrice
+              }
+            }
+          })
+        })
+      })
+
+    return Object.entries(categoryRevenue)
+      .filter(([, revenue]) => revenue > 0)
+      .map(([category, revenue]) => ({ category, revenue }))
+  }, [filteredAppointments, services])
+
   // Calculate summary stats
   const totalRevenue = filteredAppointments
     .filter((apt) => apt.status === 'completed')
@@ -216,6 +348,11 @@ export function ReportsPage() {
           <AppointmentsChart data={statusData} />
           <TopServicesChart data={topServicesData} colors={colors} />
           <NewClientsChart data={clientAcquisitionData} colors={colors} />
+          <GroomerPerformanceChart data={groomerPerformanceData} colors={colors} />
+          <ClientRetentionChart data={clientRetentionData} colors={colors} />
+          <NoShowCancellationChart data={noShowCancellationData} colors={colors} />
+          <PeakHoursChart data={peakHoursData} colors={colors} />
+          <ServiceCategoryRevenueChart data={serviceCategoryRevenueData} colors={colors} />
         </div>
       </div>
 
