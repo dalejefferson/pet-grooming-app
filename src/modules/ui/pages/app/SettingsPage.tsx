@@ -47,6 +47,36 @@ const themeOptions: { name: ThemeName; label: string; swatches: string[] }[] = [
     label: 'Sky',
     swatches: [themeColors.sky.accentColorLight, themeColors.sky.accentColor, themeColors.sky.accentColorDark],
   },
+  {
+    name: 'skyButter',
+    label: 'Sky Butter',
+    swatches: [themeColors.skyButter.accentColorLight, themeColors.skyButter.accentColor, themeColors.skyButter.accentColorDark],
+  },
+  {
+    name: 'oceanCitrus',
+    label: 'Ocean Citrus',
+    swatches: [themeColors.oceanCitrus.accentColorLight, themeColors.oceanCitrus.accentColor, themeColors.oceanCitrus.accentColorDark],
+  },
+  {
+    name: 'blueMango',
+    label: 'Blue Mango',
+    swatches: [themeColors.blueMango.accentColorLight, themeColors.blueMango.accentColor, themeColors.blueMango.accentColorDark],
+  },
+  {
+    name: 'aquaSunset',
+    label: 'Aqua Sunset',
+    swatches: [themeColors.aquaSunset.accentColorLight, themeColors.aquaSunset.accentColor, themeColors.aquaSunset.accentColorDark],
+  },
+  {
+    name: 'mintCreamsicle',
+    label: 'Mint Creamsicle',
+    swatches: [themeColors.mintCreamsicle.accentColorLight, themeColors.mintCreamsicle.accentColor, themeColors.mintCreamsicle.accentColorDark],
+  },
+  {
+    name: 'mintBlush',
+    label: 'Mint Blush',
+    swatches: [themeColors.mintBlush.accentColorLight, themeColors.mintBlush.accentColor, themeColors.mintBlush.accentColorDark],
+  },
 ]
 
 export function SettingsPage() {
