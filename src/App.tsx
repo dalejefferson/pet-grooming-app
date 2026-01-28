@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { queryClient } from '@/lib/queryClient'
-import { ThemeProvider } from '@/context/ThemeContext'
-import { AppLayout, BookingLayout } from '@/components/layout'
-import { LoginPage } from '@/pages/auth'
+import { queryClient } from '@/modules/database'
+import { ThemeProvider } from '@/modules/ui/context'
+import { AppLayout, BookingLayout } from '@/modules/ui/components/layout'
+import { LoginPage } from '@/modules/auth'
 import {
   DashboardPage,
   CalendarPage,
@@ -17,7 +17,7 @@ import {
   RemindersPage,
   ReportsPage,
   SettingsPage,
-} from '@/pages/app'
+} from '@/modules/ui/pages/app'
 import {
   BookingStartPage,
   BookingPetsPage,
@@ -26,7 +26,7 @@ import {
   BookingTimesPage,
   BookingConfirmPage,
   BookingSuccessPage,
-} from '@/pages/book'
+} from '@/modules/ui/pages/book'
 
 function App() {
   return (

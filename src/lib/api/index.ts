@@ -1,12 +1,4 @@
-export { orgApi } from './orgApi'
-export { authApi } from './authApi'
-export { clientsApi } from './clientsApi'
-export { petsApi } from './petsApi'
-export { servicesApi } from './servicesApi'
-export { calendarApi } from './calendarApi'
-export { bookingApi } from './bookingApi'
-export { policiesApi } from './policiesApi'
-export { remindersApi } from './remindersApi'
-export { groomersApi } from './groomersApi'
-
-export * from './storage'
+// Re-export from modules for backwards compatibility
+export * from '@/modules/database/api'
+export * from '@/modules/database/storage/localStorage'
+export { authApi } from '@/modules/auth/api'

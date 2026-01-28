@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf'
 import { format, parseISO } from 'date-fns'
-import type { Appointment, Client, Service } from '@/types'
+import type { Appointment, Client, Service } from '@/modules/database/types'
 import type {
   DateRange,
   RevenueDataPoint,
@@ -8,8 +8,8 @@ import type {
   TopServiceDataPoint,
   ClientAcquisitionDataPoint,
   ReportStats,
-} from '@/components/reports/types'
-import { PASTEL_COLORS } from '@/components/reports/types'
+} from '@/modules/ui/components/reports/types'
+import { PASTEL_COLORS } from '@/modules/ui/components/reports/types'
 
 interface ExportPdfParams {
   dateRange: DateRange

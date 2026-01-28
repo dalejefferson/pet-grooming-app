@@ -1,5 +1,5 @@
 import { format, parseISO } from 'date-fns'
-import type { Appointment, Client, Service } from '@/types'
+import type { Appointment, Client, Service } from '@/modules/database/types'
 
 export function exportReportCsv(
   filteredAppointments: Appointment[],

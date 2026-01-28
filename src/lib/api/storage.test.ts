@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getStorageKey, getFromStorage, generateId, delay } from './storage'
+import { getStorageKey, getFromStorage, generateId, delay } from '@/modules/database/storage/localStorage'
 
 describe('storage utilities', () => {
   beforeEach(() => {
