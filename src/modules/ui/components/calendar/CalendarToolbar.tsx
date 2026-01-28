@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { useTheme } from '@/modules/ui/context'
 import type { CalendarToolbarProps, ViewType } from './types'
 import type { AppointmentStatus } from '@/types'
-import { STATUS_BG_COLORS, STATUS_BORDER_COLORS, STATUS_TEXT_COLORS } from './types'
+import { STATUS_BG_COLORS, STATUS_TEXT_COLORS } from './types'
 
 // Tooltip state and component for status filter buttons
 interface TooltipState {

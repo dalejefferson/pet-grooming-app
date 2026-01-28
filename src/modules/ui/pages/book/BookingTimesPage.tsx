@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, useSearchParams, useOutletContext } from 'react-router-dom'
-import { ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, Clock, Users } from 'lucide-react'
+import { ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, Clock, Users, AlertCircle, Calendar } from 'lucide-react'
 import { Card, Button } from '../../components/common'
-import { useAvailableSlotsForWeek, useActiveServices, useGroomers } from '@/hooks'
-import { format, addWeeks, startOfWeek, addDays, parseISO, isBefore, startOfDay } from 'date-fns'
-import type { Organization, Groomer } from '@/types'
+import { useAvailableSlotsForWeek, useActiveServices, useGroomers, useStaffAvailability, useTimeOffRequests } from '@/hooks'
+import { format, addWeeks, startOfWeek, addDays, parseISO, isBefore, startOfDay, isWithinInterval } from 'date-fns'
+import type { Organization, Groomer, DayOfWeek } from '@/types'
 import { cn } from '@/lib/utils'
 
 interface SelectedPet {
@@ -36,6 +36,10 @@ export function BookingTimesPage() {
     if (!groomerId) return null
     return groomers.find((g) => g.id === groomerId) || null
   }, [groomerId, groomers])
+
+  // Get selected groomer's availability and time off
+  const { data: groomerAvailability } = useStaffAvailability(groomerId || '')
+  const { data: groomerTimeOff = [] } = useTimeOffRequests(groomerId)
 
   // Calculate total duration
   const totalDuration = useMemo(() => {
@@ -114,6 +118,41 @@ export function BookingTimesPage() {
 
   const today = startOfDay(new Date())
 
+  // Helper function to check if groomer is working on a specific day
+  const isGroomerWorkingOnDay = (day: Date): boolean => {
+    if (!groomerId || !groomerAvailability) return true // Default to working if no groomer selected
+    const dayOfWeek = day.getDay() as DayOfWeek
+    const daySchedule = groomerAvailability.weeklySchedule.find((d) => d.dayOfWeek === dayOfWeek)
+    return daySchedule?.isWorkingDay ?? false
+  }
+
+  // Helper function to check if groomer has time off on a specific day
+  const hasTimeOffOnDay = (day: Date): boolean => {
+    if (!groomerId || !groomerTimeOff) return false
+    const approvedTimeOff = groomerTimeOff.filter((r) => r.status === 'approved')
+
+    for (const timeOff of approvedTimeOff) {
+      const timeOffStart = parseISO(timeOff.startDate)
+      const timeOffEnd = parseISO(timeOff.endDate)
+      timeOffStart.setHours(0, 0, 0, 0)
+      timeOffEnd.setHours(23, 59, 59, 999)
+
+      if (isWithinInterval(day, { start: timeOffStart, end: timeOffEnd })) {
+        return true
+      }
+    }
+    return false
+  }
+
+  // Helper function to get groomer's working hours for a specific day
+  const getWorkingHoursForDay = (day: Date): { start: string; end: string } | null => {
+    if (!groomerId || !groomerAvailability) return null
+    const dayOfWeek = day.getDay() as DayOfWeek
+    const daySchedule = groomerAvailability.weeklySchedule.find((d) => d.dayOfWeek === dayOfWeek)
+    if (!daySchedule || !daySchedule.isWorkingDay) return null
+    return { start: daySchedule.startTime, end: daySchedule.endTime }
+  }
+
   // Get the groomer name for a slot when "Any" is selected
   const getGroomerForSlot = (dateStr: string, startTime: string): Groomer | undefined => {
     // Find the first available groomer for this slot
@@ -166,6 +205,15 @@ export function BookingTimesPage() {
                 ? `${selectedGroomer.firstName} ${selectedGroomer.lastName}`
                 : 'Any Available Groomer'}
             </p>
+            {selectedGroomer && groomerAvailability && (
+              <p className="text-xs text-accent-600 mt-1">
+                <Calendar className="h-3 w-3 inline mr-1" />
+                {groomerAvailability.weeklySchedule
+                  .filter((d) => d.isWorkingDay)
+                  .map((d) => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.dayOfWeek])
+                  .join(', ')}
+              </p>
+            )}
           </div>
           <Button
             variant="outline"
@@ -213,21 +261,38 @@ export function BookingTimesPage() {
           const daySlots = slotsForWeek[dateStr] || []
           const availableSlots = daySlots.filter((s) => s.available)
           const isPast = isBefore(day, today)
+          const isGroomerNotWorking = groomerId && !isGroomerWorkingOnDay(day)
+          const groomerHasTimeOff = groomerId && hasTimeOffOnDay(day)
+          const workingHours = getWorkingHoursForDay(day)
 
           return (
             <div key={dateStr} className="min-w-0">
               <div
                 className={cn(
                   'mb-2 text-center',
-                  isPast ? 'text-gray-400' : 'text-gray-900'
+                  isPast ? 'text-gray-400' : isGroomerNotWorking || groomerHasTimeOff ? 'text-gray-400' : 'text-gray-900'
                 )}
               >
                 <div className="text-xs uppercase">{format(day, 'EEE')}</div>
                 <div className="text-lg font-semibold">{format(day, 'd')}</div>
+                {workingHours && !groomerHasTimeOff && !isPast && (
+                  <div className="text-[10px] text-gray-500">
+                    {workingHours.start}-{workingHours.end}
+                  </div>
+                )}
               </div>
               <div className="max-h-64 space-y-1 overflow-y-auto">
                 {isPast ? (
                   <p className="py-4 text-center text-xs text-gray-400">-</p>
+                ) : groomerHasTimeOff ? (
+                  <div className="py-3 text-center">
+                    <AlertCircle className="h-4 w-4 mx-auto text-amber-500 mb-1" />
+                    <p className="text-xs text-amber-600">Time Off</p>
+                  </div>
+                ) : isGroomerNotWorking ? (
+                  <div className="py-3 text-center">
+                    <p className="text-xs text-gray-400">Not Working</p>
+                  </div>
                 ) : availableSlots.length === 0 ? (
                   <p className="py-4 text-center text-xs text-gray-500">No slots</p>
                 ) : (

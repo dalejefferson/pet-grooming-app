@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Calendar, Users, Dog, Clock, TrendingUp, AlertCircle } from 'lucide-react'
 import { Card, CardTitle, Badge } from '../../components/common'
 import { AppointmentDetailsDrawer, StatusChangeModal } from '../../components/calendar'
+import { VaccinationAlertsWidget } from '../../components/dashboard'
 import { useAppointmentsByDay, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useDeleteAppointment, useCreateAppointment } from '@/hooks'
 import { useUndo } from '@/modules/ui/context'
 import { format } from 'date-fns'
@@ -86,6 +87,7 @@ export function DashboardPage() {
       data: appointment,
       onUndo: async () => {
         await createAppointment.mutateAsync({
+          organizationId: appointment.organizationId,
           clientId: appointment.clientId,
           pets: appointment.pets,
           groomerId: appointment.groomerId,
@@ -160,6 +162,45 @@ export function DashboardPage() {
             </Card>
           </Link>
         ))}
+      </div>
+
+      {/* Vaccination Alerts & Quick Actions Row */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <VaccinationAlertsWidget />
+        <Card>
+          <CardTitle>Quick Actions</CardTitle>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <Link
+              to="/app/calendar"
+              className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
+            >
+              <Calendar className="h-5 w-5" style={{ color: colors.accentColorDark }} />
+              <span className="font-medium text-gray-900">View Calendar</span>
+            </Link>
+            <Link
+              to="/app/clients"
+              className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
+            >
+              <Users className="h-5 w-5" style={{ color: colors.accentColorDark }} />
+              <span className="font-medium text-gray-900">Manage Clients</span>
+            </Link>
+            <Link
+              to="/app/services"
+              className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
+            >
+              <TrendingUp className="h-5 w-5" style={{ color: colors.accentColorDark }} />
+              <span className="font-medium text-gray-900">Edit Services</span>
+            </Link>
+            <Link
+              to={`/book/paws-claws/start`}
+              target="_blank"
+              className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
+            >
+              <Dog className="h-5 w-5" style={{ color: colors.accentColorDark }} />
+              <span className="font-medium text-gray-900">Booking Portal</span>
+            </Link>
+          </div>
+        </Card>
       </div>
 
       {/* Today's Schedule */}
@@ -245,42 +286,6 @@ export function DashboardPage() {
             })}
           </div>
         )}
-      </Card>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardTitle>Quick Actions</CardTitle>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Link
-            to="/app/calendar"
-            className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
-          >
-            <Calendar className="h-5 w-5" style={{ color: colors.accentColorDark }} />
-            <span className="font-medium text-gray-900">View Calendar</span>
-          </Link>
-          <Link
-            to="/app/clients"
-            className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
-          >
-            <Users className="h-5 w-5" style={{ color: colors.accentColorDark }} />
-            <span className="font-medium text-gray-900">Manage Clients</span>
-          </Link>
-          <Link
-            to="/app/services"
-            className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
-          >
-            <TrendingUp className="h-5 w-5" style={{ color: colors.accentColorDark }} />
-            <span className="font-medium text-gray-900">Edit Services</span>
-          </Link>
-          <Link
-            to={`/book/paws-claws/start`}
-            target="_blank"
-            className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
-          >
-            <Dog className="h-5 w-5" style={{ color: colors.accentColorDark }} />
-            <span className="font-medium text-gray-900">Booking Portal</span>
-          </Link>
-        </div>
       </Card>
       </div>
 

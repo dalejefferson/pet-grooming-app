@@ -11,12 +11,13 @@ import {
   ClientDetailPage,
   PetsPage,
   PetDetailPage,
-  GroomersPage,
   ServicesPage,
   PoliciesPage,
   RemindersPage,
   ReportsPage,
   SettingsPage,
+  StaffPage,
+  StaffDetailPage,
 } from '@/modules/ui/pages/app'
 import {
   BookingStartPage,
@@ -49,7 +50,9 @@ function App() {
             <Route path="clients/:clientId" element={<ClientDetailPage />} />
             <Route path="pets" element={<PetsPage />} />
             <Route path="pets/:petId" element={<PetDetailPage />} />
-            <Route path="groomers" element={<GroomersPage />} />
+            <Route path="groomers" element={<Navigate to="/app/staff" replace />} />
+            <Route path="staff" element={<StaffPage />} />
+            <Route path="staff/:staffId" element={<StaffDetailPage />} />
             <Route path="services" element={<ServicesPage />} />
             <Route path="policies" element={<PoliciesPage />} />
             <Route path="reminders" element={<RemindersPage />} />

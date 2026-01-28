@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#134E4A;stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:#0EA5E9;stop-opacity:0.15" />
+    </linearGradient>
+    <linearGradient id="dogBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B7355" />
+      <stop offset="100%" style="stop-color:#6B5344" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bgGradient)"/>
+
+  <!-- Decorative circles -->
+  <circle cx="100" cy="80" r="40" fill="#0D9488" opacity="0.2"/>
+  <circle cx="700" cy="320" r="60" fill="#0EA5E9" opacity="0.15"/>
+  <circle cx="650" cy="100" r="30" fill="#14B8A6" opacity="0.2"/>
+
+  <!-- Grooming table -->
+  <rect x="200" y="280" width="400" height="20" rx="5" fill="#134E4A"/>
+  <rect x="220" y="300" width="15" height="80" fill="#134E4A"/>
+  <rect x="565" y="300" width="15" height="80" fill="#134E4A"/>
+
+  <!-- Senior dog body -->
+  <ellipse cx="400" cy="220" rx="120" ry="70" fill="url(#dogBody)"/>
+
+  <!-- Dog head -->
+  <circle cx="320" cy="180" r="60" fill="#8B7355"/>
+
+  <!-- Grey muzzle (showing age) -->
+  <ellipse cx="280" cy="195" rx="35" ry="25" fill="#B8B8B8"/>
+  <ellipse cx="280" cy="190" rx="12" ry="8" fill="#134E4A"/>
+
+  <!-- Grey eyebrows (showing age) -->
+  <ellipse cx="310" cy="160" rx="15" ry="5" fill="#C0C0C0"/>
+  <ellipse cx="340" cy="155" rx="12" ry="4" fill="#C0C0C0"/>
+
+  <!-- Eyes - gentle, wise expression -->
+  <ellipse cx="315" cy="170" rx="10" ry="12" fill="white"/>
+  <ellipse cx="345" cy="165" rx="9" ry="11" fill="white"/>
+  <circle cx="315" cy="172" r="6" fill="#134E4A"/>
+  <circle cx="345" cy="167" r="5" fill="#134E4A"/>
+  <circle cx="317" cy="169" r="2" fill="white"/>
+  <circle cx="347" cy="164" r="2" fill="white"/>
+
+  <!-- Ears -->
+  <ellipse cx="280" cy="140" rx="25" ry="40" fill="#6B5344" transform="rotate(-20 280 140)"/>
+  <ellipse cx="370" cy="135" rx="22" ry="35" fill="#6B5344" transform="rotate(15 370 135)"/>
+
+  <!-- Gentle smile -->
+  <path d="M265 210 Q280 225 295 210" stroke="#134E4A" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <!-- Dog legs -->
+  <ellipse cx="320" cy="275" rx="20" ry="25" fill="#8B7355"/>
+  <ellipse cx="480" cy="275" rx="20" ry="25" fill="#8B7355"/>
+
+  <!-- Tail -->
+  <path d="M520 200 Q560 180 550 220" stroke="#6B5344" stroke-width="20" fill="none" stroke-linecap="round"/>
+
+  <!-- Grooming hand -->
+  <ellipse cx="450" cy="180" rx="30" ry="20" fill="#FDBBA3"/>
+  <rect x="440" y="165" width="8" height="25" rx="4" fill="#FDBBA3"/>
+  <rect x="450" y="160" width="8" height="30" rx="4" fill="#FDBBA3"/>
+  <rect x="460" y="162" width="8" height="28" rx="4" fill="#FDBBA3"/>
+  <rect x="470" y="168" width="7" height="22" rx="3" fill="#FDBBA3"/>
+
+  <!-- Brush in hand -->
+  <rect x="485" y="155" width="60" height="18" rx="5" fill="#0D9488"/>
+  <rect x="545" y="148" width="40" height="32" rx="3" fill="#14B8A6"/>
+  <line x1="550" y1="155" x2="550" y2="173" stroke="#134E4A" stroke-width="2"/>
+  <line x1="558" y1="155" x2="558" y2="173" stroke="#134E4A" stroke-width="2"/>
+  <line x1="566" y1="155" x2="566" y2="173" stroke="#134E4A" stroke-width="2"/>
+  <line x1="574" y1="155" x2="574" y2="173" stroke="#134E4A" stroke-width="2"/>
+
+  <!-- Heart symbol -->
+  <path d="M620 120 C620 100 650 100 650 120 C650 100 680 100 680 120 C680 150 650 170 650 170 C650 170 620 150 620 120" fill="#0D9488"/>
+  <path d="M630 125 C630 115 645 115 645 125 C645 115 660 115 660 125 C660 140 645 150 645 150 C645 150 630 140 630 125" fill="#14B8A6"/>
+
+  <!-- Small hearts -->
+  <path d="M150 150 C150 140 165 140 165 150 C165 140 180 140 180 150 C180 165 165 175 165 175 C165 175 150 165 150 150" fill="#0EA5E9" opacity="0.6"/>
+  <path d="M580 280 C580 272 590 272 590 280 C590 272 600 272 600 280 C600 290 590 298 590 298 C590 298 580 290 580 280" fill="#14B8A6" opacity="0.5"/>
+
+  <!-- Sparkles showing gentle care -->
+  <g fill="#0EA5E9">
+    <polygon points="180,200 185,210 195,210 187,217 190,227 180,220 170,227 173,217 165,210 175,210"/>
+    <polygon points="620,220 623,227 631,227 625,232 627,239 620,234 613,239 615,232 609,227 617,227" transform="scale(0.8) translate(150, 50)"/>
+  </g>
+</svg>

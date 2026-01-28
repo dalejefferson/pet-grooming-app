@@ -1,0 +1,189 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bgGrad5" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0D9488;stop-opacity:0.08"/>
+      <stop offset="100%" style="stop-color:#0EA5E9;stop-opacity:0.05"/>
+    </linearGradient>
+    <linearGradient id="skinTone1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#deb887"/>
+      <stop offset="100%" style="stop-color:#c9a66b"/>
+    </linearGradient>
+    <linearGradient id="skinTone2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b6914"/>
+      <stop offset="100%" style="stop-color:#6b4f0f"/>
+    </linearGradient>
+    <linearGradient id="dogFur" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#d4a574"/>
+      <stop offset="100%" style="stop-color:#b8956a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bgGrad5)"/>
+
+  <!-- Decorative background circles -->
+  <circle cx="100" cy="100" r="60" fill="#0D9488" opacity="0.08"/>
+  <circle cx="700" cy="320" r="80" fill="#0EA5E9" opacity="0.08"/>
+  <circle cx="400" cy="50" r="40" fill="#14B8A6" opacity="0.1"/>
+
+  <!-- Floor line -->
+  <rect x="0" y="370" width="800" height="30" fill="#0D9488" opacity="0.1"/>
+
+  <!-- GROOMER (left side) -->
+  <g transform="translate(180, 100)">
+    <!-- Body/Apron -->
+    <path d="M-40 100 Q-50 150 -45 220 L45 220 Q50 150 40 100 Q20 90 0 95 Q-20 90 -40 100" fill="#0D9488"/>
+    <path d="M-35 110 Q-42 155 -38 210 L38 210 Q42 155 35 110 Q18 102 0 106 Q-18 102 -35 110" fill="#14B8A6" opacity="0.3"/>
+
+    <!-- Apron pocket -->
+    <rect x="-20" y="150" width="40" height="30" rx="3" fill="#134E4A" opacity="0.5"/>
+
+    <!-- Neck -->
+    <rect x="-12" y="75" width="24" height="25" fill="url(#skinTone1)"/>
+
+    <!-- Head -->
+    <ellipse cx="0" cy="50" rx="35" ry="40" fill="url(#skinTone1)"/>
+
+    <!-- Hair -->
+    <path d="M-35 35 Q-40 10 -20 5 Q0 0 20 5 Q40 10 35 35 Q30 20 0 18 Q-30 20 -35 35" fill="#5c4a1f"/>
+    <path d="M-30 40 Q-35 25 -15 20 Q5 17 25 22 Q35 28 32 42" fill="#5c4a1f"/>
+
+    <!-- Eyes -->
+    <ellipse cx="-12" cy="48" rx="5" ry="6" fill="#134E4A"/>
+    <ellipse cx="12" cy="48" rx="5" ry="6" fill="#134E4A"/>
+    <circle cx="-10" cy="46" r="2" fill="#ffffff"/>
+    <circle cx="14" cy="46" r="2" fill="#ffffff"/>
+
+    <!-- Friendly smile -->
+    <path d="M-12 68 Q0 80 12 68" stroke="#134E4A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+    <!-- Arms -->
+    <path d="M40 110 Q70 130 85 160 Q90 175 80 180" fill="url(#skinTone1)"/>
+    <path d="M-40 110 Q-70 130 -85 160" fill="url(#skinTone1)"/>
+
+    <!-- Hands -->
+    <ellipse cx="80" cy="185" rx="15" ry="12" fill="url(#skinTone1)"/>
+
+    <!-- Legs -->
+    <rect x="-30" y="220" width="25" height="80" fill="#134E4A"/>
+    <rect x="5" y="220" width="25" height="80" fill="#134E4A"/>
+
+    <!-- Feet -->
+    <ellipse cx="-17" cy="305" rx="18" ry="8" fill="#0D9488"/>
+    <ellipse cx="17" cy="305" rx="18" ry="8" fill="#0D9488"/>
+  </g>
+
+  <!-- DOG (center) -->
+  <g transform="translate(400, 240)">
+    <!-- Body -->
+    <ellipse cx="0" cy="40" rx="70" ry="50" fill="url(#dogFur)"/>
+
+    <!-- Head -->
+    <ellipse cx="50" cy="-10" rx="45" ry="40" fill="url(#dogFur)"/>
+
+    <!-- Ears -->
+    <ellipse cx="25" cy="-45" rx="15" ry="25" fill="#b8956a" transform="rotate(-20 25 -45)"/>
+    <ellipse cx="75" cy="-40" rx="15" ry="25" fill="#b8956a" transform="rotate(20 75 -40)"/>
+
+    <!-- Inner ears -->
+    <ellipse cx="27" cy="-42" rx="8" ry="15" fill="#d49a9e" transform="rotate(-20 27 -42)"/>
+    <ellipse cx="73" cy="-37" rx="8" ry="15" fill="#d49a9e" transform="rotate(20 73 -37)"/>
+
+    <!-- Face -->
+    <ellipse cx="50" cy="0" rx="25" ry="20" fill="#e8d4b8"/>
+
+    <!-- Eyes - happy squinting -->
+    <path d="M35 -15 Q40 -20 45 -15" stroke="#134E4A" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M55 -15 Q60 -20 65 -15" stroke="#134E4A" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+    <!-- Nose -->
+    <ellipse cx="50" cy="5" rx="8" ry="6" fill="#134E4A"/>
+
+    <!-- Tongue (happy panting) -->
+    <path d="M50 15 Q45 30 50 40 Q55 30 50 15" fill="#e8a0a0"/>
+
+    <!-- Tail wagging -->
+    <path d="M-70 20 Q-100 -10 -90 -40 Q-85 -50 -75 -45 Q-80 -20 -65 10" fill="url(#dogFur)"/>
+
+    <!-- Legs -->
+    <rect x="-40" y="70" width="20" height="40" rx="8" fill="url(#dogFur)"/>
+    <rect x="-10" y="75" width="20" height="35" rx="8" fill="url(#dogFur)"/>
+    <rect x="20" y="70" width="20" height="40" rx="8" fill="url(#dogFur)"/>
+    <rect x="50" y="75" width="20" height="35" rx="8" fill="url(#dogFur)"/>
+
+    <!-- Paws -->
+    <ellipse cx="-30" cy="115" rx="14" ry="8" fill="#c9a66b"/>
+    <ellipse cx="0" cy="115" rx="14" ry="8" fill="#c9a66b"/>
+    <ellipse cx="30" cy="115" rx="14" ry="8" fill="#c9a66b"/>
+    <ellipse cx="60" cy="115" rx="14" ry="8" fill="#c9a66b"/>
+
+    <!-- Motion lines for tail wag -->
+    <path d="M-95 -30 Q-105 -25 -100 -15" stroke="#14B8A6" stroke-width="2" fill="none" opacity="0.5"/>
+    <path d="M-100 -20 Q-110 -15 -105 -5" stroke="#14B8A6" stroke-width="2" fill="none" opacity="0.4"/>
+  </g>
+
+  <!-- PET OWNER (right side) -->
+  <g transform="translate(620, 100)">
+    <!-- Body -->
+    <path d="M-35 100 Q-45 150 -40 220 L40 220 Q45 150 35 100 Q18 92 0 95 Q-18 92 -35 100" fill="#0EA5E9"/>
+    <path d="M-30 108 Q-38 155 -35 215 L35 215 Q38 155 30 108" fill="#14B8A6" opacity="0.2"/>
+
+    <!-- Neck -->
+    <rect x="-10" y="78" width="20" height="22" fill="url(#skinTone2)"/>
+
+    <!-- Head -->
+    <ellipse cx="0" cy="52" rx="32" ry="38" fill="url(#skinTone2)"/>
+
+    <!-- Hair -->
+    <path d="M-32 40 Q-35 15 -15 8 Q5 5 25 12 Q38 20 35 45 Q25 30 0 28 Q-25 30 -32 40" fill="#2d2d2d"/>
+    <ellipse cx="0" cy="25" rx="28" ry="15" fill="#2d2d2d"/>
+
+    <!-- Eyes -->
+    <ellipse cx="-10" cy="50" rx="4" ry="5" fill="#134E4A"/>
+    <ellipse cx="10" cy="50" rx="4" ry="5" fill="#134E4A"/>
+    <circle cx="-9" cy="48" r="1.5" fill="#ffffff"/>
+    <circle cx="11" cy="48" r="1.5" fill="#ffffff"/>
+
+    <!-- Smile -->
+    <path d="M-10 68 Q0 76 10 68" stroke="#134E4A" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+    <!-- Arms -->
+    <path d="M-35 110 Q-60 130 -75 155" fill="url(#skinTone2)"/>
+    <ellipse cx="-78" cy="160" rx="12" ry="10" fill="url(#skinTone2)"/>
+
+    <!-- Legs -->
+    <rect x="-25" y="220" width="22" height="75" fill="#3d5a80"/>
+    <rect x="3" y="220" width="22" height="75" fill="#3d5a80"/>
+
+    <!-- Feet -->
+    <ellipse cx="-14" cy="300" rx="16" ry="7" fill="#5c4a1f"/>
+    <ellipse cx="14" cy="300" rx="16" ry="7" fill="#5c4a1f"/>
+  </g>
+
+  <!-- Speech bubble from groomer -->
+  <g transform="translate(80, 40)">
+    <path d="M0 0 Q0 -50 60 -50 L120 -50 Q180 -50 180 0 L180 40 Q180 90 120 90 L80 90 L60 110 L65 90 L60 90 Q0 90 0 40 Z" fill="#ffffff" stroke="#0D9488" stroke-width="2"/>
+    <!-- Dots indicating talking -->
+    <circle cx="60" cy="20" r="8" fill="#0D9488"/>
+    <circle cx="90" cy="20" r="8" fill="#14B8A6"/>
+    <circle cx="120" cy="20" r="8" fill="#0EA5E9"/>
+  </g>
+
+  <!-- Speech bubble from owner -->
+  <g transform="translate(540, 30)">
+    <path d="M180 0 Q180 -50 120 -50 L60 -50 Q0 -50 0 0 L0 40 Q0 90 60 90 L100 90 L120 110 L115 90 L120 90 Q180 90 180 40 Z" fill="#ffffff" stroke="#0EA5E9" stroke-width="2"/>
+    <!-- Heart icon -->
+    <path d="M75 10 Q75 -5 90 -5 Q105 -5 105 10 Q105 25 90 40 Q75 25 75 10" fill="#14B8A6"/>
+    <path d="M90 10 Q90 -5 105 -5 Q120 -5 120 10 Q120 25 105 40 Q90 25 90 10" fill="#14B8A6"/>
+  </g>
+
+  <!-- Connection line between people (subtle) -->
+  <path d="M260 200 Q400 180 540 200" stroke="#14B8A6" stroke-width="2" stroke-dasharray="8,4" fill="none" opacity="0.3"/>
+
+  <!-- Trust/connection sparkles -->
+  <g fill="#14B8A6" opacity="0.6">
+    <path d="M400 150 L403 157 L410 157 L405 162 L407 169 L400 164 L393 169 L395 162 L390 157 L397 157 Z"/>
+    <path d="M350 180 L352 185 L357 185 L353 188 L355 193 L350 190 L345 193 L347 188 L343 185 L348 185 Z"/>
+    <path d="M450 175 L452 180 L457 180 L453 183 L455 188 L450 185 L445 188 L447 183 L443 180 L448 180 Z"/>
+  </g>
+</svg>

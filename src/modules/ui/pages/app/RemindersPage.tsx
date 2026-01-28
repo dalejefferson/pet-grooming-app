@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { MessageSquare, Clock, RefreshCw } from 'lucide-react'
 import { Card, CardTitle, Button, Input, Toggle, Textarea } from '../../components/common'
+import { VaccinationReminderSettings } from '../../components/reminders'
 import { useReminders, useUpdateReminders, usePreviewReminder, useDefaultTemplates } from '@/hooks'
 import type { ReminderSchedule } from '@/types'
 import { useTheme } from '../../context'
@@ -285,6 +286,9 @@ export function RemindersPage() {
           </div>
         </div>
       </Card>
+
+      {/* Vaccination Reminders */}
+      <VaccinationReminderSettings />
       </div>
     </div>
   )

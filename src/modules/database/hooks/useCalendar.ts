@@ -164,3 +164,26 @@ export function useAvailableSlotsForWeek(
     enabled: !!organizationId && durationMinutes > 0,
   })
 }
+
+/**
+ * Hook to get available slots for a specific groomer with detailed availability info
+ */
+export function useGroomerAvailableSlots(
+  groomerId: string | undefined,
+  date: Date,
+  durationMinutes: number,
+  organizationId: string
+) {
+  return useQuery({
+    queryKey: [
+      'groomerAvailableSlots',
+      groomerId,
+      date.toISOString(),
+      durationMinutes,
+      organizationId,
+    ],
+    queryFn: () =>
+      calendarApi.getGroomerAvailableSlots(groomerId!, date, durationMinutes, organizationId),
+    enabled: !!groomerId && !!organizationId && durationMinutes > 0,
+  })
+}

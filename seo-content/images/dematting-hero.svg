@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bgGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0EA5E9;stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:#0D9488;stop-opacity:0.15" />
+    </linearGradient>
+    <linearGradient id="furGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#D4A574" />
+      <stop offset="100%" style="stop-color:#C4956A" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bgGrad2)"/>
+
+  <!-- Decorative elements -->
+  <circle cx="80" cy="350" r="50" fill="#14B8A6" opacity="0.15"/>
+  <circle cx="720" cy="60" r="45" fill="#0D9488" opacity="0.2"/>
+
+  <!-- Before side - Tangled fur section -->
+  <g transform="translate(100, 100)">
+    <!-- Tangled messy fur -->
+    <path d="M50 50 Q30 80 60 100 Q40 130 70 150 Q50 180 80 200" stroke="#A67B5B" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M80 40 Q60 70 90 90 Q70 120 100 140 Q80 170 110 190" stroke="#B8896D" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M110 55 Q90 85 120 105 Q100 135 130 155 Q110 185 140 195" stroke="#A67B5B" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M140 45 Q120 75 150 95 Q130 125 160 145 Q140 175 170 185" stroke="#C4956A" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M65 70 Q85 60 75 90 Q95 80 85 110" stroke="#8B6F4E" stroke-width="5" fill="none"/>
+    <path d="M95 100 Q115 90 105 120 Q125 110 115 140" stroke="#8B6F4E" stroke-width="5" fill="none"/>
+    <!-- Knots -->
+    <circle cx="75" cy="95" r="12" fill="#8B6F4E"/>
+    <circle cx="105" cy="125" r="10" fill="#9B7B5E"/>
+    <circle cx="135" cy="100" r="8" fill="#8B6F4E"/>
+  </g>
+
+  <!-- Arrow showing transformation -->
+  <g transform="translate(350, 180)">
+    <path d="M0 20 L60 20" stroke="#0D9488" stroke-width="6" stroke-linecap="round"/>
+    <path d="M50 10 L70 20 L50 30" fill="#0D9488"/>
+    <!-- Sparkles on arrow -->
+    <circle cx="30" cy="8" r="4" fill="#14B8A6"/>
+    <circle cx="45" cy="35" r="3" fill="#0EA5E9"/>
+  </g>
+
+  <!-- After side - Smooth brushed fur -->
+  <g transform="translate(450, 100)">
+    <!-- Smooth, flowing fur strands -->
+    <path d="M50 50 Q55 100 50 150 Q55 180 50 200" stroke="#D4A574" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M80 45 Q85 95 80 145 Q85 175 80 195" stroke="#E0B588" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M110 50 Q115 100 110 150 Q115 180 110 200" stroke="#D4A574" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M140 48 Q145 98 140 148 Q145 178 140 198" stroke="#E0B588" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M170 52 Q175 102 170 152 Q175 182 170 195" stroke="#D4A574" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <!-- Shine lines -->
+    <path d="M65 80 L75 85" stroke="white" stroke-width="3" opacity="0.6" stroke-linecap="round"/>
+    <path d="M95 90 L105 95" stroke="white" stroke-width="3" opacity="0.6" stroke-linecap="round"/>
+    <path d="M125 75 L135 80" stroke="white" stroke-width="3" opacity="0.6" stroke-linecap="round"/>
+    <path d="M155 85 L165 90" stroke="white" stroke-width="3" opacity="0.6" stroke-linecap="round"/>
+  </g>
+
+  <!-- Dematting comb/brush -->
+  <g transform="translate(550, 80) rotate(15)">
+    <rect x="0" y="0" width="120" height="25" rx="8" fill="#0D9488"/>
+    <rect x="100" y="-15" width="60" height="55" rx="5" fill="#14B8A6"/>
+    <!-- Comb teeth -->
+    <rect x="108" y="40" width="4" height="30" rx="2" fill="#134E4A"/>
+    <rect x="118" y="40" width="4" height="35" rx="2" fill="#134E4A"/>
+    <rect x="128" y="40" width="4" height="30" rx="2" fill="#134E4A"/>
+    <rect x="138" y="40" width="4" height="35" rx="2" fill="#134E4A"/>
+    <rect x="148" y="40" width="4" height="30" rx="2" fill="#134E4A"/>
+  </g>
+
+  <!-- Sparkles showing transformation -->
+  <g fill="#0EA5E9">
+    <polygon points="680,150 685,162 698,162 688,170 692,182 680,174 668,182 672,170 662,162 675,162"/>
+    <polygon points="650,220 654,229 664,229 656,235 659,244 650,238 641,244 644,235 636,229 646,229"/>
+    <polygon points="700,260 703,267 711,267 705,272 707,279 700,274 693,279 695,272 689,267 697,267"/>
+  </g>
+
+  <g fill="#14B8A6">
+    <polygon points="620,100 624,109 634,109 626,115 629,124 620,118 611,124 614,115 606,109 616,109"/>
+    <polygon points="720,180 723,187 731,187 725,192 727,199 720,194 713,199 715,192 709,187 717,187"/>
+  </g>
+
+  <!-- Small floating particles (fur/debris being removed) -->
+  <circle cx="300" cy="120" r="4" fill="#A67B5B" opacity="0.5"/>
+  <circle cx="320" cy="160" r="3" fill="#8B6F4E" opacity="0.4"/>
+  <circle cx="280" cy="200" r="5" fill="#A67B5B" opacity="0.5"/>
+  <circle cx="340" cy="140" r="3" fill="#9B7B5E" opacity="0.4"/>
+
+  <!-- Decorative sparkle bursts -->
+  <g transform="translate(500, 320)">
+    <line x1="0" y1="-15" x2="0" y2="15" stroke="#0D9488" stroke-width="3" stroke-linecap="round"/>
+    <line x1="-15" y1="0" x2="15" y2="0" stroke="#0D9488" stroke-width="3" stroke-linecap="round"/>
+    <line x1="-10" y1="-10" x2="10" y2="10" stroke="#0D9488" stroke-width="2" stroke-linecap="round"/>
+    <line x1="10" y1="-10" x2="-10" y2="10" stroke="#0D9488" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <g transform="translate(680, 320)">
+    <line x1="0" y1="-12" x2="0" y2="12" stroke="#14B8A6" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-12" y1="0" x2="12" y2="0" stroke="#14B8A6" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-8" y1="-8" x2="8" y2="8" stroke="#14B8A6" stroke-width="2" stroke-linecap="round"/>
+    <line x1="8" y1="-8" x2="-8" y2="8" stroke="#14B8A6" stroke-width="2" stroke-linecap="round"/>
+  </g>
+</svg>

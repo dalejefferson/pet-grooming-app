@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bgGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0EA5E9;stop-opacity:0.08"/>
+      <stop offset="100%" style="stop-color:#14B8A6;stop-opacity:0.08"/>
+    </linearGradient>
+    <linearGradient id="pawGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#d4a574"/>
+      <stop offset="100%" style="stop-color:#b8956a"/>
+    </linearGradient>
+    <linearGradient id="metalGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#9ca3af"/>
+      <stop offset="50%" style="stop-color:#e5e7eb"/>
+      <stop offset="100%" style="stop-color:#9ca3af"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bgGrad2)"/>
+
+  <!-- Decorative elements -->
+  <circle cx="680" cy="80" r="100" fill="#0D9488" opacity="0.08"/>
+  <circle cx="120" cy="320" r="70" fill="#0EA5E9" opacity="0.1"/>
+  <circle cx="750" cy="350" r="50" fill="#14B8A6" opacity="0.1"/>
+
+  <!-- Dog paw - main pad -->
+  <ellipse cx="320" cy="260" rx="90" ry="80" fill="url(#pawGrad)"/>
+
+  <!-- Main paw pad -->
+  <ellipse cx="320" cy="280" rx="50" ry="40" fill="#8b6914" opacity="0.6"/>
+  <ellipse cx="320" cy="275" rx="45" ry="35" fill="#5c4a1f"/>
+
+  <!-- Toe pads -->
+  <ellipse cx="260" cy="200" rx="25" ry="30" fill="url(#pawGrad)"/>
+  <ellipse cx="300" cy="180" rx="25" ry="32" fill="url(#pawGrad)"/>
+  <ellipse cx="345" cy="180" rx="25" ry="32" fill="url(#pawGrad)"/>
+  <ellipse cx="385" cy="200" rx="25" ry="30" fill="url(#pawGrad)"/>
+
+  <!-- Toe pad details -->
+  <ellipse cx="260" cy="210" rx="15" ry="18" fill="#5c4a1f"/>
+  <ellipse cx="300" cy="192" rx="15" ry="20" fill="#5c4a1f"/>
+  <ellipse cx="345" cy="192" rx="15" ry="20" fill="#5c4a1f"/>
+  <ellipse cx="385" cy="210" rx="15" ry="18" fill="#5c4a1f"/>
+
+  <!-- Nails -->
+  <path d="M255 170 Q245 150 250 135 Q260 125 270 140 Q275 155 268 175" fill="#3d3d3d"/>
+  <path d="M295 150 Q285 125 292 108 Q305 100 315 120 Q318 140 308 158" fill="#3d3d3d"/>
+  <path d="M340 150 Q330 125 337 108 Q350 100 360 120 Q363 140 353 158" fill="#3d3d3d"/>
+  <path d="M390 170 Q400 150 395 135 Q385 125 375 140 Q370 155 377 175" fill="#3d3d3d"/>
+
+  <!-- Target nail being trimmed (highlighted) -->
+  <path d="M295 150 Q285 125 292 108 Q305 100 315 120 Q318 140 308 158" fill="#4a4a4a" stroke="#0D9488" stroke-width="2" stroke-dasharray="4,2"/>
+
+  <!-- Cut line indicator -->
+  <line x1="280" y1="120" x2="320" y2="130" stroke="#14B8A6" stroke-width="2" stroke-dasharray="5,3"/>
+
+  <!-- Nail clippers -->
+  <g transform="translate(480, 180) rotate(-30)">
+    <!-- Handle 1 -->
+    <path d="M0 0 Q-10 40 0 100 Q10 110 25 100 Q35 40 25 0 Q12 -10 0 0" fill="#0D9488"/>
+    <path d="M5 10 Q0 45 5 90 Q12 95 20 90 Q25 45 20 10 Q12 5 5 10" fill="#0EA5E9" opacity="0.3"/>
+
+    <!-- Handle 2 -->
+    <path d="M30 0 Q20 40 30 100 Q40 110 55 100 Q65 40 55 0 Q42 -10 30 0" fill="#0D9488"/>
+    <path d="M35 10 Q30 45 35 90 Q42 95 50 90 Q55 45 50 10 Q42 5 35 10" fill="#0EA5E9" opacity="0.3"/>
+
+    <!-- Blade part -->
+    <path d="M-5 -5 L12 -40 L18 -40 L35 -5" fill="url(#metalGrad)" stroke="#6b7280" stroke-width="1"/>
+    <path d="M12 -40 L18 -40 L18 -50 L12 -50 Z" fill="url(#metalGrad)"/>
+
+    <!-- Cutting edge -->
+    <path d="M8 -25 L22 -25" stroke="#134E4A" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Pivot -->
+    <circle cx="27" cy="5" r="8" fill="#6b7280"/>
+    <circle cx="27" cy="5" r="4" fill="#9ca3af"/>
+  </g>
+
+  <!-- Success checkmark circle -->
+  <circle cx="650" cy="200" r="60" fill="#0D9488" opacity="0.15"/>
+  <circle cx="650" cy="200" r="50" fill="#ffffff" stroke="#0D9488" stroke-width="4"/>
+
+  <!-- Checkmark -->
+  <path d="M620 200 L640 225 L685 175" stroke="#0D9488" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Instructional guide lines -->
+  <g stroke="#14B8A6" stroke-width="1" opacity="0.5">
+    <path d="M320 120 L320 80 L420 80" fill="none" stroke-dasharray="3,3"/>
+    <circle cx="320" cy="120" r="4" fill="#14B8A6"/>
+  </g>
+
+  <!-- Quick indicator dots -->
+  <circle cx="298" cy="125" r="6" fill="#ef4444" opacity="0.6"/>
+
+  <!-- Safe zone indicator -->
+  <path d="M285 138 Q300 145 315 138" stroke="#22c55e" stroke-width="2" fill="none"/>
+
+  <!-- Decorative swoosh -->
+  <path d="M30 350 Q150 320 300 340 Q450 360 600 330 Q700 310 780 320" stroke="#0D9488" stroke-width="2" fill="none" opacity="0.2"/>
+
+  <!-- Small decorative elements -->
+  <circle cx="100" cy="100" r="3" fill="#0D9488" opacity="0.4"/>
+  <circle cx="130" cy="80" r="2" fill="#0EA5E9" opacity="0.5"/>
+  <circle cx="90" cy="130" r="2.5" fill="#14B8A6" opacity="0.4"/>
+</svg>

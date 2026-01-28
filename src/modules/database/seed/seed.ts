@@ -7,6 +7,10 @@ import type {
   Appointment,
   BookingPolicies,
   ReminderSchedule,
+  VaccinationReminderSettings,
+  StaffAvailability,
+  Groomer,
+  DaySchedule,
 } from '../types'
 import type { User } from '@/types'
 import { addDays, addHours, format, setHours, setMinutes, startOfDay } from 'date-fns'
@@ -65,6 +69,28 @@ export const seedClients: Client[] = [
     notes: 'Prefers morning appointments. Always tips well.',
     preferredContactMethod: 'text',
     isNewClient: false,
+    notificationPreferences: {
+      vaccinationReminders: { enabled: true, channels: ['email', 'sms'] },
+      appointmentReminders: { enabled: true, channels: ['sms'] },
+    },
+    paymentMethods: [
+      {
+        id: 'pm-1',
+        clientId: 'client-1',
+        type: 'card',
+        card: { brand: 'visa', last4: '4242', expMonth: 12, expYear: 2026 },
+        isDefault: true,
+        createdAt: '2024-02-01T00:00:00Z',
+      },
+      {
+        id: 'pm-2',
+        clientId: 'client-1',
+        type: 'card',
+        card: { brand: 'mastercard', last4: '5555', expMonth: 6, expYear: 2025 },
+        isDefault: false,
+        createdAt: '2024-05-15T00:00:00Z',
+      },
+    ],
     createdAt: '2024-02-01T00:00:00Z',
     updatedAt: '2024-06-15T00:00:00Z',
   },
@@ -79,6 +105,20 @@ export const seedClients: Client[] = [
     notes: 'Has two dogs that need to be groomed together.',
     preferredContactMethod: 'email',
     isNewClient: false,
+    notificationPreferences: {
+      vaccinationReminders: { enabled: true, channels: ['email'] },
+      appointmentReminders: { enabled: true, channels: ['email'] },
+    },
+    paymentMethods: [
+      {
+        id: 'pm-3',
+        clientId: 'client-2',
+        type: 'card',
+        card: { brand: 'amex', last4: '0005', expMonth: 3, expYear: 2027 },
+        isDefault: true,
+        createdAt: '2024-03-10T00:00:00Z',
+      },
+    ],
     createdAt: '2024-03-10T00:00:00Z',
     updatedAt: '2024-07-20T00:00:00Z',
   },
@@ -92,6 +132,10 @@ export const seedClients: Client[] = [
     notes: 'New client - referred by Emily Wilson',
     preferredContactMethod: 'phone',
     isNewClient: true,
+    notificationPreferences: {
+      vaccinationReminders: { enabled: true, channels: ['in_app'] },
+      appointmentReminders: { enabled: true, channels: ['in_app', 'email'] },
+    },
     createdAt: '2024-08-01T00:00:00Z',
     updatedAt: '2024-08-01T00:00:00Z',
   },
@@ -105,6 +149,20 @@ export const seedClients: Client[] = [
     address: '321 Pine Street, Dogtown, CA 90210',
     preferredContactMethod: 'text',
     isNewClient: false,
+    notificationPreferences: {
+      vaccinationReminders: { enabled: true, channels: ['sms', 'email'] },
+      appointmentReminders: { enabled: true, channels: ['sms'] },
+    },
+    paymentMethods: [
+      {
+        id: 'pm-4',
+        clientId: 'client-4',
+        type: 'card',
+        card: { brand: 'discover', last4: '1117', expMonth: 9, expYear: 2026 },
+        isDefault: true,
+        createdAt: '2024-04-05T00:00:00Z',
+      },
+    ],
     createdAt: '2024-04-05T00:00:00Z',
     updatedAt: '2024-08-10T00:00:00Z',
   },
@@ -128,14 +186,14 @@ export const seedPets: Pet[] = [
       {
         id: 'vax-1',
         name: 'Rabies',
-        dateAdministered: '2024-01-15',
-        expirationDate: '2025-01-15',
+        dateAdministered: format(addDays(today, -340), 'yyyy-MM-dd'),
+        expirationDate: format(addDays(today, 25), 'yyyy-MM-dd'), // Expiring in ~25 days (30-day warning)
       },
       {
         id: 'vax-2',
         name: 'DHPP',
-        dateAdministered: '2024-02-20',
-        expirationDate: '2025-02-20',
+        dateAdministered: format(addDays(today, -360), 'yyyy-MM-dd'),
+        expirationDate: format(addDays(today, 5), 'yyyy-MM-dd'), // Expiring in 5 days (7-day warning)
       },
     ],
     lastGroomingDate: format(addDays(today, -30), 'yyyy-MM-dd'),
@@ -161,8 +219,8 @@ export const seedPets: Pet[] = [
       {
         id: 'vax-3',
         name: 'Rabies',
-        dateAdministered: '2024-03-10',
-        expirationDate: '2025-03-10',
+        dateAdministered: format(addDays(today, -400), 'yyyy-MM-dd'),
+        expirationDate: format(addDays(today, -10), 'yyyy-MM-dd'), // Expired 10 days ago
       },
     ],
     lastGroomingDate: format(addDays(today, -45), 'yyyy-MM-dd'),
@@ -186,14 +244,14 @@ export const seedPets: Pet[] = [
       {
         id: 'vax-4',
         name: 'Rabies',
-        dateAdministered: '2024-03-10',
-        expirationDate: '2025-03-10',
+        dateAdministered: format(addDays(today, -300), 'yyyy-MM-dd'),
+        expirationDate: format(addDays(today, 65), 'yyyy-MM-dd'), // Valid - expires in 65 days
       },
       {
         id: 'vax-5',
         name: 'Bordetella',
-        dateAdministered: '2024-05-15',
-        expirationDate: '2025-05-15',
+        dateAdministered: format(addDays(today, -180), 'yyyy-MM-dd'),
+        expirationDate: format(addDays(today, 185), 'yyyy-MM-dd'), // Valid - expires in 185 days
       },
     ],
     lastGroomingDate: format(addDays(today, -21), 'yyyy-MM-dd'),
@@ -213,7 +271,7 @@ export const seedPets: Pet[] = [
     birthDate: '2022-05-10',
     behaviorLevel: 4,
     groomingNotes: 'First time at our salon. Owner says can be skittish.',
-    vaccinations: [],
+    vaccinations: [], // No vaccinations - new client
     createdAt: '2024-08-01T00:00:00Z',
     updatedAt: '2024-08-01T00:00:00Z',
   },
@@ -234,8 +292,8 @@ export const seedPets: Pet[] = [
       {
         id: 'vax-6',
         name: 'Rabies',
-        dateAdministered: '2024-04-05',
-        expirationDate: '2025-04-05',
+        dateAdministered: format(addDays(today, -200), 'yyyy-MM-dd'),
+        expirationDate: format(addDays(today, 165), 'yyyy-MM-dd'), // Valid - expires in 165 days
       },
     ],
     lastGroomingDate: format(addDays(today, -14), 'yyyy-MM-dd'),
@@ -662,3 +720,112 @@ export const seedReminders: ReminderSchedule = {
   },
   updatedAt: '2024-01-01T00:00:00Z',
 }
+
+// Vaccination reminder settings
+export const seedVaccinationReminderSettings: VaccinationReminderSettings = {
+  id: 'vax-settings-1',
+  organizationId: ORG_ID,
+  enabled: true,
+  reminderDays: [30, 7],
+  channels: { inApp: true, email: true, sms: false },
+  blockBookingOnExpired: true,
+  updatedAt: '2024-01-01T00:00:00Z',
+}
+
+// Helper to create a default weekly schedule
+function createDefaultWeeklySchedule(
+  workDays: number[] = [1, 2, 3, 4, 5], // Mon-Fri
+  startTime: string = '09:00',
+  endTime: string = '17:00',
+  breakStart?: string,
+  breakEnd?: string
+): DaySchedule[] {
+  return [0, 1, 2, 3, 4, 5, 6].map((day) => ({
+    dayOfWeek: day as DaySchedule['dayOfWeek'],
+    isWorkingDay: workDays.includes(day),
+    startTime,
+    endTime,
+    breakStart,
+    breakEnd,
+  }))
+}
+
+// Staff availability data
+export const seedStaffAvailability: StaffAvailability[] = [
+  {
+    id: 'avail-1',
+    staffId: 'user-2', // Mike Chen
+    weeklySchedule: createDefaultWeeklySchedule([1, 2, 3, 4, 5], '08:00', '16:00', '12:00', '12:30'),
+    maxAppointmentsPerDay: 8,
+    bufferMinutesBetweenAppointments: 15,
+    updatedAt: '2024-01-15T00:00:00Z',
+  },
+  {
+    id: 'avail-2',
+    staffId: 'user-3', // Lisa Martinez
+    weeklySchedule: createDefaultWeeklySchedule([1, 2, 3, 4, 6], '10:00', '18:00', '13:00', '13:30'), // Tue-Sat
+    maxAppointmentsPerDay: 6,
+    bufferMinutesBetweenAppointments: 20,
+    updatedAt: '2024-02-01T00:00:00Z',
+  },
+]
+
+// Groomers with role and availability
+export const seedGroomers: Groomer[] = [
+  {
+    id: 'user-2',
+    organizationId: ORG_ID,
+    userId: 'user-2',
+    firstName: 'Mike',
+    lastName: 'Chen',
+    email: 'mike@pawsclaws.com',
+    phone: '(555) 222-3333',
+    specialties: ['Large breeds', 'Hand stripping', 'Show cuts'],
+    isActive: true,
+    role: 'groomer',
+    availability: seedStaffAvailability[0],
+    timeOff: [
+      {
+        id: 'to-1',
+        staffId: 'user-2',
+        startDate: format(addDays(today, 14), 'yyyy-MM-dd'),
+        endDate: format(addDays(today, 16), 'yyyy-MM-dd'),
+        reason: 'Personal time',
+        status: 'approved',
+        createdAt: '2024-08-01T00:00:00Z',
+      },
+    ],
+    createdAt: '2024-01-15T00:00:00Z',
+    updatedAt: '2024-08-01T00:00:00Z',
+  },
+  {
+    id: 'user-3',
+    organizationId: ORG_ID,
+    userId: 'user-3',
+    firstName: 'Lisa',
+    lastName: 'Martinez',
+    email: 'lisa@pawsclaws.com',
+    phone: '(555) 333-4444',
+    specialties: ['Small breeds', 'Cats', 'Puppy first grooms'],
+    isActive: true,
+    role: 'groomer',
+    availability: seedStaffAvailability[1],
+    timeOff: [],
+    createdAt: '2024-02-01T00:00:00Z',
+    updatedAt: '2024-08-01T00:00:00Z',
+  },
+  {
+    id: 'user-1',
+    organizationId: ORG_ID,
+    userId: 'user-1',
+    firstName: 'Sarah',
+    lastName: 'Johnson',
+    email: 'admin@pawsclaws.com',
+    phone: '(555) 111-2222',
+    specialties: ['Management', 'All breeds'],
+    isActive: true,
+    role: 'admin',
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-08-01T00:00:00Z',
+  },
+]

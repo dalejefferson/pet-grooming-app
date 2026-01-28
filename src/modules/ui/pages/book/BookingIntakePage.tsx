@@ -53,9 +53,20 @@ export function BookingIntakePage() {
   const clientId = searchParams.get('clientId')
   const petsParam = searchParams.get('pets')
   const groomerId = searchParams.get('groomerId') || undefined
-  const initialPets: SelectedPet[] = petsParam
-    ? JSON.parse(petsParam).map((p: SelectedPet) => ({ ...p, services: p.services || [] }))
-    : []
+
+  // Parse pets from URL params with error handling
+  let initialPets: SelectedPet[] = []
+  if (petsParam) {
+    try {
+      const parsed = JSON.parse(petsParam)
+      initialPets = Array.isArray(parsed)
+        ? parsed.map((p: SelectedPet) => ({ ...p, services: p.services || [] }))
+        : []
+    } catch (e) {
+      console.error('Failed to parse pets param:', petsParam, e)
+      initialPets = []
+    }
+  }
 
   const { data: services = [] } = useActiveServices(organization.id)
   const { data: clientPets = [] } = useClientPets(clientId || '')
@@ -92,36 +103,43 @@ export function BookingIntakePage() {
 
   const toggleService = (serviceId: string) => {
     setSelectedPets((prev) => {
-      const updated = [...prev]
-      const pet = updated[currentPetIndex]
+      const pet = prev[currentPetIndex]
       if (!pet) return prev
 
       const existingIndex = pet.services.findIndex((s) => s.serviceId === serviceId)
-      if (existingIndex >= 0) {
-        pet.services = pet.services.filter((s) => s.serviceId !== serviceId)
-      } else {
-        pet.services = [...pet.services, { serviceId, modifierIds: [] }]
-      }
-      return updated
+      const newServices = existingIndex >= 0
+        ? pet.services.filter((s) => s.serviceId !== serviceId)
+        : [...pet.services, { serviceId, modifierIds: [] }]
+
+      // Create new array with new object reference for the updated pet
+      return prev.map((p, i) =>
+        i === currentPetIndex ? { ...p, services: newServices } : p
+      )
     })
   }
 
   const toggleModifier = (serviceId: string, modifierId: string) => {
     setSelectedPets((prev) => {
-      const updated = [...prev]
-      const pet = updated[currentPetIndex]
-      const serviceIndex = pet.services.findIndex((s) => s.serviceId === serviceId)
+      const pet = prev[currentPetIndex]
+      if (!pet) return prev
 
-      if (serviceIndex >= 0) {
-        const service = pet.services[serviceIndex]
-        const modifierIndex = service.modifierIds.indexOf(modifierId)
-        if (modifierIndex >= 0) {
-          service.modifierIds = service.modifierIds.filter((id) => id !== modifierId)
-        } else {
-          service.modifierIds = [...service.modifierIds, modifierId]
-        }
-      }
-      return updated
+      const serviceIndex = pet.services.findIndex((s) => s.serviceId === serviceId)
+      if (serviceIndex < 0) return prev
+
+      const service = pet.services[serviceIndex]
+      const modifierIndex = service.modifierIds.indexOf(modifierId)
+      const newModifierIds = modifierIndex >= 0
+        ? service.modifierIds.filter((id) => id !== modifierId)
+        : [...service.modifierIds, modifierId]
+
+      const newServices = pet.services.map((s, i) =>
+        i === serviceIndex ? { ...s, modifierIds: newModifierIds } : s
+      )
+
+      // Create new array with new object reference for the updated pet
+      return prev.map((p, i) =>
+        i === currentPetIndex ? { ...p, services: newServices } : p
+      )
     })
   }
 

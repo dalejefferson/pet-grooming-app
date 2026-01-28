@@ -1,4 +1,148 @@
+// ============================================
+// Vaccination Reminder Types
+// ============================================
+export type NotificationChannel = 'in_app' | 'email' | 'sms'
+export type VaccinationStatus = 'valid' | 'expiring_30' | 'expiring_7' | 'expired'
+
+export interface VaccinationReminderSettings {
+  id: string
+  organizationId: string
+  enabled: boolean
+  reminderDays: number[] // [30, 7]
+  channels: { inApp: boolean; email: boolean; sms: boolean }
+  blockBookingOnExpired: boolean
+  updatedAt: string
+}
+
+export interface VaccinationReminder {
+  id: string
+  petId: string
+  clientId: string
+  vaccinationId: string
+  vaccinationName: string
+  expirationDate: string
+  reminderType: '30_day' | '7_day' | 'expired'
+  status: 'pending' | 'sent' | 'dismissed'
+  channels: NotificationChannel[]
+  sentAt?: string
+  createdAt: string
+}
+
+export interface InAppNotification {
+  id: string
+  organizationId: string
+  type: 'vaccination_expiring' | 'vaccination_expired' | 'appointment_reminder' | 'general'
+  title: string
+  message: string
+  petId?: string
+  clientId?: string
+  read: boolean
+  createdAt: string
+}
+
+// ============================================
+// Payment Method Types
+// ============================================
+export type CardBrand = 'visa' | 'mastercard' | 'amex' | 'discover' | 'unknown'
+
+export interface PaymentMethod {
+  id: string
+  clientId: string
+  type: 'card'
+  card: {
+    brand: CardBrand
+    last4: string
+    expMonth: number
+    expYear: number
+  }
+  isDefault: boolean
+  createdAt: string
+}
+
+// ============================================
+// Staff Management Types
+// ============================================
+export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6
+
+export interface DaySchedule {
+  dayOfWeek: DayOfWeek
+  isWorkingDay: boolean
+  startTime: string // "09:00"
+  endTime: string   // "17:00"
+  breakStart?: string
+  breakEnd?: string
+}
+
+export interface TimeOffRequest {
+  id: string
+  staffId: string
+  startDate: string
+  endDate: string
+  reason?: string
+  status: 'pending' | 'approved' | 'rejected'
+  createdAt: string
+}
+
+export interface StaffAvailability {
+  id: string
+  staffId: string
+  weeklySchedule: DaySchedule[]
+  maxAppointmentsPerDay: number
+  bufferMinutesBetweenAppointments: number
+  updatedAt: string
+}
+
+export interface RolePermissions {
+  canManageStaff: boolean
+  canManageClients: boolean
+  canManageServices: boolean
+  canManagePolicies: boolean
+  canViewReports: boolean
+  canEditCalendar: boolean
+  canViewAllAppointments: boolean
+  canManageOwnAppointments: boolean
+  canBookAppointments: boolean
+}
+
+export const ROLE_PERMISSIONS: Record<'admin' | 'groomer' | 'receptionist', RolePermissions> = {
+  admin: {
+    canManageStaff: true,
+    canManageClients: true,
+    canManageServices: true,
+    canManagePolicies: true,
+    canViewReports: true,
+    canEditCalendar: true,
+    canViewAllAppointments: true,
+    canManageOwnAppointments: true,
+    canBookAppointments: true,
+  },
+  groomer: {
+    canManageStaff: false,
+    canManageClients: true,
+    canManageServices: false,
+    canManagePolicies: false,
+    canViewReports: false,
+    canEditCalendar: false,
+    canViewAllAppointments: false,
+    canManageOwnAppointments: true,
+    canBookAppointments: true,
+  },
+  receptionist: {
+    canManageStaff: false,
+    canManageClients: true,
+    canManageServices: false,
+    canManagePolicies: false,
+    canViewReports: false,
+    canEditCalendar: true,
+    canViewAllAppointments: true,
+    canManageOwnAppointments: false,
+    canBookAppointments: true,
+  },
+}
+
+// ============================================
 // Organization types
+// ============================================
 export interface Organization {
   id: string
   name: string
@@ -12,6 +156,17 @@ export interface Organization {
 }
 
 // Client types
+export interface ClientNotificationPreferences {
+  vaccinationReminders: {
+    enabled: boolean
+    channels: NotificationChannel[]
+  }
+  appointmentReminders: {
+    enabled: boolean
+    channels: NotificationChannel[]
+  }
+}
+
 export interface Client {
   id: string
   organizationId: string
@@ -24,6 +179,8 @@ export interface Client {
   imageUrl?: string
   preferredContactMethod: 'email' | 'phone' | 'text'
   isNewClient: boolean
+  notificationPreferences?: ClientNotificationPreferences
+  paymentMethods?: PaymentMethod[]
   createdAt: string
   updatedAt: string
 }
@@ -221,6 +378,8 @@ export interface BookingState {
   selectedGroomerId?: string
   notes?: string
   payment?: PaymentInfo
+  selectedPaymentMethodId?: string
+  saveNewCardForFuture?: boolean
 }
 
 // Time slot types
@@ -232,10 +391,11 @@ export interface TimeSlot {
   groomerId?: string
 }
 
-// Groomer types
+// Groomer/Staff types
 export interface Groomer {
   id: string
   organizationId: string
+  userId?: string // Links to User for auth
   firstName: string
   lastName: string
   email: string
@@ -243,6 +403,9 @@ export interface Groomer {
   specialties: string[]
   imageUrl?: string
   isActive: boolean
+  role: 'admin' | 'groomer' | 'receptionist'
+  availability?: StaffAvailability
+  timeOff?: TimeOffRequest[]
   createdAt: string
   updatedAt: string
 }

@@ -1,12 +1,23 @@
-import { CreditCard, Check, AlertCircle, Lock } from 'lucide-react'
+import { Check, AlertCircle, Lock } from 'lucide-react'
 import { Card, CardTitle } from '../common'
+import { PaymentMethodSelector, type CardInputValue } from '../payment'
 import type { PaymentStatus } from '@/types'
 
 interface PaymentFormProps {
   paymentStatus: PaymentStatus
+  clientId?: string | null
+  selectedPaymentMethodId?: string | null
+  onPaymentMethodSelect?: (id: string | null) => void
+  onAddNewCard?: (cardValue: CardInputValue, saveForFuture: boolean) => void
 }
 
-export function PaymentForm({ paymentStatus }: PaymentFormProps) {
+export function PaymentForm({
+  paymentStatus,
+  clientId,
+  selectedPaymentMethodId = null,
+  onPaymentMethodSelect,
+  onAddNewCard,
+}: PaymentFormProps) {
   return (
     <Card className="border-[#1e293b] bg-white">
       <CardTitle className="flex items-center gap-2">
@@ -37,52 +48,27 @@ export function PaymentForm({ paymentStatus }: PaymentFormProps) {
             </div>
           </div>
         </div>
+      ) : clientId ? (
+        // Show PaymentMethodSelector for logged-in clients
+        <div className="mt-4">
+          <PaymentMethodSelector
+            clientId={clientId}
+            selectedId={selectedPaymentMethodId}
+            onSelect={onPaymentMethodSelect || (() => {})}
+            onAddNew={onAddNewCard}
+            showAddNew={true}
+          />
+        </div>
       ) : (
-        <div className="mt-4 space-y-4">
-          {/* Mock Card Display */}
-          <div className="rounded-xl border-2 border-[#1e293b] bg-gradient-to-br from-[#1e293b] to-[#334155] p-4 text-white shadow-[3px_3px_0px_0px_#64748b]">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium uppercase tracking-wider opacity-80">
-                Credit Card
-              </span>
-              <CreditCard className="h-6 w-6" />
-            </div>
-            <div className="mt-4 font-mono text-lg tracking-wider">4242 4242 4242 4242</div>
-            <div className="mt-3 flex justify-between text-sm">
-              <div>
-                <span className="text-xs uppercase tracking-wider opacity-60">Expiry</span>
-                <p className="font-mono">12/25</p>
-              </div>
-              <div>
-                <span className="text-xs uppercase tracking-wider opacity-60">CVC</span>
-                <p className="font-mono">123</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Mock card inputs (read-only display) */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="mb-1 block text-sm font-semibold text-[#1e293b]">
-                Card Number
-              </label>
-              <div className="rounded-xl border-2 border-[#1e293b] bg-gray-100 px-3 py-2 text-gray-600">
-                4242 4242 4242 4242
-              </div>
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-[#1e293b]">Expiry</label>
-              <div className="rounded-xl border-2 border-[#1e293b] bg-gray-100 px-3 py-2 text-gray-600">
-                12/25
-              </div>
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-[#1e293b]">CVC</label>
-              <div className="rounded-xl border-2 border-[#1e293b] bg-gray-100 px-3 py-2 text-gray-600">
-                123
-              </div>
-            </div>
-          </div>
+        // Guest checkout - show new card input only
+        <div className="mt-4">
+          <PaymentMethodSelector
+            clientId=""
+            selectedId={null}
+            onSelect={() => {}}
+            onAddNew={onAddNewCard}
+            showAddNew={true}
+          />
         </div>
       )}
     </Card>

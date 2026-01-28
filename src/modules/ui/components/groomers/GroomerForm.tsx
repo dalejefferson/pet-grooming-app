@@ -52,6 +52,7 @@ export function GroomerForm({
       ...formData,
       organizationId: 'org-1',
       imageUrl: formData.imageUrl || undefined,
+      role: groomer?.role || 'groomer', // Default to groomer role for new staff
     })
   }
 

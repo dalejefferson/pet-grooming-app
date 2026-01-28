@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bgGrad5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0D9488;stop-opacity:0.1" />
+      <stop offset="50%" style="stop-color:#0EA5E9;stop-opacity:0.12" />
+      <stop offset="100%" style="stop-color:#14B8A6;stop-opacity:0.1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bgGrad5)"/>
+
+  <!-- Decorative circles -->
+  <circle cx="80" cy="200" r="60" fill="#0D9488" opacity="0.1"/>
+  <circle cx="720" cy="200" r="60" fill="#14B8A6" opacity="0.1"/>
+  <circle cx="400" cy="50" r="40" fill="#0EA5E9" opacity="0.1"/>
+  <circle cx="400" cy="380" r="50" fill="#0D9488" opacity="0.1"/>
+
+  <!-- Poodle silhouette -->
+  <g transform="translate(80, 100)" fill="#0D9488">
+    <!-- Poodle body puffs -->
+    <circle cx="80" cy="180" r="35"/>
+    <circle cx="60" cy="160" r="25"/>
+    <circle cx="100" cy="165" r="20"/>
+    <!-- Head puff -->
+    <circle cx="55" cy="100" r="40"/>
+    <circle cx="40" cy="85" r="20"/>
+    <circle cx="70" cy="80" r="22"/>
+    <circle cx="50" cy="115" r="18"/>
+    <!-- Ear puffs -->
+    <circle cx="20" cy="110" r="22"/>
+    <circle cx="90" cy="95" r="18"/>
+    <!-- Legs -->
+    <rect x="45" y="210" width="12" height="50" rx="6"/>
+    <circle cx="51" cy="260" r="12"/>
+    <rect x="90" y="210" width="12" height="50" rx="6"/>
+    <circle cx="96" cy="260" r="12"/>
+    <!-- Tail puff -->
+    <circle cx="120" cy="150" r="15"/>
+    <!-- Eye -->
+    <circle cx="45" cy="95" r="5" fill="white"/>
+  </g>
+
+  <!-- Golden Retriever silhouette -->
+  <g transform="translate(220, 80)" fill="#14B8A6">
+    <!-- Body -->
+    <ellipse cx="100" cy="170" rx="70" ry="45"/>
+    <!-- Chest fluff -->
+    <ellipse cx="50" cy="160" rx="30" ry="40"/>
+    <!-- Head -->
+    <ellipse cx="45" cy="100" rx="40" ry="35"/>
+    <!-- Muzzle -->
+    <ellipse cx="15" cy="115" rx="25" ry="18"/>
+    <!-- Ears -->
+    <ellipse cx="25" cy="85" rx="18" ry="30" transform="rotate(-20 25 85)"/>
+    <ellipse cx="70" cy="80" rx="18" ry="28" transform="rotate(15 70 80)"/>
+    <!-- Legs -->
+    <ellipse cx="55" cy="220" rx="18" ry="25"/>
+    <ellipse cx="130" cy="215" rx="18" ry="28"/>
+    <!-- Fluffy tail -->
+    <path d="M165 140 Q200 100 190 160 Q185 180 170 165" fill="#14B8A6"/>
+    <!-- Eye -->
+    <circle cx="35" cy="95" r="5" fill="white"/>
+  </g>
+
+  <!-- Husky silhouette -->
+  <g transform="translate(420, 70)" fill="#0EA5E9">
+    <!-- Body -->
+    <ellipse cx="90" cy="175" rx="65" ry="45"/>
+    <!-- Chest -->
+    <ellipse cx="45" cy="165" rx="28" ry="38"/>
+    <!-- Head -->
+    <ellipse cx="40" cy="100" rx="38" ry="35"/>
+    <!-- Pointed muzzle -->
+    <path d="M15 90 L-5 115 L25 125 Z"/>
+    <!-- Pointed ears -->
+    <polygon points="20,70 5,30 35,60"/>
+    <polygon points="55,65 70,25 80,60"/>
+    <!-- Mask pattern (lighter area) -->
+    <ellipse cx="35" cy="105" rx="20" ry="15" fill="#134E4A" opacity="0.3"/>
+    <!-- Legs -->
+    <ellipse cx="50" cy="225" rx="16" ry="25"/>
+    <ellipse cx="120" cy="220" rx="16" ry="28"/>
+    <!-- Curved fluffy tail -->
+    <path d="M155 145 Q190 120 180 170 Q175 190 160 175" fill="#0EA5E9"/>
+    <!-- Eyes -->
+    <circle cx="28" cy="95" r="5" fill="white"/>
+    <circle cx="52" cy="95" r="5" fill="white"/>
+  </g>
+
+  <!-- Yorkie silhouette -->
+  <g transform="translate(600, 140)" fill="#134E4A">
+    <!-- Small fluffy body -->
+    <ellipse cx="70" cy="150" rx="50" ry="35"/>
+    <!-- Long coat effect -->
+    <path d="M30 145 Q20 180 40 185 Q60 190 80 185 Q100 180 110 185 Q130 180 120 145" fill="#134E4A"/>
+    <!-- Head -->
+    <circle cx="40" cy="100" r="35"/>
+    <!-- Top knot bow -->
+    <ellipse cx="35" cy="60" rx="20" ry="12" fill="#0D9488"/>
+    <circle cx="35" cy="65" r="8" fill="#14B8A6"/>
+    <!-- Long ear fur -->
+    <path d="M10 95 Q-10 130 15 140" stroke="#134E4A" stroke-width="15" fill="none" stroke-linecap="round"/>
+    <path d="M70 90 Q90 125 65 135" stroke="#134E4A" stroke-width="15" fill="none" stroke-linecap="round"/>
+    <!-- Cute face -->
+    <circle cx="28" cy="100" r="6" fill="white"/>
+    <circle cx="52" cy="100" r="6" fill="white"/>
+    <ellipse cx="40" cy="115" rx="6" ry="4" fill="#0D9488"/>
+    <!-- Tiny legs peeking out -->
+    <ellipse cx="45" cy="195" rx="10" ry="12"/>
+    <ellipse cx="95" cy="195" rx="10" ry="12"/>
+  </g>
+
+  <!-- Connecting decorative elements -->
+  <g stroke="#0D9488" stroke-width="2" fill="none" opacity="0.3">
+    <path d="M170 200 Q200 180 220 200" stroke-dasharray="5,5"/>
+    <path d="M370 200 Q400 180 420 200" stroke-dasharray="5,5"/>
+    <path d="M560 200 Q590 180 610 200" stroke-dasharray="5,5"/>
+  </g>
+
+  <!-- Paw prints scattered -->
+  <g fill="#0D9488" opacity="0.4">
+    <!-- Paw 1 -->
+    <ellipse cx="300" cy="340" rx="10" ry="12"/>
+    <circle cx="288" cy="328" r="5"/>
+    <circle cx="300" cy="323" r="5"/>
+    <circle cx="312" cy="328" r="5"/>
+
+    <!-- Paw 2 -->
+    <ellipse cx="500" cy="350" rx="8" ry="10"/>
+    <circle cx="490" cy="340" r="4"/>
+    <circle cx="500" cy="336" r="4"/>
+    <circle cx="510" cy="340" r="4"/>
+  </g>
+
+  <g fill="#14B8A6" opacity="0.4">
+    <!-- Paw 3 -->
+    <ellipse cx="180" cy="350" rx="9" ry="11"/>
+    <circle cx="170" cy="339" r="4.5"/>
+    <circle cx="180" cy="335" r="4.5"/>
+    <circle cx="190" cy="339" r="4.5"/>
+
+    <!-- Paw 4 -->
+    <ellipse cx="650" cy="340" rx="8" ry="10"/>
+    <circle cx="640" cy="330" r="4"/>
+    <circle cx="650" cy="326" r="4"/>
+    <circle cx="660" cy="330" r="4"/>
+  </g>
+
+  <!-- Small sparkle accents -->
+  <g fill="#0EA5E9" opacity="0.6">
+    <polygon points="150,50 153,58 162,58 155,63 158,71 150,66 142,71 145,63 138,58 147,58"/>
+    <polygon points="350,320 352,326 359,326 354,330 356,336 350,332 344,336 346,330 341,326 348,326"/>
+  </g>
+
+  <g fill="#14B8A6" opacity="0.6">
+    <polygon points="650,60 652,66 659,66 654,70 656,76 650,72 644,76 646,70 641,66 648,66"/>
+    <polygon points="250,330 252,336 259,336 254,340 256,346 250,342 244,346 246,340 241,336 248,336"/>
+  </g>
+</svg>

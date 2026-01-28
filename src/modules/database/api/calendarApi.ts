@@ -1,6 +1,7 @@
-import type { Appointment, AppointmentStatus, TimeSlot } from '../types'
+import type { Appointment, AppointmentStatus, TimeSlot, DayOfWeek, StaffAvailability } from '../types'
 import { getFromStorage, setToStorage, delay, generateId } from '../storage/localStorage'
 import { seedAppointments } from '../seed/seed'
+import { staffApi } from './staffApi'
 import {
   startOfDay,
   endOfDay,
@@ -9,6 +10,7 @@ import {
   addMinutes,
   format,
   parseISO,
+  parse,
   isWithinInterval,
   setHours,
   setMinutes,
@@ -132,10 +134,56 @@ export const calendarApi = {
     await delay()
     const dayAppointments = await this.getByDay(date, organizationId)
 
-    // Business hours: 8 AM to 6 PM
-    const startHour = 8
-    const endHour = 18
+    // Default business hours: 8 AM to 6 PM
+    let startHour = 8
+    let endHour = 18
     const slotInterval = 30 // 30-minute intervals
+
+    // Get groomer availability if a specific groomer is selected
+    let groomerAvailability: StaffAvailability | null = null
+    let daySchedule = null
+    let groomerHasTimeOff = false
+
+    if (groomerId) {
+      groomerAvailability = await staffApi.getStaffAvailability(groomerId)
+      if (groomerAvailability) {
+        const dayOfWeek = date.getDay() as DayOfWeek
+        daySchedule = groomerAvailability.weeklySchedule.find((d) => d.dayOfWeek === dayOfWeek)
+
+        // Check if groomer is working on this day
+        if (!daySchedule || !daySchedule.isWorkingDay) {
+          // Groomer doesn't work on this day, return empty slots
+          return []
+        }
+
+        // Use groomer's working hours
+        const [startH] = daySchedule.startTime.split(':').map(Number)
+        const [endH] = daySchedule.endTime.split(':').map(Number)
+        startHour = startH
+        endHour = endH
+      }
+
+      // Check for approved time off
+      const timeOffRequests = await staffApi.getTimeOffRequests(groomerId)
+      const approvedTimeOff = timeOffRequests.filter((r) => r.status === 'approved')
+
+      for (const timeOff of approvedTimeOff) {
+        const timeOffStart = parseISO(timeOff.startDate)
+        const timeOffEnd = parseISO(timeOff.endDate)
+        timeOffStart.setHours(0, 0, 0, 0)
+        timeOffEnd.setHours(23, 59, 59, 999)
+
+        if (isWithinInterval(date, { start: timeOffStart, end: timeOffEnd })) {
+          groomerHasTimeOff = true
+          break
+        }
+      }
+
+      // If groomer has time off, return empty slots
+      if (groomerHasTimeOff) {
+        return []
+      }
+    }
 
     const slots: TimeSlot[] = []
     let currentSlotStart = setMinutes(setHours(date, startHour), 0)
@@ -143,6 +191,8 @@ export const calendarApi = {
 
     while (addMinutes(currentSlotStart, durationMinutes) <= dayEnd) {
       const slotEnd = addMinutes(currentSlotStart, durationMinutes)
+      const slotStartTime = format(currentSlotStart, 'HH:mm')
+      const slotEndTime = format(slotEnd, 'HH:mm')
 
       // Check if this slot conflicts with any existing appointments
       const hasConflict = dayAppointments.some((apt) => {
@@ -156,11 +206,23 @@ export const calendarApi = {
         return currentSlotStart < aptEnd && slotEnd > aptStart
       })
 
+      // Check if slot overlaps with groomer's break time
+      let isDuringBreak = false
+      if (groomerId && daySchedule && daySchedule.breakStart && daySchedule.breakEnd) {
+        const breakStart = parse(daySchedule.breakStart, 'HH:mm', date)
+        const breakEnd = parse(daySchedule.breakEnd, 'HH:mm', date)
+
+        // Check for overlap with break
+        if (currentSlotStart < breakEnd && slotEnd > breakStart) {
+          isDuringBreak = true
+        }
+      }
+
       slots.push({
         date: format(date, 'yyyy-MM-dd'),
-        startTime: format(currentSlotStart, 'HH:mm'),
-        endTime: format(slotEnd, 'HH:mm'),
-        available: !hasConflict,
+        startTime: slotStartTime,
+        endTime: slotEndTime,
+        available: !hasConflict && !isDuringBreak,
         groomerId,
       })
 
@@ -168,6 +230,93 @@ export const calendarApi = {
     }
 
     return slots
+  },
+
+  /**
+   * Get available slots specifically for a groomer on a given date
+   * Returns information about their working hours and any time off
+   */
+  async getGroomerAvailableSlots(
+    groomerId: string,
+    date: Date,
+    durationMinutes: number = 60,
+    organizationId: string
+  ): Promise<{
+    slots: TimeSlot[]
+    workingHours: { start: string; end: string } | null
+    hasTimeOff: boolean
+    isWorkingDay: boolean
+    breakTime: { start: string; end: string } | null
+  }> {
+    await delay()
+
+    // Get groomer availability
+    const groomerAvailability = await staffApi.getStaffAvailability(groomerId)
+    if (!groomerAvailability) {
+      return {
+        slots: [],
+        workingHours: null,
+        hasTimeOff: false,
+        isWorkingDay: false,
+        breakTime: null,
+      }
+    }
+
+    const dayOfWeek = date.getDay() as DayOfWeek
+    const daySchedule = groomerAvailability.weeklySchedule.find((d) => d.dayOfWeek === dayOfWeek)
+
+    // Check if it's a working day
+    if (!daySchedule || !daySchedule.isWorkingDay) {
+      return {
+        slots: [],
+        workingHours: null,
+        hasTimeOff: false,
+        isWorkingDay: false,
+        breakTime: null,
+      }
+    }
+
+    // Check for approved time off
+    const timeOffRequests = await staffApi.getTimeOffRequests(groomerId)
+    const approvedTimeOff = timeOffRequests.filter((r) => r.status === 'approved')
+
+    let hasTimeOff = false
+    for (const timeOff of approvedTimeOff) {
+      const timeOffStart = parseISO(timeOff.startDate)
+      const timeOffEnd = parseISO(timeOff.endDate)
+      timeOffStart.setHours(0, 0, 0, 0)
+      timeOffEnd.setHours(23, 59, 59, 999)
+
+      if (isWithinInterval(date, { start: timeOffStart, end: timeOffEnd })) {
+        hasTimeOff = true
+        break
+      }
+    }
+
+    if (hasTimeOff) {
+      return {
+        slots: [],
+        workingHours: { start: daySchedule.startTime, end: daySchedule.endTime },
+        hasTimeOff: true,
+        isWorkingDay: true,
+        breakTime: daySchedule.breakStart && daySchedule.breakEnd
+          ? { start: daySchedule.breakStart, end: daySchedule.breakEnd }
+          : null,
+      }
+    }
+
+    // Get available slots respecting groomer's schedule
+    const slots = await this.getAvailableSlots(date, durationMinutes, organizationId, groomerId)
+
+    return {
+      slots,
+      workingHours: { start: daySchedule.startTime, end: daySchedule.endTime },
+      hasTimeOff: false,
+      isWorkingDay: true,
+      breakTime: daySchedule.breakStart && daySchedule.breakEnd
+        ? { start: daySchedule.breakStart, end: daySchedule.breakEnd }
+        : null,
+    }
   },
 
   async getAvailableSlotsForWeek(

@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#134E4A;stop-opacity:0.1"/>
+      <stop offset="100%" style="stop-color:#0EA5E9;stop-opacity:0.1"/>
+    </linearGradient>
+    <linearGradient id="furGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f5f5f5"/>
+      <stop offset="100%" style="stop-color:#e0e0e0"/>
+    </linearGradient>
+    <linearGradient id="undercoatGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#d4d4d4"/>
+      <stop offset="100%" style="stop-color:#a3a3a3"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bgGradient)"/>
+
+  <!-- Decorative circles -->
+  <circle cx="100" cy="350" r="80" fill="#0D9488" opacity="0.1"/>
+  <circle cx="700" cy="80" r="60" fill="#0EA5E9" opacity="0.1"/>
+  <circle cx="650" cy="320" r="40" fill="#14B8A6" opacity="0.15"/>
+
+  <!-- Dog body - fluffy husky/samoyed shape -->
+  <!-- Main body undercoat layer -->
+  <ellipse cx="400" cy="260" rx="180" ry="100" fill="url(#undercoatGradient)"/>
+
+  <!-- Outer coat fluffy texture - body -->
+  <path d="M220 260 Q200 240 220 220 Q240 200 260 220 Q280 200 300 215 Q320 200 340 210 Q360 195 380 205 Q400 190 420 200 Q440 185 460 195 Q480 180 500 190 Q520 175 540 190 Q560 180 580 200 Q600 220 580 260" fill="url(#furGradient)" stroke="#d4d4d4" stroke-width="1"/>
+
+  <!-- Fluffy chest -->
+  <path d="M260 280 Q240 260 250 240 Q260 220 280 230 Q290 210 310 225 Q320 210 340 220 Q350 200 370 215 Q380 200 400 210 Q410 195 420 210 Q430 200 440 215 Q450 225 460 240 Q470 260 450 280" fill="#ffffff" stroke="#e5e5e5" stroke-width="1"/>
+
+  <!-- Head -->
+  <ellipse cx="520" cy="180" rx="85" ry="75" fill="url(#furGradient)"/>
+
+  <!-- Fluffy head fur -->
+  <path d="M440 180 Q420 160 440 140 Q460 120 480 130 Q500 110 520 115 Q540 100 560 110 Q580 95 600 120 Q620 140 610 170 Q620 190 600 200" fill="#ffffff" stroke="#e5e5e5" stroke-width="1"/>
+
+  <!-- Ears -->
+  <path d="M460 140 Q450 100 480 80 Q500 90 495 130" fill="url(#furGradient)" stroke="#d4d4d4" stroke-width="2"/>
+  <path d="M570 120 Q590 80 620 90 Q610 130 580 145" fill="url(#furGradient)" stroke="#d4d4d4" stroke-width="2"/>
+
+  <!-- Inner ears -->
+  <path d="M468 130 Q462 105 482 92 Q495 100 490 125" fill="#14B8A6" opacity="0.3"/>
+  <path d="M575 125 Q588 95 608 100 Q602 125 582 138" fill="#14B8A6" opacity="0.3"/>
+
+  <!-- Face markings -->
+  <ellipse cx="520" cy="195" rx="45" ry="35" fill="#ffffff"/>
+
+  <!-- Eyes -->
+  <ellipse cx="490" cy="175" rx="15" ry="18" fill="#134E4A"/>
+  <ellipse cx="550" cy="175" rx="15" ry="18" fill="#134E4A"/>
+  <circle cx="493" cy="172" r="5" fill="#ffffff"/>
+  <circle cx="553" cy="172" r="5" fill="#ffffff"/>
+
+  <!-- Nose -->
+  <ellipse cx="520" cy="210" rx="12" ry="10" fill="#134E4A"/>
+  <ellipse cx="520" cy="207" rx="4" ry="3" fill="#0D9488" opacity="0.5"/>
+
+  <!-- Mouth -->
+  <path d="M520 220 Q510 235 505 230" stroke="#134E4A" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M520 220 Q530 235 535 230" stroke="#134E4A" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+  <!-- Tail - fluffy -->
+  <path d="M220 240 Q160 200 140 150 Q120 120 150 100 Q180 90 190 120 Q200 150 210 180 Q220 210 230 230" fill="url(#furGradient)" stroke="#d4d4d4" stroke-width="1"/>
+  <path d="M155 110 Q165 95 180 100 Q185 115 175 125" fill="#ffffff"/>
+
+  <!-- Legs -->
+  <rect x="300" y="320" width="35" height="60" rx="15" fill="url(#furGradient)"/>
+  <rect x="360" y="325" width="35" height="55" rx="15" fill="url(#furGradient)"/>
+  <rect x="440" y="320" width="35" height="60" rx="15" fill="url(#furGradient)"/>
+  <rect x="500" y="325" width="35" height="55" rx="15" fill="url(#furGradient)"/>
+
+  <!-- Paws -->
+  <ellipse cx="317" cy="380" rx="22" ry="12" fill="#e5e5e5"/>
+  <ellipse cx="377" cy="380" rx="22" ry="12" fill="#e5e5e5"/>
+  <ellipse cx="457" cy="380" rx="22" ry="12" fill="#e5e5e5"/>
+  <ellipse cx="517" cy="380" rx="22" ry="12" fill="#e5e5e5"/>
+
+  <!-- Undercoat indication lines -->
+  <g stroke="#0D9488" stroke-width="1.5" opacity="0.4">
+    <path d="M280 270 Q290 255 285 240" fill="none"/>
+    <path d="M320 275 Q330 258 325 245" fill="none"/>
+    <path d="M360 278 Q370 260 368 248" fill="none"/>
+    <path d="M410 275 Q418 258 415 245" fill="none"/>
+    <path d="M450 272 Q460 255 455 242" fill="none"/>
+    <path d="M490 268 Q500 252 495 238" fill="none"/>
+  </g>
+
+  <!-- Floating fur tufts to show shedding -->
+  <g fill="#e5e5e5">
+    <ellipse cx="180" cy="180" rx="8" ry="4" transform="rotate(-20 180 180)"/>
+    <ellipse cx="620" cy="250" rx="6" ry="3" transform="rotate(15 620 250)"/>
+    <ellipse cx="650" cy="180" rx="7" ry="3" transform="rotate(-10 650 180)"/>
+    <ellipse cx="150" cy="280" rx="5" ry="2.5" transform="rotate(25 150 280)"/>
+  </g>
+
+  <!-- Accent swoosh -->
+  <path d="M50 380 Q200 360 350 370 Q500 380 650 350 Q750 330 780 340" stroke="#0D9488" stroke-width="3" fill="none" opacity="0.3"/>
+</svg>

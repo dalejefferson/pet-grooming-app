@@ -3,6 +3,7 @@ import { ArrowLeft, Phone, Mail, MapPin, Dog, Plus, Edit2, Calendar } from 'luci
 import { Card, CardTitle, Button, Badge, LoadingPage, Modal, Input, Select, Textarea, ImageUpload } from '../../components/common'
 import { CreateAppointmentModal } from '../../components/calendar'
 import type { PetServiceSelection } from '../../components/calendar'
+import { PaymentMethodsSection } from '../../components/payment'
 import { useClient, useClientPets, useUpdateClient, useCreatePet, useOrganization, useServices, useGroomers, useCreateAppointment } from '@/hooks'
 import { formatPhone, cn } from '@/lib/utils'
 import { BEHAVIOR_LEVEL_LABELS, COAT_TYPE_LABELS, WEIGHT_RANGE_LABELS } from '@/config/constants'
@@ -377,6 +378,9 @@ export function ClientDetailPage() {
           </div>
         )}
       </Card>
+
+      {/* Payment Methods */}
+      <PaymentMethodsSection clientId={client.id} />
 
       <Modal
         isOpen={showAddPetModal}

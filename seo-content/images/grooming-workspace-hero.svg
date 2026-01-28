@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bgGrad4" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0EA5E9;stop-opacity:0.05"/>
+      <stop offset="100%" style="stop-color:#0D9488;stop-opacity:0.1"/>
+    </linearGradient>
+    <linearGradient id="tableTop" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0D9488"/>
+      <stop offset="100%" style="stop-color:#134E4A"/>
+    </linearGradient>
+    <linearGradient id="metalShine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#9ca3af"/>
+      <stop offset="50%" style="stop-color:#e5e7eb"/>
+      <stop offset="100%" style="stop-color:#9ca3af"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bgGrad4)"/>
+
+  <!-- Wall decoration -->
+  <rect x="0" y="0" width="800" height="120" fill="#ffffff" opacity="0.3"/>
+  <line x1="0" y1="120" x2="800" y2="120" stroke="#0D9488" stroke-width="2" opacity="0.2"/>
+
+  <!-- Shelf on wall -->
+  <rect x="500" y="50" width="250" height="15" rx="3" fill="#134E4A"/>
+  <rect x="500" y="50" width="250" height="8" rx="3" fill="#0D9488" opacity="0.5"/>
+
+  <!-- Items on shelf -->
+  <!-- Shampoo bottle 1 -->
+  <rect x="520" y="15" width="30" height="35" rx="5" fill="#14B8A6"/>
+  <rect x="525" y="5" width="20" height="12" rx="3" fill="#0D9488"/>
+
+  <!-- Shampoo bottle 2 -->
+  <rect x="560" y="20" width="25" height="30" rx="4" fill="#0EA5E9"/>
+  <rect x="564" y="12" width="17" height="10" rx="2" fill="#0D9488"/>
+
+  <!-- Spray bottle -->
+  <rect x="600" y="18" width="28" height="32" rx="4" fill="#ffffff" stroke="#0D9488" stroke-width="1"/>
+  <rect x="608" y="5" width="12" height="15" rx="2" fill="#0D9488"/>
+  <path d="M620 10 L635 8 L635 12 L620 14 Z" fill="#134E4A"/>
+
+  <!-- Small containers -->
+  <circle cx="660" cy="40" r="12" fill="#14B8A6"/>
+  <circle cx="690" cy="42" r="10" fill="#0EA5E9"/>
+  <circle cx="715" cy="40" r="12" fill="#0D9488"/>
+
+  <!-- Grooming table -->
+  <rect x="150" y="180" width="500" height="20" rx="3" fill="url(#tableTop)"/>
+  <rect x="150" y="180" width="500" height="10" rx="3" fill="#14B8A6" opacity="0.3"/>
+
+  <!-- Table legs -->
+  <rect x="170" y="200" width="20" height="180" fill="#134E4A"/>
+  <rect x="610" y="200" width="20" height="180" fill="#134E4A"/>
+
+  <!-- Table cross bar -->
+  <rect x="170" y="300" width="460" height="10" rx="2" fill="#0D9488"/>
+
+  <!-- Grooming arm -->
+  <rect x="580" y="100" width="15" height="85" fill="url(#metalShine)"/>
+  <rect x="540" y="95" width="80" height="12" rx="3" fill="url(#metalShine)"/>
+
+  <!-- Noose loop -->
+  <ellipse cx="550" cy="130" rx="25" ry="35" fill="none" stroke="#0D9488" stroke-width="4"/>
+
+  <!-- Anti-fatigue mat on table -->
+  <rect x="200" y="172" width="400" height="8" rx="2" fill="#0EA5E9" opacity="0.3"/>
+  <g stroke="#0D9488" stroke-width="0.5" opacity="0.3">
+    <line x1="220" y1="172" x2="220" y2="180"/>
+    <line x1="260" y1="172" x2="260" y2="180"/>
+    <line x1="300" y1="172" x2="300" y2="180"/>
+    <line x1="340" y1="172" x2="340" y2="180"/>
+    <line x1="380" y1="172" x2="380" y2="180"/>
+    <line x1="420" y1="172" x2="420" y2="180"/>
+    <line x1="460" y1="172" x2="460" y2="180"/>
+    <line x1="500" y1="172" x2="500" y2="180"/>
+    <line x1="540" y1="172" x2="540" y2="180"/>
+    <line x1="580" y1="172" x2="580" y2="180"/>
+  </g>
+
+  <!-- Tool holder/caddy -->
+  <rect x="80" y="200" width="60" height="100" rx="5" fill="#ffffff" stroke="#0D9488" stroke-width="2"/>
+  <rect x="85" y="205" width="50" height="90" rx="3" fill="#f0fdfa"/>
+
+  <!-- Tools in caddy -->
+  <!-- Scissors -->
+  <ellipse cx="95" cy="220" rx="8" ry="6" fill="none" stroke="#134E4A" stroke-width="2"/>
+  <ellipse cx="115" cy="220" rx="8" ry="6" fill="none" stroke="#134E4A" stroke-width="2"/>
+  <rect x="98" y="226" width="14" height="40" rx="2" fill="url(#metalShine)"/>
+
+  <!-- Comb -->
+  <rect x="125" cy="210" width="8" height="60" fill="#0D9488"/>
+  <g fill="#134E4A">
+    <rect x="122" y="270" width="2" height="15"/>
+    <rect x="126" y="270" width="2" height="15"/>
+    <rect x="130" y="270" width="2" height="15"/>
+  </g>
+
+  <!-- Slicker brush on table -->
+  <g transform="translate(250, 140)">
+    <rect x="0" y="0" width="60" height="25" rx="5" fill="#0D9488"/>
+    <rect x="5" y="5" width="50" height="15" rx="3" fill="#14B8A6" opacity="0.4"/>
+    <rect x="20" y="25" width="20" height="35" rx="3" fill="#134E4A"/>
+    <!-- Bristles -->
+    <g stroke="#d4d4d4" stroke-width="1">
+      <line x1="10" y1="0" x2="10" y2="-8"/>
+      <line x1="20" y1="0" x2="20" y2="-8"/>
+      <line x1="30" y1="0" x2="30" y2="-8"/>
+      <line x1="40" y1="0" x2="40" y2="-8"/>
+      <line x1="50" y1="0" x2="50" y2="-8"/>
+    </g>
+  </g>
+
+  <!-- Clippers on table -->
+  <g transform="translate(350, 145)">
+    <rect x="0" y="0" width="70" height="25" rx="5" fill="#134E4A"/>
+    <rect x="5" y="3" width="60" height="19" rx="3" fill="#0D9488"/>
+    <rect x="65" y="5" width="20" height="15" rx="2" fill="url(#metalShine)"/>
+    <!-- Blade lines -->
+    <g stroke="#9ca3af" stroke-width="0.5">
+      <line x1="70" y1="8" x2="82" y2="8"/>
+      <line x1="70" y1="11" x2="82" y2="11"/>
+      <line x1="70" y1="14" x2="82" y2="14"/>
+      <line x1="70" y1="17" x2="82" y2="17"/>
+    </g>
+  </g>
+
+  <!-- Nail clippers on table -->
+  <g transform="translate(460, 155)">
+    <ellipse cx="15" cy="10" rx="15" ry="8" fill="#0D9488"/>
+    <ellipse cx="35" cy="10" rx="15" ry="8" fill="#0D9488"/>
+    <rect x="22" y="0" width="6" height="20" rx="2" fill="url(#metalShine)"/>
+  </g>
+
+  <!-- Dryer hanging -->
+  <g transform="translate(680, 150)">
+    <ellipse cx="30" cy="40" rx="35" ry="30" fill="#0EA5E9"/>
+    <ellipse cx="30" cy="40" rx="28" ry="23" fill="#0D9488" opacity="0.3"/>
+    <rect x="55" y="30" width="40" height="20" rx="5" fill="#134E4A"/>
+    <circle cx="30" cy="40" r="15" fill="#ffffff" opacity="0.2"/>
+    <!-- Cord -->
+    <path d="M10 35 Q-20 40 -30 80 Q-35 120 -20 140" stroke="#134E4A" stroke-width="3" fill="none"/>
+  </g>
+
+  <!-- Floor mat -->
+  <rect x="120" y="380" width="560" height="20" rx="3" fill="#0D9488" opacity="0.2"/>
+
+  <!-- Decorative elements -->
+  <circle cx="50" cy="80" r="25" fill="#0EA5E9" opacity="0.1"/>
+  <circle cx="750" cy="280" r="30" fill="#14B8A6" opacity="0.1"/>
+
+  <!-- Sparkle indicators for cleanliness -->
+  <g fill="#14B8A6" opacity="0.6">
+    <path d="M180 150 L183 157 L190 157 L185 162 L187 169 L180 164 L173 169 L175 162 L170 157 L177 157 Z"/>
+    <path d="M420 120 L422 125 L427 125 L423 128 L425 133 L420 130 L415 133 L417 128 L413 125 L418 125 Z"/>
+    <path d="M550 160 L552 165 L557 165 L553 168 L555 173 L550 170 L545 173 L547 168 L543 165 L548 165 Z"/>
+  </g>
+</svg>

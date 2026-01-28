@@ -14,7 +14,9 @@ import {
   ClientInfoCard,
 } from '../../components/booking'
 import type { PetServiceSummary } from '../../components/booking'
+import type { CardInputValue } from '../../components/payment'
 import { useActiveServices, usePolicies, useCreateBooking, useClientPets, useGroomers } from '@/hooks'
+import { useAddPaymentMethod } from '@/modules/database/hooks'
 import { formatCurrency } from '@/lib/utils'
 import { format, parseISO, addMinutes } from 'date-fns'
 import type { Organization, BookingState, TipOption, PaymentStatus } from '@/types'
@@ -74,6 +76,13 @@ export function BookingConfirmPage() {
   const [selectedTip, setSelectedTip] = useState<TipOption>('none')
   const [customTipAmount, setCustomTipAmount] = useState<number>(0)
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('pending')
+
+  // Payment method selection state
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null)
+  const [newCardValue, setNewCardValue] = useState<CardInputValue | null>(null)
+  const [saveNewCard, setSaveNewCard] = useState(false)
+
+  const addPaymentMethod = useAddPaymentMethod()
 
   // Calculate totals
   const { totalDuration, totalPrice, depositRequired, petSummaries } = useMemo(() => {
@@ -156,12 +165,46 @@ export function BookingConfirmPage() {
   const startTime = parseISO(`${date}T${time}`)
   const endTime = addMinutes(startTime, totalDuration)
 
+  // Handle adding a new card (from PaymentMethodSelector)
+  const handleAddNewCard = (cardValue: CardInputValue, saveForFuture: boolean) => {
+    setNewCardValue(cardValue)
+    setSaveNewCard(saveForFuture)
+    setSelectedPaymentMethodId(null) // Clear any selected saved method
+  }
+
+  // Handle selecting a payment method
+  const handlePaymentMethodSelect = (id: string | null) => {
+    setSelectedPaymentMethodId(id)
+    if (id) {
+      // Clear new card data when selecting a saved method
+      setNewCardValue(null)
+      setSaveNewCard(false)
+    }
+  }
+
   const handlePayment = async () => {
     // Start payment processing
     setPaymentStatus('processing')
 
     // Simulate payment processing delay (2 seconds)
     await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    // If adding a new card and "save for future" is checked, save the card
+    if (newCardValue && saveNewCard && clientId) {
+      try {
+        await addPaymentMethod.mutateAsync({
+          clientId,
+          cardDetails: {
+            number: newCardValue.number,
+            expiry: newCardValue.expiry,
+            cvc: newCardValue.cvc,
+          },
+        })
+      } catch {
+        // Card save failed, but we can still process the payment
+        console.warn('Failed to save card for future use')
+      }
+    }
 
     // Payment successful
     setPaymentStatus('completed')
@@ -266,7 +309,13 @@ export function BookingConfirmPage() {
       />
 
       {/* Payment Section */}
-      <PaymentForm paymentStatus={paymentStatus} />
+      <PaymentForm
+        paymentStatus={paymentStatus}
+        clientId={clientId}
+        selectedPaymentMethodId={selectedPaymentMethodId}
+        onPaymentMethodSelect={handlePaymentMethodSelect}
+        onAddNewCard={handleAddNewCard}
+      />
 
       {/* Policies */}
       {policies && (

@@ -1,9 +1,12 @@
 import { useState, useMemo, useCallback } from 'react'
-import { AlertTriangle, Plus, Clock, User, Scissors } from 'lucide-react'
+import { AlertTriangle, Plus, Clock, User, Scissors, AlertCircle, Calendar } from 'lucide-react'
 import { Modal, Button, Input, Textarea, Select } from '../common'
 import { formatCurrency, formatDuration, cn } from '@/lib/utils'
 import type { CreateAppointmentModalProps, PetServiceSelection } from './types'
 import { useTheme } from '../../context'
+import { useStaffAvailability, useTimeOffRequests } from '@/hooks'
+import { parseISO, format, isWithinInterval } from 'date-fns'
+import type { DayOfWeek } from '@/types'
 
 /**
  * CreateAppointmentModal provides a form for creating new appointments
@@ -29,6 +32,10 @@ export function CreateAppointmentModal({
   const [appointmentNotes, setAppointmentNotes] = useState('')
   const [createStartTime, setCreateStartTime] = useState<string>(initialStartTime)
   const [createEndTime, setCreateEndTime] = useState<string>(initialEndTime)
+
+  // Fetch groomer availability when a groomer is selected
+  const { data: groomerAvailability } = useStaffAvailability(selectedGroomerId || '')
+  const { data: groomerTimeOff = [] } = useTimeOffRequests(selectedGroomerId || undefined)
 
   // Reset form when modal opens with new times
   useMemo(() => {
@@ -101,6 +108,88 @@ export function CreateAppointmentModal({
     })
     return duration
   }, [selectedPetServices, services])
+
+  // Check groomer availability for the selected time
+  const availabilityWarning = useMemo(() => {
+    if (!selectedGroomerId || !groomerAvailability || !createStartTime) return null
+
+    try {
+      const appointmentDate = parseISO(createStartTime)
+      const dayOfWeek = appointmentDate.getDay() as DayOfWeek
+      const daySchedule = groomerAvailability.weeklySchedule.find((d) => d.dayOfWeek === dayOfWeek)
+
+      // Check if it's a working day
+      if (!daySchedule || !daySchedule.isWorkingDay) {
+        const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayOfWeek]
+        return {
+          type: 'error' as const,
+          message: `This groomer doesn't work on ${dayName}s`,
+        }
+      }
+
+      // Check for time off
+      const approvedTimeOff = groomerTimeOff.filter((r) => r.status === 'approved')
+      for (const timeOff of approvedTimeOff) {
+        const timeOffStart = parseISO(timeOff.startDate)
+        const timeOffEnd = parseISO(timeOff.endDate)
+        timeOffStart.setHours(0, 0, 0, 0)
+        timeOffEnd.setHours(23, 59, 59, 999)
+
+        if (isWithinInterval(appointmentDate, { start: timeOffStart, end: timeOffEnd })) {
+          return {
+            type: 'error' as const,
+            message: `This groomer has approved time off on this date${timeOff.reason ? ` (${timeOff.reason})` : ''}`,
+          }
+        }
+      }
+
+      // Check if time is within working hours
+      const appointmentTime = format(appointmentDate, 'HH:mm')
+      if (appointmentTime < daySchedule.startTime || appointmentTime >= daySchedule.endTime) {
+        return {
+          type: 'warning' as const,
+          message: `This groomer's working hours are ${daySchedule.startTime} - ${daySchedule.endTime}`,
+        }
+      }
+
+      // Check for break time overlap
+      if (daySchedule.breakStart && daySchedule.breakEnd) {
+        if (appointmentTime >= daySchedule.breakStart && appointmentTime < daySchedule.breakEnd) {
+          return {
+            type: 'warning' as const,
+            message: `This time overlaps with the groomer's break (${daySchedule.breakStart} - ${daySchedule.breakEnd})`,
+          }
+        }
+      }
+
+      return null
+    } catch {
+      return null
+    }
+  }, [selectedGroomerId, groomerAvailability, groomerTimeOff, createStartTime])
+
+  // Get selected groomer's working days for display
+  const selectedGroomerWorkingDays = useMemo(() => {
+    if (!selectedGroomerId || !groomerAvailability) return null
+    const workingDays = groomerAvailability.weeklySchedule
+      .filter((d) => d.isWorkingDay)
+      .map((d) => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.dayOfWeek])
+    return workingDays.join(', ')
+  }, [selectedGroomerId, groomerAvailability])
+
+  // Get selected groomer's working hours for today
+  const selectedGroomerHours = useMemo(() => {
+    if (!selectedGroomerId || !groomerAvailability || !createStartTime) return null
+    try {
+      const appointmentDate = parseISO(createStartTime)
+      const dayOfWeek = appointmentDate.getDay() as DayOfWeek
+      const daySchedule = groomerAvailability.weeklySchedule.find((d) => d.dayOfWeek === dayOfWeek)
+      if (!daySchedule || !daySchedule.isWorkingDay) return null
+      return `${daySchedule.startTime} - ${daySchedule.endTime}`
+    } catch {
+      return null
+    }
+  }, [selectedGroomerId, groomerAvailability, createStartTime])
 
   // Handle create appointment submission
   const handleSubmit = useCallback(async () => {
@@ -303,6 +392,52 @@ export function CreateAppointmentModal({
                   })),
                 ]}
               />
+              {/* Show groomer's working schedule */}
+              {selectedGroomerId && selectedGroomerWorkingDays && (
+                <div className="mt-2 flex items-center gap-2 text-sm text-[#64748b]">
+                  <Calendar className="h-4 w-4" />
+                  <span>Works: {selectedGroomerWorkingDays}</span>
+                  {selectedGroomerHours && (
+                    <span className="text-[#64748b]">({selectedGroomerHours} on selected day)</span>
+                  )}
+                </div>
+              )}
+              {/* Availability warning */}
+              {availabilityWarning && (
+                <div
+                  className={cn(
+                    'mt-3 rounded-lg border-2 p-3 flex items-start gap-2',
+                    availabilityWarning.type === 'error'
+                      ? 'border-red-300 bg-red-50'
+                      : 'border-amber-300 bg-amber-50'
+                  )}
+                >
+                  <AlertCircle
+                    className={cn(
+                      'h-5 w-5 flex-shrink-0 mt-0.5',
+                      availabilityWarning.type === 'error' ? 'text-red-500' : 'text-amber-500'
+                    )}
+                  />
+                  <div>
+                    <p
+                      className={cn(
+                        'font-medium',
+                        availabilityWarning.type === 'error' ? 'text-red-700' : 'text-amber-700'
+                      )}
+                    >
+                      {availabilityWarning.type === 'error' ? 'Not Available' : 'Schedule Conflict'}
+                    </p>
+                    <p
+                      className={cn(
+                        'text-sm',
+                        availabilityWarning.type === 'error' ? 'text-red-600' : 'text-amber-600'
+                      )}
+                    >
+                      {availabilityWarning.message}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Notes */}
@@ -339,7 +474,8 @@ export function CreateAppointmentModal({
                     !selectedClientId ||
                     selectedPetServices.length === 0 ||
                     !selectedPetServices.some((ps) => ps.serviceIds.length > 0) ||
-                    isCreating
+                    isCreating ||
+                    availabilityWarning?.type === 'error'
                   }
                   loading={isCreating}
                   className="flex-1"

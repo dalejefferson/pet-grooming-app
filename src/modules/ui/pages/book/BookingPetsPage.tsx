@@ -1,9 +1,14 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, useSearchParams, useOutletContext } from 'react-router-dom'
-import { Plus, ArrowRight, ArrowLeft, Check } from 'lucide-react'
+import { Plus, ArrowRight, ArrowLeft, Check, AlertTriangle } from 'lucide-react'
 import { Card, CardTitle, Button, Input, Select, ComboBox } from '../../components/common'
+import { VaccinationStatusBadge, ExpiredVaccinationWarning } from '../../components/booking'
 import { useClientPets } from '@/hooks'
 import { COAT_TYPE_LABELS, WEIGHT_RANGE_LABELS, DOG_BREEDS, CAT_BREEDS } from '@/config/constants'
+import {
+  getPetVaccinationStatus,
+  getExpiredVaccinations,
+} from '@/lib/utils/vaccinationUtils'
 import type { Organization, Pet } from '@/types'
 
 interface SelectedPet {
@@ -43,6 +48,12 @@ export function BookingPetsPage() {
   }, [newPetInfo.species])
 
   const togglePet = (pet: Pet) => {
+    // Don't allow selection of pets with expired vaccinations
+    const vaccinationStatus = getPetVaccinationStatus(pet)
+    if (vaccinationStatus === 'expired') {
+      return
+    }
+
     setSelectedPets((prev) => {
       const exists = prev.find((p) => p.petId === pet.id)
       if (exists) {
@@ -83,6 +94,13 @@ export function BookingPetsPage() {
     navigate(`/book/${organization.slug}/start`)
   }
 
+  // Check if any existing pets have expired vaccinations
+  const petsWithExpiredVaccinations = useMemo(() => {
+    return existingPets.filter(
+      (pet) => getPetVaccinationStatus(pet) === 'expired'
+    )
+  }, [existingPets])
+
   return (
     <div className="space-y-6">
       <div>
@@ -92,6 +110,16 @@ export function BookingPetsPage() {
         </p>
       </div>
 
+      {/* Vaccination Warning Notice */}
+      {petsWithExpiredVaccinations.length > 0 && (
+        <div className="flex items-center gap-2 rounded-xl border-2 border-[#1e293b] bg-amber-50 px-4 py-3 shadow-[2px_2px_0px_0px_#1e293b]">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600" />
+          <p className="text-sm font-medium text-amber-800">
+            Pets with expired vaccinations cannot be booked. Please update vaccination records before scheduling an appointment.
+          </p>
+        </div>
+      )}
+
       {/* Existing Pets */}
       {!isNewClient && existingPets.length > 0 && (
         <Card>
@@ -99,28 +127,52 @@ export function BookingPetsPage() {
           <div className="mt-4 space-y-3">
             {existingPets.map((pet) => {
               const isSelected = selectedPets.some((p) => p.petId === pet.id)
+              const vaccinationStatus = getPetVaccinationStatus(pet)
+              const isExpired = vaccinationStatus === 'expired'
+              const expiredVaccinations = isExpired ? getExpiredVaccinations(pet) : []
+
               return (
-                <button
-                  key={pet.id}
-                  onClick={() => togglePet(pet)}
-                  className={`flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors ${
-                    isSelected
-                      ? 'border-primary-500 bg-primary-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div>
-                    <p className="font-medium text-gray-900">{pet.name}</p>
-                    <p className="text-sm text-gray-600">
-                      {pet.breed} - {COAT_TYPE_LABELS[pet.coatType]}
-                    </p>
-                  </div>
-                  {isSelected && (
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-500">
-                      <Check className="h-4 w-4 text-white" />
+                <div key={pet.id} className="space-y-2">
+                  <button
+                    onClick={() => togglePet(pet)}
+                    disabled={isExpired}
+                    className={`flex w-full items-center justify-between rounded-xl border-2 border-[#1e293b] p-4 text-left transition-all ${
+                      isExpired
+                        ? 'cursor-not-allowed bg-gray-100 opacity-60'
+                        : isSelected
+                          ? 'bg-primary-50 shadow-[3px_3px_0px_0px_#1e293b] -translate-y-0.5'
+                          : 'bg-white shadow-[2px_2px_0px_0px_#1e293b] hover:shadow-[3px_3px_0px_0px_#1e293b] hover:-translate-y-0.5'
+                    }`}
+                  >
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <p className={`font-bold ${isExpired ? 'text-gray-500' : 'text-[#1e293b]'}`}>
+                          {pet.name}
+                        </p>
+                        {pet.vaccinations && pet.vaccinations.length > 0 && (
+                          <VaccinationStatusBadge status={vaccinationStatus} size="sm" />
+                        )}
+                      </div>
+                      <p className={`text-sm ${isExpired ? 'text-gray-400' : 'text-[#64748b]'}`}>
+                        {pet.breed} - {COAT_TYPE_LABELS[pet.coatType]}
+                      </p>
                     </div>
+                    {isSelected && !isExpired && (
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#1e293b] bg-primary-500 shadow-[1px_1px_0px_0px_#1e293b]">
+                        <Check className="h-4 w-4 text-white" />
+                      </div>
+                    )}
+                  </button>
+
+                  {/* Show expired vaccination warning below the pet card */}
+                  {isExpired && expiredVaccinations.length > 0 && (
+                    <ExpiredVaccinationWarning
+                      petName={pet.name}
+                      petId={pet.id}
+                      expiredVaccinations={expiredVaccinations}
+                    />
                   )}
-                </button>
+                </div>
               )
             })}
           </div>
