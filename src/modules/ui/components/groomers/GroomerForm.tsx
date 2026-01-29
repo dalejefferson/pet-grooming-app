@@ -4,6 +4,12 @@ import { Button, Input, Badge, Toggle, ImageUpload } from '../common'
 import { useTheme } from '../../context'
 import type { Groomer } from '@/types'
 
+const ROLE_OPTIONS = [
+  { value: 'admin', label: 'Admin' },
+  { value: 'groomer', label: 'Groomer' },
+  { value: 'receptionist', label: 'Receptionist' },
+] as const
+
 const SPECIALTY_OPTIONS = [
   'Large Dogs',
   'Small Dogs',
@@ -40,6 +46,7 @@ export function GroomerForm({
     lastName: groomer?.lastName || '',
     email: groomer?.email || '',
     phone: groomer?.phone || '',
+    role: groomer?.role || 'groomer' as Groomer['role'],
     specialties: groomer?.specialties || [],
     imageUrl: groomer?.imageUrl || '',
     isActive: groomer?.isActive ?? true,
@@ -52,7 +59,6 @@ export function GroomerForm({
       ...formData,
       organizationId: 'org-1',
       imageUrl: formData.imageUrl || undefined,
-      role: groomer?.role || 'groomer', // Default to groomer role for new staff
     })
   }
 
@@ -114,6 +120,22 @@ export function GroomerForm({
         onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
         required
       />
+
+      {/* Role */}
+      <div>
+        <label className="mb-2 block text-sm font-medium text-gray-700">Role</label>
+        <select
+          value={formData.role}
+          onChange={(e) => setFormData((p) => ({ ...p, role: e.target.value as Groomer['role'] }))}
+          className="w-full rounded-xl border-2 border-[#1e293b] bg-white px-3 py-3 sm:py-2 text-sm shadow-[2px_2px_0px_0px_#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b] focus:ring-offset-2"
+        >
+          {ROLE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* Specialties */}
       <div>
