@@ -18,21 +18,22 @@ export function DateRangeSelector({ dateRange, onDateRangeChange, colors }: Date
           onClick={() => onDateRangeChange(range)}
           className={cn(
             'px-3 py-2 text-sm font-medium transition-colors',
-            dateRange.days === range.days
-              ? 'text-[#1e293b]'
-              : 'text-[#334155]'
+            dateRange.days !== range.days && 'text-[#334155]'
           )}
           style={{
             backgroundColor: dateRange.days === range.days ? colors.accentColor : undefined,
+            color: dateRange.days === range.days ? colors.textOnPrimary : undefined,
           }}
           onMouseEnter={(e) => {
             if (dateRange.days !== range.days) {
               e.currentTarget.style.backgroundColor = colors.secondaryAccent
+              e.currentTarget.style.color = colors.textOnSecondary
             }
           }}
           onMouseLeave={(e) => {
             if (dateRange.days !== range.days) {
               e.currentTarget.style.backgroundColor = ''
+              e.currentTarget.style.color = ''
             }
           }}
         >

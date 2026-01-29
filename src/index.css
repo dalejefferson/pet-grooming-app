@@ -93,19 +93,20 @@ body {
 /* Theme-aware nav link styles - uses CSS variables set by ThemeContext */
 .nav-link-active {
   background-color: var(--accent-color, #d1fae5);
-  color: #1e293b;
+  color: var(--text-on-primary, #1e293b);
   border: 2px solid #1e293b;
   box-shadow: 2px 2px 0px 0px #1e293b;
   font-weight: 600;
 }
 
 .nav-link-inactive {
-  color: #334155;
+  color: var(--text-on-sidebar, #334155);
   font-weight: 500;
 }
 
 .nav-link-inactive:hover {
   background-color: var(--secondary-accent, #fef9c3);
+  color: var(--text-on-secondary, #334155);
   border: 2px solid #1e293b;
 }
 
@@ -255,7 +256,7 @@ body {
 .rbc-month-view .rbc-header {
   border-bottom: 2px solid #1e293b;
   @apply py-3 font-bold text-sm;
-  color: #1e293b;
+  color: var(--text-on-accent-light, #1e293b);
   background-color: var(--accent-color-light);
 }
 

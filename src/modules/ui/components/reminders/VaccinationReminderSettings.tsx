@@ -90,7 +90,7 @@ export function VaccinationReminderSettings() {
           loading={updateSettings.isPending}
           disabled={!hasChanges}
           size="sm"
-          style={{ backgroundColor: colors.accentColorDark }}
+          style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
           className="hover:opacity-90"
         >
           <Save className="mr-2 h-4 w-4" />

@@ -24,6 +24,7 @@ function PetForm({
   isLoading: boolean
   accentColor: string
 }) {
+  const { colors } = useTheme()
   const [formData, setFormData] = useState({
     name: '',
     species: 'dog' as Pet['species'],
@@ -119,7 +120,7 @@ function PetForm({
         <Button
           type="submit"
           loading={isLoading}
-          style={{ backgroundColor: accentColor }}
+          style={{ backgroundColor: accentColor, color: colors.textOnAccent }}
           className="hover:opacity-90"
         >
           Add Pet
@@ -302,7 +303,7 @@ export function ClientDetailPage() {
                   size="sm"
                   onClick={handleSaveNotes}
                   loading={updateClient.isPending}
-                  style={{ backgroundColor: colors.accentColorDark }}
+                  style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
                   className="hover:opacity-90"
                 >
                   Save

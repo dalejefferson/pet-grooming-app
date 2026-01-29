@@ -89,7 +89,7 @@ export function StatusChangeModal({
             )}
             onClick={onConfirm}
             disabled={isUpdating}
-            style={pendingStatus === 'no_show' ? { backgroundColor: colors.accentColorDark } : undefined}
+            style={pendingStatus === 'no_show' ? { backgroundColor: colors.accentColorDark, color: colors.textOnAccent } : undefined}
           >
             {isUpdating ? 'Updating...' : (pendingStatus === 'no_show' ? 'Mark No Show' : 'Cancel Appointment')}
           </Button>

@@ -57,7 +57,7 @@ export function MedicalNotesCard({ pet, onSaveMedicalNotes, isSaving }: MedicalN
               size="sm"
               onClick={handleSave}
               loading={isSaving}
-              style={{ backgroundColor: colors.accentColorDark }}
+              style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
               className="hover:opacity-90"
             >
               Save

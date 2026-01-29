@@ -79,7 +79,7 @@ export function RescheduleConfirmModal({
               className="flex-1 hover:opacity-90"
               onClick={onConfirm}
               disabled={isUpdating}
-              style={{ backgroundColor: colors.accentColorDark }}
+              style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
             >
               {isUpdating ? 'Updating...' : 'Confirm'}
             </Button>

@@ -319,10 +319,10 @@ export function DashboardPage() {
                 className={cn(
                   'rounded-lg border-2 border-[#1e293b] px-3 py-1.5 text-sm font-medium transition-all cursor-pointer',
                   issuesRange === range
-                    ? 'text-[#1e293b] shadow-[2px_2px_0px_0px_#1e293b]'
+                    ? 'shadow-[2px_2px_0px_0px_#1e293b]'
                     : 'bg-white text-gray-600 hover:bg-gray-50'
                 )}
-                style={issuesRange === range ? { backgroundColor: colors.accentColor } : undefined}
+                style={issuesRange === range ? { backgroundColor: colors.accentColor, color: colors.textOnPrimary } : undefined}
               >
                 {range === 'today' ? 'Today' : range === '7days' ? '7 Days' : '30 Days'}
               </button>

@@ -134,8 +134,8 @@ export function Header({ onMenuClick, title }: HeaderProps) {
             <Bell className="h-5 w-5" />
             {unreadCount > 0 && (
               <span
-                className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full border border-white text-[10px] font-bold text-white"
-                style={{ backgroundColor: colors.accentColorDark }}
+                className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full border border-white text-[10px] font-bold"
+                style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
               >
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
@@ -222,8 +222,8 @@ export function Header({ onMenuClick, title }: HeaderProps) {
 
         {user && (
           <div
-            className="flex h-10 w-10 sm:h-8 sm:w-8 items-center justify-center rounded-xl border-2 border-[#1e293b] text-sm font-medium text-[#1e293b] shadow-[2px_2px_0px_0px_#1e293b]"
-            style={{ backgroundColor: colors.accentColor }}
+            className="flex h-10 w-10 sm:h-8 sm:w-8 items-center justify-center rounded-xl border-2 border-[#1e293b] text-sm font-medium shadow-[2px_2px_0px_0px_#1e293b]"
+            style={{ backgroundColor: colors.accentColor, color: colors.textOnPrimary }}
           >
             {getInitials(user.name)}
           </div>

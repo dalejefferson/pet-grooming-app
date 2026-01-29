@@ -91,7 +91,7 @@ export function ServicesPage() {
           <h1 className="text-2xl font-bold text-gray-900">Services</h1>
         <Button
           onClick={() => setShowCreateModal(true)}
-          style={{ backgroundColor: colors.accentColorDark }}
+          style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
           className="hover:opacity-90"
         >
           <Plus className="mr-2 h-4 w-4" />

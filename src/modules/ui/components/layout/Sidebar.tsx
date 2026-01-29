@@ -120,12 +120,13 @@ export function Sidebar({ collapsed, onToggle, isMobile = false, onClose }: Side
         )}
       >
         <div className="flex items-center gap-2">
-          <Dog className="h-8 w-8 text-[#1e293b] flex-shrink-0" />
+          <Dog className="h-8 w-8 flex-shrink-0" style={{ color: colors.textOnSidebar }} />
           <span
             className={cn(
-              'text-lg font-bold text-[#1e293b] whitespace-nowrap transition-all duration-150',
+              'text-lg font-bold whitespace-nowrap transition-all duration-150',
               effectiveCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'
             )}
+            style={{ color: colors.textOnSidebar }}
           >
             {APP_NAME}
           </span>

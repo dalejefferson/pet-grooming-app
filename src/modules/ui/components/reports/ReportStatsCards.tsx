@@ -22,7 +22,7 @@ export function ReportStatsCards({ stats, colors }: ReportStatsCardsProps) {
             className="rounded-xl p-3 border-2 border-[#1e293b]"
             style={{ backgroundColor: colors.accentColor }}
           >
-            <TrendingUp className="h-6 w-6 text-[#1e293b]" />
+            <TrendingUp className="h-6 w-6" style={{ color: colors.textOnPrimary }} />
           </div>
           <div>
             <p className="text-2xl font-bold text-[#1e293b]">${totalRevenue.toFixed(0)}</p>
@@ -36,7 +36,7 @@ export function ReportStatsCards({ stats, colors }: ReportStatsCardsProps) {
             className="rounded-xl p-3 border-2 border-[#1e293b]"
             style={{ backgroundColor: colors.secondaryAccent }}
           >
-            <Calendar className="h-6 w-6 text-[#1e293b]" />
+            <Calendar className="h-6 w-6" style={{ color: colors.textOnSecondary }} />
           </div>
           <div>
             <p className="text-2xl font-bold text-[#1e293b]">{totalAppointments}</p>
@@ -50,7 +50,7 @@ export function ReportStatsCards({ stats, colors }: ReportStatsCardsProps) {
             className="rounded-xl p-3 border-2 border-[#1e293b]"
             style={{ backgroundColor: colors.accentColorLight }}
           >
-            <Scissors className="h-6 w-6 text-[#1e293b]" />
+            <Scissors className="h-6 w-6" style={{ color: colors.textOnAccentLight }} />
           </div>
           <div>
             <p className="text-2xl font-bold text-[#1e293b]">{completedAppointments}</p>
@@ -64,7 +64,7 @@ export function ReportStatsCards({ stats, colors }: ReportStatsCardsProps) {
             className="rounded-xl p-3 border-2 border-[#1e293b]"
             style={{ backgroundColor: colors.accentColorDark }}
           >
-            <Users className="h-6 w-6 text-[#1e293b]" />
+            <Users className="h-6 w-6" style={{ color: colors.textOnAccent }} />
           </div>
           <div>
             <p className="text-2xl font-bold text-[#1e293b]">{totalClients}</p>

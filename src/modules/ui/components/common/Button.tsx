@@ -26,12 +26,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variants = {
       primary: 'bg-primary-500 text-white hover:bg-primary-600',
-      secondary: 'text-[#334155] hover:brightness-95', // Theme-aware via CSS variable
+      secondary: 'hover:brightness-95', // Theme-aware via CSS variable
       outline: 'bg-white text-[#334155] hover:bg-[var(--accent-color-light)]',
       ghost: 'bg-transparent text-[#334155] border-transparent shadow-none hover:border-[#1e293b] hover:bg-[var(--accent-color-light)] hover:shadow-[3px_3px_0px_0px_#1e293b]',
       danger: 'bg-danger-500 text-white hover:bg-danger-600',
       accent: 'bg-accent-500 text-white hover:bg-accent-600',
-      themed: 'text-[#1e293b]', // Text color only, background via inline style
+      themed: '', // Text color via CSS variable, background via inline style
     }
 
     const sizes = {
@@ -45,6 +45,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       if (variant === 'themed') {
         return {
           backgroundColor: 'var(--accent-color)',
+          color: 'var(--text-on-primary)',
           '--hover-bg': 'var(--accent-color-dark)',
           ...style,
         } as CSSProperties
@@ -52,6 +53,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       if (variant === 'secondary') {
         return {
           backgroundColor: 'var(--secondary-accent)',
+          color: 'var(--text-on-secondary)',
           ...style,
         } as CSSProperties
       }

@@ -54,7 +54,7 @@ export function GroomingNotesCard({ pet, onSaveNotes, isSaving }: GroomingNotesC
               size="sm"
               onClick={handleSave}
               loading={isSaving}
-              style={{ backgroundColor: colors.accentColorDark }}
+              style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
               className="hover:opacity-90"
             >
               Save

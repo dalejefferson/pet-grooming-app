@@ -125,10 +125,10 @@ export function MiniCalendar({
           // Determine inline style for theme-based colors
           const getButtonStyle = () => {
             if (isSelected) {
-              return { backgroundColor: colors.accentColorDark }
+              return { backgroundColor: colors.accentColorDark, color: colors.textOnAccent }
             }
             if (inWeekRange && !isSelected && isCurrentMonth) {
-              return { backgroundColor: colors.accentColorLight }
+              return { backgroundColor: colors.accentColorLight, color: colors.textOnAccentLight }
             }
             return undefined
           }
@@ -146,12 +146,12 @@ export function MiniCalendar({
                 dayIsToday && !isSelected && 'border-2 border-[var(--accent-color-dark)]',
                 // Selected day (for day view)
                 isSelected &&
-                  'border-2 border-[#1e293b] text-[#1e293b] shadow-[2px_2px_0px_0px_#1e293b]',
+                  'border-2 border-[#1e293b] shadow-[2px_2px_0px_0px_#1e293b]',
                 // In week range but not the selected day
                 inWeekRange &&
                   !isSelected &&
                   isCurrentMonth &&
-                  'text-[#1e293b]',
+                  '',
                 // Hover effect
                 !isSelected && 'hover:-translate-y-0.5'
               )}

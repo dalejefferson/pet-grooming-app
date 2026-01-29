@@ -307,6 +307,12 @@ export function ReportsPage() {
       statusData,
       topServicesData,
       clientAcquisitionData,
+      groomerPerformanceData,
+      clientRetentionData,
+      noShowCancellationData,
+      peakHoursData,
+      serviceCategoryRevenueData,
+      themeColors: colors,
     })
   }
 
@@ -326,7 +332,7 @@ export function ReportsPage() {
             <Button
               onClick={handleExportPDF}
               className="gap-2 hover:opacity-90"
-              style={{ backgroundColor: colors.accentColorDark }}
+              style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
             >
               <FileText className="h-4 w-4" />
               Download PDF

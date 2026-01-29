@@ -88,7 +88,7 @@ export function ServiceForm({
           type="submit"
           loading={isLoading}
           className="min-h-[44px] sm:min-h-0 hover:opacity-90"
-          style={{ backgroundColor: colors.accentColorDark }}
+          style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
         >
           {service ? 'Update' : 'Create'} Service
         </Button>

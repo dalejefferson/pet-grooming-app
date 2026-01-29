@@ -24,6 +24,7 @@ function StatusTooltip({ visible, label, left, top }: TooltipState) {
       style={{
         left: `${left}px`,
         top: `${top}px`,
+        transform: 'translateX(-50%)',
         opacity: visible ? 1 : 0,
       }}
     >
@@ -71,8 +72,8 @@ function NavButtons({ onPrevious, onNext, onToday, accentColor, accentColorDark 
       </button>
       <button
         onClick={onToday}
-        className="rounded-xl border-2 border-[#1e293b] px-3 py-1.5 text-sm font-semibold text-[#334155] shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#1e293b]"
-        style={{ backgroundColor: accentColor }}
+        className="rounded-xl border-2 border-[#1e293b] px-3 py-1.5 text-sm font-semibold shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#1e293b]"
+        style={{ backgroundColor: accentColor, color: 'var(--text-on-primary)' }}
         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = accentColorDark)}
         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = accentColor)}
       >
@@ -109,10 +110,10 @@ function ViewToggle({ view, onViewChange, accentColorDark }: ViewToggleProps) {
           className={cn(
             'w-16 rounded-lg px-2 py-1.5 text-sm font-semibold transition-all text-center',
             view === btn.value
-              ? 'text-[#1e293b] shadow-inner border-2 border-[#1e293b]'
+              ? 'shadow-inner border-2 border-[#1e293b]'
               : 'bg-transparent text-[#334155] hover:bg-[var(--accent-color-light)]'
           )}
-          style={view === btn.value ? { backgroundColor: accentColorDark } : undefined}
+          style={view === btn.value ? { backgroundColor: accentColorDark, color: 'var(--text-on-accent)' } : undefined}
         >
           {btn.label}
         </button>
@@ -174,9 +175,9 @@ function StatusFilters({ selectedStatuses, onStatusFilterChange }: StatusFilters
     }
 
     const rect = element.getBoundingClientRect()
-    // Position tooltip centered below the button
-    const left = rect.left + rect.width / 2 - 40 // Approximate centering
-    const top = rect.bottom + 8 // 8px below the button
+    // Position tooltip centered above the button
+    const left = rect.left + rect.width / 2
+    const top = rect.top - 36
     setTooltip({ visible: true, label, left, top })
   }, [])
 

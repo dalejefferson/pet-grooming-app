@@ -78,6 +78,41 @@ const themeOptions: { name: ThemeName; label: string; swatches: string[] }[] = [
     label: 'Mint Blush',
     swatches: [themeColors.mintBlush.accentColorLight, themeColors.mintBlush.accentColor, themeColors.mintBlush.accentColorDark],
   },
+  {
+    name: 'plum',
+    label: 'Plum',
+    swatches: [themeColors.plum.accentColorLight, themeColors.plum.accentColor, themeColors.plum.accentColorDark],
+  },
+  {
+    name: 'nautical',
+    label: 'Nautical',
+    swatches: [themeColors.nautical.accentColorLight, themeColors.nautical.accentColor, themeColors.nautical.accentColorDark],
+  },
+  {
+    name: 'sage',
+    label: 'Sage',
+    swatches: [themeColors.sage.accentColorLight, themeColors.sage.accentColor, themeColors.sage.accentColorDark],
+  },
+  {
+    name: 'slate',
+    label: 'Slate',
+    swatches: [themeColors.slate.accentColorLight, themeColors.slate.accentColor, themeColors.slate.accentColorDark],
+  },
+  {
+    name: 'taupe',
+    label: 'Taupe',
+    swatches: [themeColors.taupe.accentColorLight, themeColors.taupe.accentColor, themeColors.taupe.accentColorDark],
+  },
+  {
+    name: 'olive',
+    label: 'Olive',
+    swatches: [themeColors.olive.accentColorLight, themeColors.olive.accentColor, themeColors.olive.accentColorDark],
+  },
+  {
+    name: 'terra',
+    label: 'Terra',
+    swatches: [themeColors.terra.accentColorLight, themeColors.terra.accentColor, themeColors.terra.accentColorDark],
+  },
 ]
 
 export function SettingsPage() {
@@ -118,7 +153,7 @@ export function SettingsPage() {
           onClick={handleSave}
           loading={updateOrganization.isPending}
           disabled={!hasChanges}
-          style={{ backgroundColor: colors.accentColorDark }}
+          style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
           className="hover:opacity-90"
         >
           Save Changes

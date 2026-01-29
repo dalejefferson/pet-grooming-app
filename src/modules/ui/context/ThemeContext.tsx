@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { hexToRgb, luminance } from '@/lib/utils/contrast'
 
 // Theme types
-export type ThemeName = 'mint' | 'lavender' | 'peach' | 'ocean' | 'rose' | 'sunset' | 'forest' | 'sky' | 'skyButter' | 'oceanCitrus' | 'blueMango' | 'aquaSunset' | 'mintCreamsicle' | 'mintBlush'
+export type ThemeName = 'mint' | 'lavender' | 'peach' | 'ocean' | 'rose' | 'sunset' | 'forest' | 'sky' | 'skyButter' | 'oceanCitrus' | 'blueMango' | 'aquaSunset' | 'mintCreamsicle' | 'mintBlush' | 'plum' | 'nautical' | 'sage' | 'slate' | 'taupe' | 'olive' | 'terra'
 
 export interface ThemeColors {
   sidebarGradient: string
@@ -21,6 +21,9 @@ export interface ThemeColors {
   // Text colors for contrast on themed backgrounds
   textOnPrimary: string // Color for text on primary/accent background
   textOnAccent: string // Color for text on accentColorDark background
+  textOnSecondary: string // Color for text on secondaryAccent background
+  textOnAccentLight: string // Color for text on accentColorLight background
+  textOnSidebar: string // Color for text on sidebar gradient background
 }
 
 // Constants for text colors
@@ -36,6 +39,28 @@ function getTextColorForBackground(bgColor: string): string {
   const lum = luminance(rgb.r, rgb.g, rgb.b)
   // If luminance > 0.5, the background is light, so use dark text
   return lum > 0.5 ? TEXT_DARK : TEXT_LIGHT
+}
+
+/**
+ * Determines text color for sidebar gradient by extracting hex colors
+ * from the Tailwind gradient class and using the darkest color.
+ */
+function getSidebarTextColor(sidebarGradient: string): string {
+  const matches = sidebarGradient.match(/#[0-9a-fA-F]{6}/g)
+  if (!matches || matches.length === 0) return TEXT_DARK
+
+  let darkestLum = 1
+  let darkestColor = matches[0]
+  for (const color of matches) {
+    const rgb = hexToRgb(color)
+    const lum = luminance(rgb.r, rgb.g, rgb.b)
+    if (lum < darkestLum) {
+      darkestLum = lum
+      darkestColor = color
+    }
+  }
+
+  return getTextColorForBackground(darkestColor)
 }
 
 interface ThemeContextValue {
@@ -62,6 +87,9 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientTo: '#fef9c3',
     textOnPrimary: getTextColorForBackground('#d1fae5'), // light mint -> dark text
     textOnAccent: getTextColorForBackground('#a7f3d0'), // light mint -> dark text
+    textOnSecondary: getTextColorForBackground('#fef9c3'),
+    textOnAccentLight: getTextColorForBackground('#ecfccb'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#ecfccb] to-[#d1fae5]'),
   },
   lavender: {
     sidebarGradient: 'bg-gradient-to-b from-[#e9d5ff] to-[#ddd6fe]',
@@ -77,6 +105,9 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientTo: '#f3e8ff',
     textOnPrimary: getTextColorForBackground('#e9d5ff'), // light lavender -> dark text
     textOnAccent: getTextColorForBackground('#c4b5fd'), // light purple -> dark text
+    textOnSecondary: getTextColorForBackground('#ddd6fe'),
+    textOnAccentLight: getTextColorForBackground('#f3e8ff'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#e9d5ff] to-[#ddd6fe]'),
   },
   peach: {
     sidebarGradient: 'bg-gradient-to-b from-[#fed7aa] to-[#fecaca]',
@@ -92,6 +123,9 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientTo: '#ffedd5',
     textOnPrimary: getTextColorForBackground('#fed7aa'), // light peach -> dark text
     textOnAccent: getTextColorForBackground('#fdba74'), // medium peach -> dark text
+    textOnSecondary: getTextColorForBackground('#fecaca'),
+    textOnAccentLight: getTextColorForBackground('#ffedd5'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#fed7aa] to-[#fecaca]'),
   },
   ocean: {
     sidebarGradient: 'bg-gradient-to-b from-[#a5f3fc] to-[#99f6e4]',
@@ -107,6 +141,9 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientTo: '#cffafe',
     textOnPrimary: getTextColorForBackground('#a5f3fc'), // light cyan -> dark text
     textOnAccent: getTextColorForBackground('#67e8f9'), // medium cyan -> dark text
+    textOnSecondary: getTextColorForBackground('#99f6e4'),
+    textOnAccentLight: getTextColorForBackground('#cffafe'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#a5f3fc] to-[#99f6e4]'),
   },
   rose: {
     sidebarGradient: 'bg-gradient-to-b from-[#fecdd3] to-[#fbcfe8]',
@@ -122,6 +159,9 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientTo: '#fce7f3',
     textOnPrimary: getTextColorForBackground('#fecdd3'), // light rose -> dark text
     textOnAccent: getTextColorForBackground('#fda4af'), // medium rose -> dark text
+    textOnSecondary: getTextColorForBackground('#fbcfe8'),
+    textOnAccentLight: getTextColorForBackground('#fce7f3'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#fecdd3] to-[#fbcfe8]'),
   },
   sunset: {
     sidebarGradient: 'bg-gradient-to-b from-[#fde68a] to-[#fed7aa]',
@@ -137,6 +177,9 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientTo: '#fef3c7',
     textOnPrimary: getTextColorForBackground('#fde68a'), // light yellow -> dark text
     textOnAccent: getTextColorForBackground('#fcd34d'), // medium yellow -> dark text
+    textOnSecondary: getTextColorForBackground('#fed7aa'),
+    textOnAccentLight: getTextColorForBackground('#fef3c7'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#fde68a] to-[#fed7aa]'),
   },
   forest: {
     sidebarGradient: 'bg-gradient-to-b from-[#bbf7d0] to-[#a7f3d0]',
@@ -152,6 +195,9 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientTo: '#dcfce7',
     textOnPrimary: getTextColorForBackground('#bbf7d0'), // light green -> dark text
     textOnAccent: getTextColorForBackground('#86efac'), // medium green -> dark text
+    textOnSecondary: getTextColorForBackground('#a7f3d0'),
+    textOnAccentLight: getTextColorForBackground('#dcfce7'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#bbf7d0] to-[#a7f3d0]'),
   },
   sky: {
     sidebarGradient: 'bg-gradient-to-b from-[#bae6fd] to-[#e0f2fe]',
@@ -167,6 +213,9 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientTo: '#f0f9ff',
     textOnPrimary: getTextColorForBackground('#bae6fd'), // light blue -> dark text
     textOnAccent: getTextColorForBackground('#7dd3fc'), // medium blue -> dark text
+    textOnSecondary: getTextColorForBackground('#e0f2fe'),
+    textOnAccentLight: getTextColorForBackground('#e0f2fe'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#bae6fd] to-[#e0f2fe]'),
   },
   // New vibrant palettes
   skyButter: {
@@ -181,8 +230,11 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientFrom: '#FFFECB',
     gradientVia: '#F5F4B3',
     gradientTo: '#4CC9FE',
-    textOnPrimary: getTextColorForBackground('#4CC9FE'), // medium-dark blue -> check
-    textOnAccent: getTextColorForBackground('#37AFE1'), // medium-dark blue -> likely white
+    textOnPrimary: getTextColorForBackground('#4CC9FE'),
+    textOnAccent: getTextColorForBackground('#37AFE1'),
+    textOnSecondary: getTextColorForBackground('#F5F4B3'),
+    textOnAccentLight: getTextColorForBackground('#FFFECB'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#4CC9FE] to-[#37AFE1]'),
   },
   oceanCitrus: {
     sidebarGradient: 'bg-gradient-to-b from-[#80D8C3] to-[#4DA8DA]',
@@ -196,8 +248,11 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientFrom: '#F5F5F5',
     gradientVia: '#FFD66B',
     gradientTo: '#80D8C3',
-    textOnPrimary: getTextColorForBackground('#80D8C3'), // medium teal -> dark text
-    textOnAccent: getTextColorForBackground('#4DA8DA'), // medium blue -> check
+    textOnPrimary: getTextColorForBackground('#80D8C3'),
+    textOnAccent: getTextColorForBackground('#4DA8DA'),
+    textOnSecondary: getTextColorForBackground('#FFD66B'),
+    textOnAccentLight: getTextColorForBackground('#F5F5F5'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#80D8C3] to-[#4DA8DA]'),
   },
   blueMango: {
     sidebarGradient: 'bg-gradient-to-b from-[#FFDE63] to-[#799EFF]',
@@ -211,8 +266,11 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientFrom: '#FEFFC4',
     gradientVia: '#FFDE63',
     gradientTo: '#799EFF',
-    textOnPrimary: getTextColorForBackground('#FFDE63'), // yellow -> dark text
-    textOnAccent: getTextColorForBackground('#799EFF'), // light periwinkle -> check
+    textOnPrimary: getTextColorForBackground('#FFDE63'),
+    textOnAccent: getTextColorForBackground('#799EFF'),
+    textOnSecondary: getTextColorForBackground('#FFBC4C'),
+    textOnAccentLight: getTextColorForBackground('#FEFFC4'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#FFDE63] to-[#799EFF]'),
   },
   aquaSunset: {
     sidebarGradient: 'bg-gradient-to-b from-[#FEEE91] to-[#8CE4FF]',
@@ -226,8 +284,11 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientFrom: '#8CE4FF',
     gradientVia: '#FEEE91',
     gradientTo: '#FFA239',
-    textOnPrimary: getTextColorForBackground('#FEEE91'), // very light yellow -> dark text
-    textOnAccent: getTextColorForBackground('#FFA239'), // orange -> dark text
+    textOnPrimary: getTextColorForBackground('#FEEE91'),
+    textOnAccent: getTextColorForBackground('#FFA239'),
+    textOnSecondary: getTextColorForBackground('#FF5656'),
+    textOnAccentLight: getTextColorForBackground('#8CE4FF'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#FEEE91] to-[#8CE4FF]'),
   },
   mintCreamsicle: {
     sidebarGradient: 'bg-gradient-to-b from-[#6AECE1] to-[#26CCC2]',
@@ -241,8 +302,11 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientFrom: '#6AECE1',
     gradientVia: '#FFF57E',
     gradientTo: '#FFB76C',
-    textOnPrimary: getTextColorForBackground('#6AECE1'), // medium teal -> dark text
-    textOnAccent: getTextColorForBackground('#26CCC2'), // medium teal -> check
+    textOnPrimary: getTextColorForBackground('#6AECE1'),
+    textOnAccent: getTextColorForBackground('#26CCC2'),
+    textOnSecondary: getTextColorForBackground('#FFB76C'),
+    textOnAccentLight: getTextColorForBackground('#FFF57E'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#6AECE1] to-[#26CCC2]'),
   },
   mintBlush: {
     sidebarGradient: 'bg-gradient-to-b from-[#F0FFDF] to-[#A8DF8E]',
@@ -256,8 +320,138 @@ const themeColors: Record<ThemeName, ThemeColors> = {
     gradientFrom: '#F0FFDF',
     gradientVia: '#FFD8DF',
     gradientTo: '#FFAAB8',
-    textOnPrimary: getTextColorForBackground('#FFD8DF'), // light pink -> dark text
-    textOnAccent: getTextColorForBackground('#A8DF8E'), // light mint -> dark text
+    textOnPrimary: getTextColorForBackground('#FFD8DF'),
+    textOnAccent: getTextColorForBackground('#A8DF8E'),
+    textOnSecondary: getTextColorForBackground('#FFAAB8'),
+    textOnAccentLight: getTextColorForBackground('#F0FFDF'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#F0FFDF] to-[#A8DF8E]'),
+  },
+  // ColorHunt palettes
+  plum: {
+    sidebarGradient: 'bg-gradient-to-b from-[#4F1C51] to-[#210F37]',
+    pageGradient: 'bg-gradient-to-br from-[#DCA06D] via-[#A55B4B] to-[#4F1C51]',
+    pageGradientLight: 'bg-gradient-to-br from-[#DCA06D]/30 to-[#4F1C51]/30',
+    accentColor: '#DCA06D',
+    accentColorLight: '#DCA06D',
+    accentColorDark: '#A55B4B',
+    secondaryAccent: '#4F1C51',
+    inkBorder: '#1e293b',
+    gradientFrom: '#DCA06D',
+    gradientVia: '#A55B4B',
+    gradientTo: '#4F1C51',
+    textOnPrimary: getTextColorForBackground('#DCA06D'),
+    textOnAccent: getTextColorForBackground('#A55B4B'),
+    textOnSecondary: getTextColorForBackground('#4F1C51'),
+    textOnAccentLight: getTextColorForBackground('#DCA06D'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#4F1C51] to-[#210F37]'),
+  },
+  nautical: {
+    sidebarGradient: 'bg-gradient-to-b from-[#234C6A] to-[#1B3C53]',
+    pageGradient: 'bg-gradient-to-br from-[#D2C1B6] via-[#456882] to-[#234C6A]',
+    pageGradientLight: 'bg-gradient-to-br from-[#D2C1B6]/30 to-[#456882]/30',
+    accentColor: '#D2C1B6',
+    accentColorLight: '#D2C1B6',
+    accentColorDark: '#456882',
+    secondaryAccent: '#234C6A',
+    inkBorder: '#1e293b',
+    gradientFrom: '#D2C1B6',
+    gradientVia: '#456882',
+    gradientTo: '#234C6A',
+    textOnPrimary: getTextColorForBackground('#D2C1B6'),
+    textOnAccent: getTextColorForBackground('#456882'),
+    textOnSecondary: getTextColorForBackground('#234C6A'),
+    textOnAccentLight: getTextColorForBackground('#D2C1B6'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#234C6A] to-[#1B3C53]'),
+  },
+  sage: {
+    sidebarGradient: 'bg-gradient-to-b from-[#5D866C] to-[#C2A68C]',
+    pageGradient: 'bg-gradient-to-br from-[#F5F5F0] via-[#E6D8C3] to-[#5D866C]',
+    pageGradientLight: 'bg-gradient-to-br from-[#F5F5F0]/30 to-[#E6D8C3]/30',
+    accentColor: '#E6D8C3',
+    accentColorLight: '#F5F5F0',
+    accentColorDark: '#5D866C',
+    secondaryAccent: '#C2A68C',
+    inkBorder: '#1e293b',
+    gradientFrom: '#F5F5F0',
+    gradientVia: '#E6D8C3',
+    gradientTo: '#5D866C',
+    textOnPrimary: getTextColorForBackground('#E6D8C3'),
+    textOnAccent: getTextColorForBackground('#5D866C'),
+    textOnSecondary: getTextColorForBackground('#C2A68C'),
+    textOnAccentLight: getTextColorForBackground('#F5F5F0'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#5D866C] to-[#C2A68C]'),
+  },
+  slate: {
+    sidebarGradient: 'bg-gradient-to-b from-[#435663] to-[#313647]',
+    pageGradient: 'bg-gradient-to-br from-[#FFF8D4] via-[#A3B087] to-[#435663]',
+    pageGradientLight: 'bg-gradient-to-br from-[#FFF8D4]/30 to-[#A3B087]/30',
+    accentColor: '#A3B087',
+    accentColorLight: '#FFF8D4',
+    accentColorDark: '#435663',
+    secondaryAccent: '#FFF8D4',
+    inkBorder: '#1e293b',
+    gradientFrom: '#FFF8D4',
+    gradientVia: '#A3B087',
+    gradientTo: '#435663',
+    textOnPrimary: getTextColorForBackground('#A3B087'),
+    textOnAccent: getTextColorForBackground('#435663'),
+    textOnSecondary: getTextColorForBackground('#FFF8D4'),
+    textOnAccentLight: getTextColorForBackground('#FFF8D4'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#435663] to-[#313647]'),
+  },
+  taupe: {
+    sidebarGradient: 'bg-gradient-to-b from-[#A18D6D] to-[#703B3B]',
+    pageGradient: 'bg-gradient-to-br from-[#9BB4C0] via-[#E1D0B3] to-[#A18D6D]',
+    pageGradientLight: 'bg-gradient-to-br from-[#9BB4C0]/30 to-[#E1D0B3]/30',
+    accentColor: '#E1D0B3',
+    accentColorLight: '#9BB4C0',
+    accentColorDark: '#A18D6D',
+    secondaryAccent: '#703B3B',
+    inkBorder: '#1e293b',
+    gradientFrom: '#9BB4C0',
+    gradientVia: '#E1D0B3',
+    gradientTo: '#A18D6D',
+    textOnPrimary: getTextColorForBackground('#E1D0B3'),
+    textOnAccent: getTextColorForBackground('#A18D6D'),
+    textOnSecondary: getTextColorForBackground('#703B3B'),
+    textOnAccentLight: getTextColorForBackground('#9BB4C0'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#A18D6D] to-[#703B3B]'),
+  },
+  olive: {
+    sidebarGradient: 'bg-gradient-to-b from-[#A1BC98] to-[#778873]',
+    pageGradient: 'bg-gradient-to-br from-[#F1F3E0] via-[#D2DCB6] to-[#A1BC98]',
+    pageGradientLight: 'bg-gradient-to-br from-[#F1F3E0]/30 to-[#D2DCB6]/30',
+    accentColor: '#D2DCB6',
+    accentColorLight: '#F1F3E0',
+    accentColorDark: '#A1BC98',
+    secondaryAccent: '#778873',
+    inkBorder: '#1e293b',
+    gradientFrom: '#F1F3E0',
+    gradientVia: '#D2DCB6',
+    gradientTo: '#A1BC98',
+    textOnPrimary: getTextColorForBackground('#D2DCB6'),
+    textOnAccent: getTextColorForBackground('#A1BC98'),
+    textOnSecondary: getTextColorForBackground('#778873'),
+    textOnAccentLight: getTextColorForBackground('#F1F3E0'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#A1BC98] to-[#778873]'),
+  },
+  terra: {
+    sidebarGradient: 'bg-gradient-to-b from-[#94A378] to-[#2D3C59]',
+    pageGradient: 'bg-gradient-to-br from-[#94A378] via-[#E5BA41] to-[#D1855C]',
+    pageGradientLight: 'bg-gradient-to-br from-[#94A378]/30 to-[#E5BA41]/30',
+    accentColor: '#E5BA41',
+    accentColorLight: '#E5BA41',
+    accentColorDark: '#D1855C',
+    secondaryAccent: '#94A378',
+    inkBorder: '#1e293b',
+    gradientFrom: '#94A378',
+    gradientVia: '#E5BA41',
+    gradientTo: '#D1855C',
+    textOnPrimary: getTextColorForBackground('#E5BA41'),
+    textOnAccent: getTextColorForBackground('#D1855C'),
+    textOnSecondary: getTextColorForBackground('#94A378'),
+    textOnAccentLight: getTextColorForBackground('#E5BA41'),
+    textOnSidebar: getSidebarTextColor('bg-gradient-to-b from-[#94A378] to-[#2D3C59]'),
   },
 }
 
@@ -267,7 +461,7 @@ const STORAGE_KEY = 'app-theme'
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
 
 // All valid theme names
-const validThemes: ThemeName[] = ['mint', 'lavender', 'peach', 'ocean', 'rose', 'sunset', 'forest', 'sky', 'skyButter', 'oceanCitrus', 'blueMango', 'aquaSunset', 'mintCreamsicle', 'mintBlush']
+const validThemes: ThemeName[] = ['mint', 'lavender', 'peach', 'ocean', 'rose', 'sunset', 'forest', 'sky', 'skyButter', 'oceanCitrus', 'blueMango', 'aquaSunset', 'mintCreamsicle', 'mintBlush', 'plum', 'nautical', 'sage', 'slate', 'taupe', 'olive', 'terra']
 
 // Helper to get initial theme from localStorage
 function getInitialTheme(): ThemeName {
@@ -308,6 +502,9 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     root.style.setProperty('--gradient-to', colors.gradientTo)
     root.style.setProperty('--text-on-primary', colors.textOnPrimary)
     root.style.setProperty('--text-on-accent', colors.textOnAccent)
+    root.style.setProperty('--text-on-secondary', colors.textOnSecondary)
+    root.style.setProperty('--text-on-accent-light', colors.textOnAccentLight)
+    root.style.setProperty('--text-on-sidebar', colors.textOnSidebar)
   }, [currentTheme])
 
   const setTheme = (theme: ThemeName) => {

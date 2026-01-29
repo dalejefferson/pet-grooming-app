@@ -154,7 +154,7 @@ export function VaccinationFormModal({
             onClick={handleSave}
             loading={isSaving}
             disabled={!isFormValid}
-            style={{ backgroundColor: colors.accentColorDark }}
+            style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
             className="hover:opacity-90"
           >
             {editingVaccination ? 'Save Changes' : 'Add Record'}

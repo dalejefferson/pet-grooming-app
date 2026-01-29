@@ -18,6 +18,7 @@ function ClientForm({
   isLoading: boolean
   accentColor: string
 }) {
+  const { colors } = useTheme()
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -95,7 +96,7 @@ function ClientForm({
           type="submit"
           loading={isLoading}
           className="min-h-[44px] sm:min-h-0 hover:opacity-90"
-          style={{ backgroundColor: accentColor }}
+          style={{ backgroundColor: accentColor, color: colors.textOnAccent }}
         >
           Add Client
         </Button>
@@ -242,7 +243,7 @@ export function ClientsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Clients</h1>
         <Button
           onClick={() => setShowAddModal(true)}
-          style={{ backgroundColor: colors.accentColorDark }}
+          style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
           className="hover:opacity-90"
         >
           <Plus className="mr-2 h-4 w-4" />
