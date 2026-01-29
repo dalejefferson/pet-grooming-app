@@ -102,7 +102,7 @@ export function VaccinationSection({
 
         {/* Legend */}
         {pet.vaccinations.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-[#e2e8f0]">
+          <div className="mt-4 pt-4 border-t border-[#1e293b]/20">
             <p className="text-xs text-[#94a3b8] font-medium mb-2">Status Legend:</p>
             <div className="flex flex-wrap gap-4 text-xs text-[#64748b]">
               <div className="flex items-center gap-1.5">

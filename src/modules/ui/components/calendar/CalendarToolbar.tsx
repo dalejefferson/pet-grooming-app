@@ -110,7 +110,7 @@ function ViewToggle({ view, onViewChange, accentColorDark }: ViewToggleProps) {
           className={cn(
             'w-16 rounded-lg px-2 py-1.5 text-sm font-semibold transition-all text-center',
             view === btn.value
-              ? 'shadow-inner border-2 border-[#1e293b]'
+              ? 'shadow-[1px_1px_0px_0px_#1e293b] border-2 border-[#1e293b]'
               : 'bg-transparent text-[#334155] hover:bg-[var(--accent-color-light)]'
           )}
           style={view === btn.value ? { backgroundColor: accentColorDark, color: 'var(--text-on-accent)' } : undefined}

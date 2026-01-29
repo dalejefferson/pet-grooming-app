@@ -35,7 +35,7 @@ export function RescheduleConfirmModal({
           {/* Time Comparison */}
           <div className="grid grid-cols-2 gap-4">
             {/* Old Time */}
-            <div className="rounded-xl border-2 border-[#e5e7eb] bg-[#f9fafb] p-3">
+            <div className="rounded-xl border-2 border-[#1e293b] bg-[#f9fafb] p-3">
               <p className="mb-1 text-xs font-semibold text-[#64748b] uppercase">Current Time</p>
               <p className="text-sm font-medium text-[#1e293b]">
                 {format(pendingMove.event.start, 'MMM d, yyyy')}

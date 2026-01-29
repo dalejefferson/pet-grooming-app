@@ -29,7 +29,7 @@ function GroomerCard({
         'relative flex flex-col items-center gap-3 rounded-xl border-3 p-6 text-center transition-all',
         isSelected
           ? 'border-primary-500 bg-primary-50 shadow-[4px_4px_0px_0px_rgba(var(--color-primary-500))]'
-          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]'
+          : 'border-[#1e293b] bg-white hover:shadow-[3px_3px_0px_0px_#1e293b] hover:-translate-y-0.5'
       )}
     >
       {isSelected && (
@@ -44,7 +44,7 @@ function GroomerCard({
             <img
               src={groomer.imageUrl}
               alt={`${groomer.firstName} ${groomer.lastName}`}
-              className="h-20 w-20 rounded-full border-3 border-gray-200 object-cover"
+              className="h-20 w-20 rounded-full border-3 border-[#1e293b] object-cover"
             />
           ) : (
             <div

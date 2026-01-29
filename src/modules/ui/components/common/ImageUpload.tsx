@@ -81,7 +81,7 @@ export function ImageUpload({
         {currentImage ? (
           <img
             src={currentImage}
-            alt="Profile"
+            alt="Uploaded image preview"
             className="h-full w-full object-cover"
           />
         ) : (

@@ -79,7 +79,7 @@ export function VaccinationCard({ vaccination: vax, onEdit, onDelete }: Vaccinat
       </div>
 
       {/* Action buttons */}
-      <div className="mt-3 flex items-center gap-2 pt-2 border-t border-[#e2e8f0]">
+      <div className="mt-3 flex items-center gap-2 pt-2 border-t border-[#1e293b]/20">
         {vax.documentUrl && (
           <Button
             variant="ghost"
@@ -102,7 +102,7 @@ export function VaccinationCard({ vaccination: vax, onEdit, onDelete }: Vaccinat
                     <html>
                       <head><title>${vax.name} - Vaccination Document</title></head>
                       <body style="margin:0;padding:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#1e293b;">
-                        <img src="${vax.documentUrl}" style="max-width:100%;max-height:100vh;object-fit:contain;" />
+                        <img src="${vax.documentUrl}" alt="${vax.name} vaccination document" style="max-width:100%;max-height:100vh;object-fit:contain;" />
                       </body>
                     </html>
                   `)

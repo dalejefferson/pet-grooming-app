@@ -269,7 +269,7 @@ export function RemindersPage() {
               <select
                 value={previewKey}
                 onChange={(e) => setPreviewKey(e.target.value as typeof previewKey)}
-                className="rounded border border-gray-300 px-2 py-1 text-sm"
+                className="rounded-xl border-2 border-[#1e293b] px-2 py-1 text-sm"
               >
                 <option value="48h">48-Hour</option>
                 <option value="24h">24-Hour</option>

@@ -124,7 +124,7 @@ export function HoverPopup({ appointment, position, clients, pets, groomers }: H
       </div>
 
       {/* Total Amount */}
-      <div className="border-t border-[#e2e8f0] pt-2">
+      <div className="border-t border-[#1e293b]/20 pt-2">
         <p className="text-sm font-bold text-[#1e293b]">
           Total: {formatCurrency(appointment.totalAmount)}
         </p>

@@ -72,20 +72,24 @@ export function AppointmentDetailsDrawer({
             {/* Quick Action Buttons for No Show / Canceled */}
             {appointment.status !== 'no_show' && appointment.status !== 'cancelled' && (
               <div className="mt-3 flex gap-2">
-                <button
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => onQuickStatusChange('no_show')}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-[#f472b6] bg-[#fce7f3] px-3 py-2 text-sm font-semibold text-[#9d174d] shadow-[2px_2px_0px_0px_#9d174d] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#9d174d] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#9d174d]"
+                  className="flex-1 border-[#f472b6] bg-[#fce7f3] text-[#9d174d] shadow-[2px_2px_0px_0px_#9d174d] hover:shadow-[3px_3px_0px_0px_#9d174d] active:shadow-[1px_1px_0px_0px_#9d174d]"
                 >
-                  <UserX className="h-4 w-4" />
+                  <UserX className="h-4 w-4 mr-2" />
                   No Show
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => onQuickStatusChange('cancelled')}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-[#9ca3af] bg-[#e5e7eb] px-3 py-2 text-sm font-semibold text-[#374151] shadow-[2px_2px_0px_0px_#374151] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#374151] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#374151]"
+                  className="flex-1 border-[#9ca3af] bg-[#e5e7eb] text-[#374151] shadow-[2px_2px_0px_0px_#374151] hover:shadow-[3px_3px_0px_0px_#374151] active:shadow-[1px_1px_0px_0px_#374151]"
                 >
-                  <XCircle className="h-4 w-4" />
+                  <XCircle className="h-4 w-4 mr-2" />
                   Canceled
-                </button>
+                </Button>
               </div>
             )}
 

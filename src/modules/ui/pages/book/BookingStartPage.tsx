@@ -112,10 +112,10 @@ export function BookingStartPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           <button
             onClick={() => setIsNewClient(false)}
-            className={`rounded-lg border-2 p-6 text-left transition-colors ${
+            className={`rounded-xl border-2 p-6 text-left transition-all ${
               isNewClient === false
-                ? 'border-primary-500 bg-primary-50'
-                : 'border-gray-200 hover:border-gray-300'
+                ? 'border-primary-500 bg-primary-50 shadow-[3px_3px_0px_0px_#1e293b]'
+                : 'border-[#1e293b] hover:shadow-[3px_3px_0px_0px_#1e293b] hover:-translate-y-0.5'
             }`}
           >
             <User className="h-8 w-8 text-primary-600" />
@@ -127,10 +127,10 @@ export function BookingStartPage() {
 
           <button
             onClick={() => setIsNewClient(true)}
-            className={`rounded-lg border-2 p-6 text-left transition-colors ${
+            className={`rounded-xl border-2 p-6 text-left transition-all ${
               isNewClient === true
-                ? 'border-primary-500 bg-primary-50'
-                : 'border-gray-200 hover:border-gray-300'
+                ? 'border-primary-500 bg-primary-50 shadow-[3px_3px_0px_0px_#1e293b]'
+                : 'border-[#1e293b] hover:shadow-[3px_3px_0px_0px_#1e293b] hover:-translate-y-0.5'
             }`}
           >
             <UserPlus className="h-8 w-8 text-primary-600" />
@@ -159,10 +159,10 @@ export function BookingStartPage() {
                   <button
                     key={client.id}
                     onClick={() => setSelectedClient(client)}
-                    className={`w-full rounded-lg border p-3 text-left transition-colors ${
+                    className={`w-full rounded-xl border-2 p-3 text-left transition-all ${
                       selectedClient?.id === client.id
-                        ? 'border-primary-500 bg-primary-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-primary-500 bg-primary-50 shadow-[2px_2px_0px_0px_#1e293b]'
+                        : 'border-[#1e293b] hover:shadow-[2px_2px_0px_0px_#1e293b] hover:-translate-y-0.5'
                     }`}
                   >
                     <p className="font-medium text-gray-900">

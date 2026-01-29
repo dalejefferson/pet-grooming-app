@@ -74,7 +74,7 @@ export function HistorySection({
             return (
               <div
                 key={item.id}
-                className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3"
+                className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-gray-50 p-3"
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-200 text-[#64748b]">
                   {icon}

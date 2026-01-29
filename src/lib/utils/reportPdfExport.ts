@@ -8,8 +8,13 @@ import type {
   TopServiceDataPoint,
   ClientAcquisitionDataPoint,
   ReportStats,
+  GroomerPerformanceDataPoint,
+  ClientRetentionDataPoint,
+  NoShowCancellationData,
+  PeakHoursData,
+  ServiceCategoryDataPoint,
 } from '@/modules/ui/components/reports/types'
-import { PASTEL_COLORS } from '@/modules/ui/components/reports/types'
+import type { ThemeColors } from '@/modules/ui/context/ThemeContext'
 
 interface ExportPdfParams {
   dateRange: DateRange
@@ -23,18 +28,16 @@ interface ExportPdfParams {
   statusData: StatusDataPoint[]
   topServicesData: TopServiceDataPoint[]
   clientAcquisitionData: ClientAcquisitionDataPoint[]
+  groomerPerformanceData: GroomerPerformanceDataPoint[]
+  clientRetentionData: ClientRetentionDataPoint[]
+  noShowCancellationData: NoShowCancellationData
+  peakHoursData: PeakHoursData
+  serviceCategoryRevenueData: ServiceCategoryDataPoint[]
+  themeColors: ThemeColors
 }
 
 const PDF_COLORS = {
   dark: '#1e293b',
-  mint: '#d1fae5',
-  mintDark: '#059669',
-  yellow: '#fef9c3',
-  lavender: '#e9d5ff',
-  lavenderDark: '#8b5cf6',
-  pink: '#fce7f3',
-  blue: '#dbeafe',
-  peach: '#fed7aa',
   gray: '#334155',
   lightGray: '#e2e8f0',
 }
@@ -190,9 +193,15 @@ export function exportReportPdf(params: ExportPdfParams): void {
     statusData,
     topServicesData,
     clientAcquisitionData,
+    groomerPerformanceData,
+    clientRetentionData,
+    noShowCancellationData,
+    peakHoursData,
+    serviceCategoryRevenueData,
+    themeColors,
   } = params
 
-  const { totalRevenue, totalAppointments, completedAppointments } = stats
+  const { totalRevenue, totalAppointments, completedAppointments, cancelledAppointments, noShowAppointments } = stats
 
   const doc = new jsPDF()
   const pageWidth = doc.internal.pageSize.getWidth()
@@ -202,11 +211,11 @@ export function exportReportPdf(params: ExportPdfParams): void {
 
   // ===== PAGE 1: Header and Summary =====
 
-  drawRoundedRect(doc, 0, 0, pageWidth, 55, 0, PDF_COLORS.mint)
+  drawRoundedRect(doc, 0, 0, pageWidth, 55, 0, themeColors.accentColor)
 
-  doc.setFillColor(PDF_COLORS.yellow)
+  doc.setFillColor(themeColors.secondaryAccent)
   doc.circle(pageWidth - 25, 25, 15, 'F')
-  doc.setFillColor(PDF_COLORS.lavender)
+  doc.setFillColor(themeColors.accentColorDark)
   doc.circle(pageWidth - 50, 15, 8, 'F')
 
   drawRoundedRect(doc, margin + 2, 12 + 2, 140, 30, 4, PDF_COLORS.dark)
@@ -221,7 +230,7 @@ export function exportReportPdf(params: ExportPdfParams): void {
 
   const dateRangeText = `${format(startDate, 'MMM d, yyyy')} - ${format(today, 'MMM d, yyyy')}`
   drawRoundedRect(doc, margin + 2, yPos + 2, pageWidth - 2 * margin, 20, 4, PDF_COLORS.dark)
-  drawRoundedRect(doc, margin, yPos, pageWidth - 2 * margin, 20, 4, PDF_COLORS.yellow, PDF_COLORS.dark)
+  drawRoundedRect(doc, margin, yPos, pageWidth - 2 * margin, 20, 4, themeColors.secondaryAccent, PDF_COLORS.dark)
 
   doc.setFontSize(11)
   doc.setFont('helvetica', 'bold')
@@ -243,7 +252,7 @@ export function exportReportPdf(params: ExportPdfParams): void {
 
   // Card 1: Total Revenue
   drawRoundedRect(doc, margin + 2, yPos + 2, cardWidth, cardHeight, 4, PDF_COLORS.dark)
-  drawRoundedRect(doc, margin, yPos, cardWidth, cardHeight, 4, PDF_COLORS.mint, PDF_COLORS.dark)
+  drawRoundedRect(doc, margin, yPos, cardWidth, cardHeight, 4, themeColors.accentColor, PDF_COLORS.dark)
   doc.setFontSize(18)
   doc.setFont('helvetica', 'bold')
   doc.text(`$${totalRevenue.toFixed(0)}`, margin + 10, yPos + 18)
@@ -254,7 +263,7 @@ export function exportReportPdf(params: ExportPdfParams): void {
 
   // Card 2: Total Appointments
   drawRoundedRect(doc, margin + cardWidth + 17, yPos + 2, cardWidth, cardHeight, 4, PDF_COLORS.dark)
-  drawRoundedRect(doc, margin + cardWidth + 15, yPos, cardWidth, cardHeight, 4, PDF_COLORS.yellow, PDF_COLORS.dark)
+  drawRoundedRect(doc, margin + cardWidth + 15, yPos, cardWidth, cardHeight, 4, themeColors.secondaryAccent, PDF_COLORS.dark)
   doc.setFontSize(18)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(PDF_COLORS.dark)
@@ -268,7 +277,7 @@ export function exportReportPdf(params: ExportPdfParams): void {
 
   // Card 3: Completed Appointments
   drawRoundedRect(doc, margin + 2, yPos + 2, cardWidth, cardHeight, 4, PDF_COLORS.dark)
-  drawRoundedRect(doc, margin, yPos, cardWidth, cardHeight, 4, PDF_COLORS.lavender, PDF_COLORS.dark)
+  drawRoundedRect(doc, margin, yPos, cardWidth, cardHeight, 4, themeColors.accentColorDark, PDF_COLORS.dark)
   doc.setFontSize(18)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(PDF_COLORS.dark)
@@ -280,7 +289,7 @@ export function exportReportPdf(params: ExportPdfParams): void {
 
   // Card 4: Total Clients
   drawRoundedRect(doc, margin + cardWidth + 17, yPos + 2, cardWidth, cardHeight, 4, PDF_COLORS.dark)
-  drawRoundedRect(doc, margin + cardWidth + 15, yPos, cardWidth, cardHeight, 4, PDF_COLORS.pink, PDF_COLORS.dark)
+  drawRoundedRect(doc, margin + cardWidth + 15, yPos, cardWidth, cardHeight, 4, themeColors.accentColorLight, PDF_COLORS.dark)
   doc.setFontSize(18)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(PDF_COLORS.dark)
@@ -289,6 +298,32 @@ export function exportReportPdf(params: ExportPdfParams): void {
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(PDF_COLORS.gray)
   doc.text('Total Clients', margin + cardWidth + 25, yPos + 28)
+
+  yPos += cardHeight + 10
+
+  // Card 5: Cancelled Appointments
+  drawRoundedRect(doc, margin + 2, yPos + 2, cardWidth, cardHeight, 4, PDF_COLORS.dark)
+  drawRoundedRect(doc, margin, yPos, cardWidth, cardHeight, 4, themeColors.gradientVia, PDF_COLORS.dark)
+  doc.setFontSize(18)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(PDF_COLORS.dark)
+  doc.text(cancelledAppointments.toString(), margin + 10, yPos + 18)
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(PDF_COLORS.gray)
+  doc.text('Cancelled', margin + 10, yPos + 28)
+
+  // Card 6: No-Show Appointments
+  drawRoundedRect(doc, margin + cardWidth + 17, yPos + 2, cardWidth, cardHeight, 4, PDF_COLORS.dark)
+  drawRoundedRect(doc, margin + cardWidth + 15, yPos, cardWidth, cardHeight, 4, themeColors.gradientTo, PDF_COLORS.dark)
+  doc.setFontSize(18)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(PDF_COLORS.dark)
+  doc.text(noShowAppointments.toString(), margin + cardWidth + 25, yPos + 18)
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(PDF_COLORS.gray)
+  doc.text('No Shows', margin + cardWidth + 25, yPos + 28)
 
   yPos += cardHeight + 20
 
@@ -305,10 +340,18 @@ export function exportReportPdf(params: ExportPdfParams): void {
 
   drawBarChart(doc, statusChartData, margin, yPos, chartWidth, chartHeightVal, 'Appointments by Status')
 
+  const themeChartColors = [
+    themeColors.accentColor,
+    themeColors.secondaryAccent,
+    themeColors.accentColorDark,
+    themeColors.accentColorLight,
+    themeColors.gradientVia,
+    themeColors.gradientTo,
+  ]
   const topServicesChartData = topServicesData.map((item, index) => ({
     label: item.name,
     value: item.count,
-    color: Object.values(PASTEL_COLORS)[index % Object.values(PASTEL_COLORS).length],
+    color: themeChartColors[index % themeChartColors.length],
   }))
 
   drawHorizontalBarChart(doc, topServicesChartData, margin + chartWidth + 10, yPos, chartWidth, chartHeightVal, 'Top Services')
@@ -319,7 +362,7 @@ export function exportReportPdf(params: ExportPdfParams): void {
   doc.addPage()
   yPos = margin
 
-  drawRoundedRect(doc, 0, 0, pageWidth, 30, 0, PDF_COLORS.blue)
+  drawRoundedRect(doc, 0, 0, pageWidth, 30, 0, themeColors.accentColorLight)
   doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(PDF_COLORS.dark)
@@ -359,7 +402,7 @@ export function exportReportPdf(params: ExportPdfParams): void {
       doc.text(`$${value}`, chartAreaX - 3, gridY + 2, { align: 'right' })
     }
 
-    doc.setDrawColor(PDF_COLORS.mintDark)
+    doc.setDrawColor(themeColors.accentColorDark)
     doc.setLineWidth(1.5)
 
     let prevX = 0,
@@ -372,8 +415,8 @@ export function exportReportPdf(params: ExportPdfParams): void {
         doc.line(prevX, prevY, x, y)
       }
 
-      doc.setFillColor(PDF_COLORS.mint)
-      doc.setDrawColor(PDF_COLORS.mintDark)
+      doc.setFillColor(themeColors.accentColor)
+      doc.setDrawColor(themeColors.accentColorDark)
       doc.circle(x, y, 2, 'FD')
 
       prevX = x
@@ -426,7 +469,7 @@ export function exportReportPdf(params: ExportPdfParams): void {
       const y = clientChartAreaY + clientChartAreaHeight - barHeightVal
 
       if (barHeightVal > 0) {
-        doc.setFillColor(PDF_COLORS.lavender)
+        doc.setFillColor(themeColors.gradientVia)
         doc.setDrawColor(PDF_COLORS.dark)
         doc.setLineWidth(0.3)
         doc.roundedRect(x, y, barWidthCalc, barHeightVal, 1, 1, 'FD')
@@ -436,7 +479,167 @@ export function exportReportPdf(params: ExportPdfParams): void {
 
   yPos += clientChartHeight + 15
 
+  // ===== Groomer Performance Chart =====
+  const groomerChartHeight = 75
+  if (yPos + groomerChartHeight > pageHeight - 30) {
+    doc.addPage()
+    yPos = margin
+  }
+  const groomerChartData = groomerPerformanceData.map((item, index) => ({
+    label: item.name,
+    value: Math.round(item.revenue),
+    color: themeChartColors[index % themeChartColors.length],
+  }))
+  drawHorizontalBarChart(doc, groomerChartData, margin, yPos, pageWidth - 2 * margin, groomerChartHeight, 'Groomer Performance (Revenue)')
+
+  yPos += groomerChartHeight + 15
+
+  // ===== No-Shows & Cancellations Chart =====
+  const noShowChartHeight = 80
+  if (yPos + noShowChartHeight > pageHeight - 30) {
+    doc.addPage()
+    yPos = margin
+  }
+  const noShowBarData = [
+    { label: 'Completed', value: noShowCancellationData.completedCount, color: themeColors.accentColorDark },
+    { label: 'Cancelled', value: noShowCancellationData.cancelledCount, color: themeColors.secondaryAccent },
+    { label: 'No Shows', value: noShowCancellationData.noShowCount, color: themeColors.gradientTo },
+  ]
+  drawBarChart(doc, noShowBarData, margin, yPos, (pageWidth - 2 * margin - 10) / 2, noShowChartHeight, 'No-Shows & Cancellations')
+
+  // Rates & Lost Revenue info box
+  const infoBoxX = margin + (pageWidth - 2 * margin - 10) / 2 + 10
+  const infoBoxWidth = (pageWidth - 2 * margin - 10) / 2
+  drawRoundedRect(doc, infoBoxX + 2, yPos + 2, infoBoxWidth, noShowChartHeight, 3, PDF_COLORS.dark)
+  drawRoundedRect(doc, infoBoxX, yPos, infoBoxWidth, noShowChartHeight, 3, '#ffffff', PDF_COLORS.dark)
+
+  doc.setFontSize(12)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(PDF_COLORS.dark)
+  doc.text('Impact Summary', infoBoxX + 8, yPos + 14)
+
+  const noShowRate = noShowCancellationData.totalAppointments > 0
+    ? ((noShowCancellationData.noShowCount / noShowCancellationData.totalAppointments) * 100).toFixed(1)
+    : '0.0'
+  const cancelRate = noShowCancellationData.totalAppointments > 0
+    ? ((noShowCancellationData.cancelledCount / noShowCancellationData.totalAppointments) * 100).toFixed(1)
+    : '0.0'
+
+  const infoItems = [
+    { label: 'No-Show Rate', value: `${noShowRate}%` },
+    { label: 'Cancellation Rate', value: `${cancelRate}%` },
+    { label: 'Est. Lost Revenue', value: `$${noShowCancellationData.estimatedLostRevenue.toFixed(0)}` },
+  ]
+  infoItems.forEach((item, idx) => {
+    const itemY = yPos + 28 + idx * 16
+    drawRoundedRect(doc, infoBoxX + 8, itemY, infoBoxWidth - 16, 12, 2, themeColors.accentColor)
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(PDF_COLORS.dark)
+    doc.text(item.value, infoBoxX + 14, itemY + 8)
+    doc.setFontSize(7)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(PDF_COLORS.gray)
+    doc.text(item.label, infoBoxX + infoBoxWidth - 14, itemY + 8, { align: 'right' })
+  })
+
+  yPos += noShowChartHeight + 15
+
+  // ===== Client Retention Chart =====
+  const retentionChartHeight = 60
+  if (yPos + retentionChartHeight > pageHeight - 30) {
+    doc.addPage()
+    yPos = margin
+  }
+  const retentionChartData = clientRetentionData.map((item, index) => ({
+    label: item.name,
+    value: item.value,
+    color: index === 0 ? themeColors.accentColor : themeColors.accentColorDark,
+  }))
+  drawBarChart(doc, retentionChartData, margin, yPos, (pageWidth - 2 * margin - 10) / 2, retentionChartHeight, 'Client Retention')
+
+  // Service Category Revenue Chart (beside retention)
+  const svcCatChartData = serviceCategoryRevenueData.map((item, index) => ({
+    label: item.category,
+    value: Math.round(item.revenue),
+    color: themeChartColors[index % themeChartColors.length],
+  }))
+  drawHorizontalBarChart(doc, svcCatChartData, margin + (pageWidth - 2 * margin - 10) / 2 + 10, yPos, (pageWidth - 2 * margin - 10) / 2, retentionChartHeight, 'Revenue by Category')
+
+  yPos += retentionChartHeight + 15
+
+  // ===== Peak Hours Heatmap =====
+  const heatmapHeight = 80
+  if (yPos + heatmapHeight > pageHeight - 30) {
+    doc.addPage()
+    yPos = margin
+  }
+  const heatmapWidth = pageWidth - 2 * margin
+  drawRoundedRect(doc, margin + 2, yPos + 2, heatmapWidth, heatmapHeight, 3, PDF_COLORS.dark)
+  drawRoundedRect(doc, margin, yPos, heatmapWidth, heatmapHeight, 3, '#ffffff', PDF_COLORS.dark)
+
+  doc.setFontSize(12)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(PDF_COLORS.dark)
+  doc.text('Peak Hours', margin + 8, yPos + 12)
+
+  const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const heatStartX = margin + 28
+  const heatStartY = yPos + 18
+  const cellW = (heatmapWidth - 36) / 11 // 11 hours (8-18)
+  const cellH = (heatmapHeight - 28) / 7  // 7 days
+
+  // Hour labels
+  doc.setFontSize(6)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(PDF_COLORS.gray)
+  for (let hour = 8; hour <= 18; hour++) {
+    const label = hour <= 12 ? `${hour}${hour < 12 ? 'a' : 'p'}` : `${hour - 12}p`
+    doc.text(label, heatStartX + (hour - 8) * cellW + cellW / 2, heatStartY - 2, { align: 'center' })
+  }
+
+  // Day labels and cells
+  dayLabels.forEach((day, dayIdx) => {
+    doc.setFontSize(6)
+    doc.setTextColor(PDF_COLORS.gray)
+    doc.text(day, heatStartX - 4, heatStartY + dayIdx * cellH + cellH / 2 + 2, { align: 'right' })
+
+    for (let hour = 8; hour <= 18; hour++) {
+      const count = peakHoursData.grid[`${dayIdx}-${hour}`] || 0
+      const intensity = peakHoursData.maxCount > 0 ? count / peakHoursData.maxCount : 0
+
+      // Blend from white to theme accent based on intensity
+      const r1 = 255, g1 = 255, b1 = 255
+      const hex = themeColors.accentColorDark
+      const r2 = parseInt(hex.slice(1, 3), 16)
+      const g2 = parseInt(hex.slice(3, 5), 16)
+      const b2 = parseInt(hex.slice(5, 7), 16)
+      const r = Math.round(r1 + (r2 - r1) * intensity)
+      const g = Math.round(g1 + (g2 - g1) * intensity)
+      const b = Math.round(b1 + (b2 - b1) * intensity)
+
+      const cx = heatStartX + (hour - 8) * cellW
+      const cy = heatStartY + dayIdx * cellH
+      doc.setFillColor(r, g, b)
+      doc.setDrawColor(PDF_COLORS.lightGray)
+      doc.setLineWidth(0.2)
+      doc.rect(cx, cy, cellW, cellH, 'FD')
+
+      if (count > 0) {
+        doc.setFontSize(5)
+        doc.setTextColor(intensity > 0.5 ? '#ffffff' : PDF_COLORS.dark)
+        doc.text(count.toString(), cx + cellW / 2, cy + cellH / 2 + 1.5, { align: 'center' })
+      }
+    }
+  })
+
+  yPos += heatmapHeight + 15
+
   // ===== Data Table Section =====
+  if (yPos + 100 > pageHeight - 30) {
+    doc.addPage()
+    yPos = margin
+  }
   doc.setFontSize(12)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(PDF_COLORS.dark)
@@ -447,7 +650,7 @@ export function exportReportPdf(params: ExportPdfParams): void {
   const tableWidth = colWidths.reduce((a, b) => a + b, 0)
   const rowHeight = 8
 
-  drawRoundedRect(doc, margin, yPos, tableWidth, rowHeight, 2, PDF_COLORS.mint, PDF_COLORS.dark)
+  drawRoundedRect(doc, margin, yPos, tableWidth, rowHeight, 2, themeColors.accentColor, PDF_COLORS.dark)
 
   const headers = ['Date', 'Client', 'Service', 'Status', 'Amount']
   let xPos = margin + 3

@@ -98,7 +98,7 @@ export function DocumentUpload({
             <html>
               <head><title>Vaccination Document</title></head>
               <body style="margin:0;padding:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#1e293b;">
-                <img src="${currentDocument}" style="max-width:100%;max-height:100vh;object-fit:contain;" />
+                <img src="${currentDocument}" alt="Uploaded vaccination document" style="max-width:100%;max-height:100vh;object-fit:contain;" />
               </body>
             </html>
           `)

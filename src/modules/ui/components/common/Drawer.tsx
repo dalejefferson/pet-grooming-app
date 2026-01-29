@@ -72,6 +72,9 @@ export function Drawer({
 
       {/* Drawer */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title || 'Drawer'}
         className={cn(
           'fixed inset-y-0 z-50 flex flex-col bg-white transition-transform duration-200',
           sizes[size],
@@ -84,7 +87,7 @@ export function Drawer({
           {title && (
             <h2 className="text-lg font-bold text-[#1e293b]">{title}</h2>
           )}
-          <Button variant="ghost" size="sm" onClick={onClose} className="ml-auto">
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close" className="ml-auto">
             <X className="h-5 w-5" />
           </Button>
         </div>

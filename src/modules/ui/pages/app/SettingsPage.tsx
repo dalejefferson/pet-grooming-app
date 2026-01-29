@@ -224,22 +224,22 @@ export function SettingsPage() {
         <div className="space-y-3">
           <div className="flex items-center justify-between py-2 border-b border-gray-100">
             <span className="text-sm text-gray-700">Collapse Sidebar</span>
-            <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border border-gray-300 rounded">Shift + S</kbd>
+            <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">Shift + S</kbd>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-100">
             <span className="text-sm text-gray-700">Toggle Calendar View</span>
             <div className="flex gap-1">
-              <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border border-gray-300 rounded">Tab</kbd>
+              <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">Tab</kbd>
               <span className="text-xs text-gray-400">(on Calendar page)</span>
             </div>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-100">
             <span className="text-sm text-gray-700">Navigate Sidebar</span>
-            <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border border-gray-300 rounded">Shift + ↑↓</kbd>
+            <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">Shift + ↑↓</kbd>
           </div>
           <div className="flex items-center justify-between py-2">
             <span className="text-sm text-gray-700">Book Appointment</span>
-            <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border border-gray-300 rounded">Shift + A</kbd>
+            <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">Shift + A</kbd>
           </div>
         </div>
       </Card>

@@ -157,6 +157,7 @@ body {
   background-color: #6F8F72;
   border: 2px solid #1e293b;
   box-shadow: 2px 2px 0px 0px #1e293b;
+  cursor: pointer;
 }
 
 .rbc-event-content {
@@ -208,6 +209,7 @@ body {
 
 .rbc-show-more {
   color: #6F8F72;
+  cursor: pointer;
   @apply font-semibold text-sm;
 }
 

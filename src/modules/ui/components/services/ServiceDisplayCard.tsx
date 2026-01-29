@@ -20,7 +20,7 @@ export function ServiceDisplayCard({
 
   return (
     <Card
-      className="aspect-square flex flex-col items-center justify-center p-4 text-center transition-all hover:shadow-md hover:-translate-y-1 cursor-pointer relative group"
+      className="aspect-square flex flex-col items-center justify-center p-4 text-center transition-all hover:shadow-[4px_4px_0px_0px_#1e293b] hover:-translate-y-1 cursor-pointer relative group"
       onClick={onEdit}
     >
       {/* Delete button in corner */}

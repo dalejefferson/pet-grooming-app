@@ -151,7 +151,7 @@ export function Header({ onMenuClick, title }: HeaderProps) {
               )}
             >
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+              <div className="flex items-center justify-between border-b border-[#1e293b]/20 px-4 py-3">
                 <h3 className="font-semibold text-[#1e293b]">Notifications</h3>
                 {unreadCount > 0 && (
                   <button
@@ -206,7 +206,7 @@ export function Header({ onMenuClick, title }: HeaderProps) {
 
               {/* Footer */}
               {notifications.length > 5 && (
-                <div className="border-t border-gray-200 px-4 py-2">
+                <div className="border-t border-[#1e293b]/20 px-4 py-2">
                   <button
                     onClick={() => setDropdownOpen(false)}
                     className="w-full text-center text-sm font-medium hover:underline"

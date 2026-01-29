@@ -55,8 +55,12 @@ export function Modal({
       <div
         className="fixed inset-0 bg-black/50 modal-backdrop-enter"
         onClick={onClose}
+        aria-hidden="true"
       />
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title || 'Dialog'}
         className={cn(
           'relative z-10 w-full rounded-2xl border-2 border-[#1e293b] bg-white p-4 sm:p-6 shadow-[4px_4px_0px_0px_#1e293b]',
           'modal-content-enter',
@@ -74,6 +78,7 @@ export function Modal({
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
+                aria-label="Close"
                 className="ml-auto -mr-2 -mt-2"
               >
                 <X className="h-5 w-5" />

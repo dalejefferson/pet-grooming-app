@@ -21,7 +21,7 @@ export function PetServicesList({ petSummaries }: PetServicesListProps) {
       <CardTitle>Services</CardTitle>
       <div className="mt-4 space-y-4">
         {petSummaries.map((pet, index) => (
-          <div key={index} className="rounded-lg border border-gray-200 p-4">
+          <div key={index} className="rounded-xl border-2 border-[#1e293b] p-4">
             <div className="mb-2 flex items-center gap-2">
               <Dog className="h-5 w-5 text-gray-400" />
               <span className="font-medium text-gray-900">{pet.name}</span>

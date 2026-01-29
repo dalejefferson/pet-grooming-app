@@ -83,7 +83,7 @@ export function EditServiceModal({
             ))}
 
             {showModifierForm ? (
-              <div className="mt-4 rounded-lg border border-gray-200 p-4">
+              <div className="mt-4 rounded-xl border-2 border-[#1e293b] p-4">
                 <ModifierForm
                   onSubmit={handleAddModifier}
                   onCancel={() => setShowModifierForm(false)}
