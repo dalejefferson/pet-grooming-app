@@ -271,8 +271,8 @@ body {
 /* Month view events - compact single-line pills */
 .rbc-month-view .rbc-event {
   @apply text-xs py-0.5 px-2 rounded-lg;
-  box-shadow: none;
-  border-width: 1px;
+  box-shadow: 1px 1px 0px 0px #1e293b;
+  border-width: 2px;
   min-height: 18px;
   max-height: 20px;
 }
