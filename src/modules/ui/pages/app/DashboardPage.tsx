@@ -311,22 +311,24 @@ export function DashboardPage() {
           </Card>
 
           {/* Issues Range Toggle */}
-          <div className="flex justify-end gap-2">
-            {(['today', '7days', '30days'] as const).map((range) => (
-              <button
-                key={range}
-                onClick={() => setIssuesRange(range)}
-                className={cn(
-                  'rounded-lg border-2 border-[#1e293b] px-3 py-1.5 text-sm font-medium transition-all cursor-pointer',
-                  issuesRange === range
-                    ? 'shadow-[2px_2px_0px_0px_#1e293b]'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
-                )}
-                style={issuesRange === range ? { backgroundColor: colors.accentColor, color: colors.textOnPrimary } : undefined}
-              >
-                {range === 'today' ? 'Today' : range === '7days' ? '7 Days' : '30 Days'}
-              </button>
-            ))}
+          <div className="flex justify-end">
+            <div className="flex items-center gap-0.5 rounded-xl border-2 border-[#1e293b] bg-white p-0.5 shadow-[2px_2px_0px_0px_#1e293b]">
+              {(['today', '7days', '30days'] as const).map((range) => (
+                <button
+                  key={range}
+                  onClick={() => setIssuesRange(range)}
+                  className={cn(
+                    'rounded-lg border-2 px-3 py-1.5 text-sm font-semibold transition-all cursor-pointer text-center',
+                    issuesRange === range
+                      ? 'shadow-[1px_1px_0px_0px_#1e293b] border-[#1e293b]'
+                      : 'border-transparent bg-transparent text-[#334155] hover:bg-[var(--accent-color-light)]'
+                  )}
+                  style={issuesRange === range ? { backgroundColor: colors.accentColorDark, color: 'var(--text-on-accent)' } : undefined}
+                >
+                  {range === 'today' ? 'Today' : range === '7days' ? '7 Days' : '30 Days'}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* No-Shows & Cancellations Cards */}
