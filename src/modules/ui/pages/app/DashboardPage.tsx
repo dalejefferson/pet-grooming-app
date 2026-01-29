@@ -311,7 +311,7 @@ export function DashboardPage() {
           </Card>
 
           {/* Issues Range Toggle */}
-          <div className="flex gap-2">
+          <div className="flex justify-end gap-2">
             {(['today', '7days', '30days'] as const).map((range) => (
               <button
                 key={range}
