@@ -1,12 +1,12 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Calendar, Users, Dog, Clock, TrendingUp, AlertCircle } from 'lucide-react'
+import { Calendar, Users, Dog, Clock, TrendingUp, AlertCircle, UserX, XCircle } from 'lucide-react'
 import { Card, CardTitle, Badge } from '../../components/common'
 import { AppointmentDetailsDrawer, StatusChangeModal } from '../../components/calendar'
 import { VaccinationAlertsWidget } from '../../components/dashboard'
-import { useAppointmentsByDay, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useDeleteAppointment, useCreateAppointment } from '@/hooks'
+import { useAppointmentsByDay, useAppointmentsByDateRange, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useDeleteAppointment, useCreateAppointment } from '@/hooks'
 import { useUndo } from '@/modules/ui/context'
-import { format } from 'date-fns'
+import { format, subDays, startOfDay } from 'date-fns'
 import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_STATUS_COLORS } from '@/config/constants'
 import { cn } from '@/lib/utils'
 import { useTheme } from '../../context'
@@ -35,6 +35,27 @@ export function DashboardPage() {
   const [selectedStatuses, setSelectedStatuses] = useState<AppointmentStatus[]>([
     'requested', 'confirmed', 'checked_in', 'in_progress'
   ])
+
+  // Issues (No-Shows & Cancellations) range state
+  const [issuesRange, setIssuesRange] = useState<'today' | '7days' | '30days'>('today')
+
+  const issuesDateRange = useMemo(() => {
+    const endDate = new Date()
+    if (issuesRange === 'today') return { start: startOfDay(endDate), end: endDate }
+    if (issuesRange === '7days') return { start: subDays(endDate, 7), end: endDate }
+    return { start: subDays(endDate, 30), end: endDate }
+  }, [issuesRange])
+
+  const { data: issuesAppointments = [] } = useAppointmentsByDateRange(issuesDateRange.start, issuesDateRange.end)
+
+  const noShowAppointments = useMemo(
+    () => issuesAppointments.filter(a => a.status === 'no_show'),
+    [issuesAppointments]
+  )
+  const cancelledAppointments = useMemo(
+    () => issuesAppointments.filter(a => a.status === 'cancelled'),
+    [issuesAppointments]
+  )
 
   // Status change handlers
   const handleStatusChange = async (status: AppointmentStatus) => {
@@ -250,42 +271,149 @@ export function DashboardPage() {
       </Card>
 
       {/* Vaccination Alerts & Quick Actions Row */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 items-start">
         <VaccinationAlertsWidget />
-        <Card>
-          <CardTitle>Quick Actions</CardTitle>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <Link
-              to="/app/calendar"
-              className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
-            >
-              <Calendar className="h-5 w-5" style={{ color: colors.accentColorDark }} />
-              <span className="font-medium text-gray-900">View Calendar</span>
-            </Link>
-            <Link
-              to="/app/clients"
-              className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
-            >
-              <Users className="h-5 w-5" style={{ color: colors.accentColorDark }} />
-              <span className="font-medium text-gray-900">Manage Clients</span>
-            </Link>
-            <Link
-              to="/app/services"
-              className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
-            >
-              <TrendingUp className="h-5 w-5" style={{ color: colors.accentColorDark }} />
-              <span className="font-medium text-gray-900">Edit Services</span>
-            </Link>
-            <Link
-              to={`/book/paws-claws/start`}
-              target="_blank"
-              className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
-            >
-              <Dog className="h-5 w-5" style={{ color: colors.accentColorDark }} />
-              <span className="font-medium text-gray-900">Booking Portal</span>
-            </Link>
+        <div className="space-y-4">
+          {/* Quick Actions Card */}
+          <Card>
+            <CardTitle>Quick Actions</CardTitle>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <Link
+                to="/app/calendar"
+                className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
+              >
+                <Calendar className="h-5 w-5" style={{ color: colors.accentColorDark }} />
+                <span className="font-medium text-gray-900">View Calendar</span>
+              </Link>
+              <Link
+                to="/app/clients"
+                className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
+              >
+                <Users className="h-5 w-5" style={{ color: colors.accentColorDark }} />
+                <span className="font-medium text-gray-900">Manage Clients</span>
+              </Link>
+              <Link
+                to="/app/services"
+                className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
+              >
+                <TrendingUp className="h-5 w-5" style={{ color: colors.accentColorDark }} />
+                <span className="font-medium text-gray-900">Edit Services</span>
+              </Link>
+              <Link
+                to={`/book/paws-claws/start`}
+                target="_blank"
+                className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
+              >
+                <Dog className="h-5 w-5" style={{ color: colors.accentColorDark }} />
+                <span className="font-medium text-gray-900">Booking Portal</span>
+              </Link>
+            </div>
+          </Card>
+
+          {/* Issues Range Toggle */}
+          <div className="flex gap-2">
+            {(['today', '7days', '30days'] as const).map((range) => (
+              <button
+                key={range}
+                onClick={() => setIssuesRange(range)}
+                className={cn(
+                  'rounded-lg border-2 border-[#1e293b] px-3 py-1.5 text-sm font-medium transition-all cursor-pointer',
+                  issuesRange === range
+                    ? 'text-[#1e293b] shadow-[2px_2px_0px_0px_#1e293b]'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                )}
+                style={issuesRange === range ? { backgroundColor: colors.accentColor } : undefined}
+              >
+                {range === 'today' ? 'Today' : range === '7days' ? '7 Days' : '30 Days'}
+              </button>
+            ))}
           </div>
-        </Card>
+
+          {/* No-Shows & Cancellations Cards */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* No-Shows Card */}
+            <Card className="border-[#f472b6] bg-[#fce7f3]/30">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="rounded-lg border-2 border-[#f472b6] bg-[#fce7f3] p-2">
+                  <UserX className="h-4 w-4 text-[#9d174d]" />
+                </div>
+                <span className="font-semibold text-[#9d174d]">No-Shows</span>
+                <Badge className="ml-auto bg-[#fce7f3] text-[#9d174d] border-[#f472b6]">
+                  {noShowAppointments.length}
+                </Badge>
+              </div>
+              {noShowAppointments.length === 0 ? (
+                <p className="text-sm text-[#9d174d]/60 py-2">No no-shows in this period</p>
+              ) : (
+                <div className="max-h-[160px] overflow-y-auto space-y-2">
+                  {noShowAppointments.map((apt) => {
+                    const client = clients.find(c => c.id === apt.clientId)
+                    const petNames = apt.pets.map(p => pets.find(pet => pet.id === p.petId)?.name).filter(Boolean).join(', ')
+                    return (
+                      <button
+                        key={apt.id}
+                        onClick={() => setSelectedAppointment(apt)}
+                        className="w-full text-left rounded-lg border border-[#f472b6] bg-white p-2 hover:bg-[#fce7f3]/50 transition-colors"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{petNames || 'Unknown Pet'}</p>
+                            <p className="text-xs text-gray-600">{client ? `${client.firstName} ${client.lastName}` : 'Unknown Client'}</p>
+                          </div>
+                          <span className="text-xs text-gray-500">{format(new Date(apt.startTime), 'MMM d')}</span>
+                        </div>
+                        {apt.statusNotes && (
+                          <p className="text-xs text-[#9d174d] mt-1 truncate">{apt.statusNotes}</p>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </Card>
+
+            {/* Cancellations Card */}
+            <Card className="border-[#9ca3af] bg-[#e5e7eb]/30">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="rounded-lg border-2 border-[#9ca3af] bg-[#e5e7eb] p-2">
+                  <XCircle className="h-4 w-4 text-[#374151]" />
+                </div>
+                <span className="font-semibold text-[#374151]">Cancellations</span>
+                <Badge className="ml-auto bg-[#e5e7eb] text-[#374151] border-[#9ca3af]">
+                  {cancelledAppointments.length}
+                </Badge>
+              </div>
+              {cancelledAppointments.length === 0 ? (
+                <p className="text-sm text-[#374151]/60 py-2">No cancellations in this period</p>
+              ) : (
+                <div className="max-h-[160px] overflow-y-auto space-y-2">
+                  {cancelledAppointments.map((apt) => {
+                    const client = clients.find(c => c.id === apt.clientId)
+                    const petNames = apt.pets.map(p => pets.find(pet => pet.id === p.petId)?.name).filter(Boolean).join(', ')
+                    return (
+                      <button
+                        key={apt.id}
+                        onClick={() => setSelectedAppointment(apt)}
+                        className="w-full text-left rounded-lg border border-[#9ca3af] bg-white p-2 hover:bg-[#e5e7eb]/50 transition-colors"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{petNames || 'Unknown Pet'}</p>
+                            <p className="text-xs text-gray-600">{client ? `${client.firstName} ${client.lastName}` : 'Unknown Client'}</p>
+                          </div>
+                          <span className="text-xs text-gray-500">{format(new Date(apt.startTime), 'MMM d')}</span>
+                        </div>
+                        {apt.statusNotes && (
+                          <p className="text-xs text-[#374151] mt-1 truncate">{apt.statusNotes}</p>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </Card>
+          </div>
+        </div>
       </div>
       </div>
 

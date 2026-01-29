@@ -74,6 +74,8 @@ export interface ReportStats {
   totalRevenue: number
   totalAppointments: number
   completedAppointments: number
+  cancelledAppointments: number
+  noShowAppointments: number
   totalClients: number
 }
 

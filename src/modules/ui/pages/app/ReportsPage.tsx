@@ -278,11 +278,15 @@ export function ReportsPage() {
 
   const totalAppointments = filteredAppointments.length
   const completedAppointments = filteredAppointments.filter((apt) => apt.status === 'completed').length
+  const cancelledAppointments = filteredAppointments.filter((apt) => apt.status === 'cancelled').length
+  const noShowAppointments = filteredAppointments.filter((apt) => apt.status === 'no_show').length
 
   const stats = {
     totalRevenue,
     totalAppointments,
     completedAppointments,
+    cancelledAppointments,
+    noShowAppointments,
     totalClients: clients.length,
   }
 
