@@ -102,9 +102,26 @@ export interface RolePermissions {
   canViewAllAppointments: boolean
   canManageOwnAppointments: boolean
   canBookAppointments: boolean
+  canManageSettings: boolean
+  canDeleteRecords: boolean
 }
 
-export const ROLE_PERMISSIONS: Record<'admin' | 'groomer' | 'receptionist', RolePermissions> = {
+export type StaffRole = 'owner' | 'admin' | 'groomer' | 'receptionist'
+
+export const ROLE_PERMISSIONS: Record<StaffRole, RolePermissions> = {
+  owner: {
+    canManageStaff: true,
+    canManageClients: true,
+    canManageServices: true,
+    canManagePolicies: true,
+    canViewReports: true,
+    canEditCalendar: true,
+    canViewAllAppointments: true,
+    canManageOwnAppointments: true,
+    canBookAppointments: true,
+    canManageSettings: true,
+    canDeleteRecords: true,
+  },
   admin: {
     canManageStaff: true,
     canManageClients: true,
@@ -115,6 +132,8 @@ export const ROLE_PERMISSIONS: Record<'admin' | 'groomer' | 'receptionist', Role
     canViewAllAppointments: true,
     canManageOwnAppointments: true,
     canBookAppointments: true,
+    canManageSettings: true,
+    canDeleteRecords: true,
   },
   groomer: {
     canManageStaff: false,
@@ -126,6 +145,8 @@ export const ROLE_PERMISSIONS: Record<'admin' | 'groomer' | 'receptionist', Role
     canViewAllAppointments: false,
     canManageOwnAppointments: true,
     canBookAppointments: true,
+    canManageSettings: false,
+    canDeleteRecords: false,
   },
   receptionist: {
     canManageStaff: false,
@@ -137,7 +158,23 @@ export const ROLE_PERMISSIONS: Record<'admin' | 'groomer' | 'receptionist', Role
     canViewAllAppointments: true,
     canManageOwnAppointments: false,
     canBookAppointments: true,
+    canManageSettings: false,
+    canDeleteRecords: false,
   },
+}
+
+export const PERMISSION_LABELS: Record<keyof RolePermissions, { label: string; description: string; category: string }> = {
+  canManageStaff:           { label: 'Manage Staff',            description: 'Add, edit, and deactivate staff members',  category: 'Staff' },
+  canManageClients:         { label: 'Manage Clients',          description: 'View and edit client profiles',            category: 'Clients' },
+  canManageServices:        { label: 'Manage Services',         description: 'Create and edit service catalog',          category: 'Services' },
+  canManagePolicies:        { label: 'Manage Policies',         description: 'Edit booking and cancellation policies',   category: 'Policies' },
+  canViewReports:           { label: 'View Reports',            description: 'Access analytics and export data',         category: 'Reports' },
+  canEditCalendar:          { label: 'Edit Calendar',           description: 'Modify any appointment on the calendar',   category: 'Calendar' },
+  canViewAllAppointments:   { label: 'View All Appointments',   description: "See every staff member's schedule",        category: 'Calendar' },
+  canManageOwnAppointments: { label: 'Manage Own Appointments', description: 'Edit and update assigned appointments',    category: 'Calendar' },
+  canBookAppointments:      { label: 'Book Appointments',       description: 'Create new appointments',                  category: 'Booking' },
+  canManageSettings:        { label: 'Manage Settings',         description: 'Edit organization settings and theme',     category: 'Settings' },
+  canDeleteRecords:         { label: 'Delete Records',          description: 'Soft-delete clients, pets, and services',  category: 'Data' },
 }
 
 // ============================================
@@ -403,7 +440,7 @@ export interface Groomer {
   specialties: string[]
   imageUrl?: string
   isActive: boolean
-  role: 'admin' | 'groomer' | 'receptionist'
+  role: StaffRole
   availability?: StaffAvailability
   timeOff?: TimeOffRequest[]
   createdAt: string

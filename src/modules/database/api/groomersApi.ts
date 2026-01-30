@@ -8,6 +8,7 @@ const seedGroomers: Groomer[] = [
   {
     id: 'groomer-1',
     organizationId: 'org-1',
+    userId: 'user-1',
     firstName: 'Sarah',
     lastName: 'Johnson',
     email: 'sarah@pawfectcuts.com',
@@ -15,13 +16,14 @@ const seedGroomers: Groomer[] = [
     specialties: ['Large Dogs', 'Poodle Cuts', 'Dematting'],
     imageUrl: undefined,
     isActive: true,
-    role: 'admin',
+    role: 'owner',
     createdAt: '2024-01-15T10:00:00Z',
     updatedAt: '2024-01-15T10:00:00Z',
   },
   {
     id: 'groomer-2',
     organizationId: 'org-1',
+    userId: 'user-2',
     firstName: 'Mike',
     lastName: 'Chen',
     email: 'mike@pawfectcuts.com',
@@ -36,6 +38,7 @@ const seedGroomers: Groomer[] = [
   {
     id: 'groomer-3',
     organizationId: 'org-1',
+    userId: 'user-3',
     firstName: 'Emma',
     lastName: 'Rodriguez',
     email: 'emma@pawfectcuts.com',
@@ -46,6 +49,21 @@ const seedGroomers: Groomer[] = [
     role: 'groomer',
     createdAt: '2024-03-10T10:00:00Z',
     updatedAt: '2024-03-10T10:00:00Z',
+  },
+  {
+    id: 'groomer-4',
+    organizationId: 'org-1',
+    userId: 'user-4',
+    firstName: 'Alex',
+    lastName: 'Kim',
+    email: 'alex@pawfectcuts.com',
+    phone: '555-0104',
+    specialties: [],
+    imageUrl: undefined,
+    isActive: true,
+    role: 'receptionist',
+    createdAt: '2024-03-01T10:00:00Z',
+    updatedAt: '2024-03-01T10:00:00Z',
   },
 ]
 

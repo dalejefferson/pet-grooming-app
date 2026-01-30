@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Phone, Mail, Edit2, User, Calendar, BarChart3, Clock } from 'lucide-react'
+import { ArrowLeft, Phone, Mail, Edit2, User, Calendar, BarChart3, Clock, Shield } from 'lucide-react'
 import { Card, CardTitle, Button, Badge, Modal, Input, Select, Toggle, ImageUpload } from '../../components/common'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import {
   StaffAvailabilityForm,
   StaffPerformanceDashboard,
   TimeOffManager,
+  StaffPermissionsPanel,
 } from '../../components/staff'
 import { useGroomer, useUpdateGroomer } from '@/hooks'
 import { PermissionGate, usePermissions } from '@/modules/auth'
@@ -14,9 +15,14 @@ import { formatPhone, cn } from '@/lib/utils'
 import type { Groomer } from '@/types'
 import { useTheme } from '../../context'
 
-type TabValue = 'overview' | 'availability' | 'performance' | 'timeoff'
+type TabValue = 'overview' | 'availability' | 'performance' | 'timeoff' | 'permissions'
 
 const ROLE_BADGES: Record<Groomer['role'], { color: string; bgColor: string; label: string }> = {
+  owner: {
+    color: 'text-[#b45309]',
+    bgColor: 'bg-[#fde68a]',
+    label: 'Owner',
+  },
   admin: {
     color: 'text-[#7c3aed]',
     bgColor: 'bg-[#e9d5ff]',
@@ -76,6 +82,7 @@ function EditStaffModal({
   isLoading: boolean
 }) {
   const { colors } = useTheme()
+  const { isOwner: currentUserIsOwner } = usePermissions()
   const [formData, setFormData] = useState<EditFormData>({
     firstName: staff.firstName,
     lastName: staff.lastName,
@@ -162,6 +169,7 @@ function EditStaffModal({
         <Select
           label="Role"
           options={[
+            ...(currentUserIsOwner ? [{ value: 'owner', label: 'Owner' }] : []),
             { value: 'admin', label: 'Admin' },
             { value: 'groomer', label: 'Groomer' },
             { value: 'receptionist', label: 'Receptionist' },
@@ -350,6 +358,7 @@ export function StaffDetailPage() {
             { value: 'availability' as TabValue, label: 'Availability', icon: Calendar },
             { value: 'performance' as TabValue, label: 'Performance', icon: BarChart3 },
             { value: 'timeoff' as TabValue, label: 'Time Off', icon: Clock },
+            ...(hasPermission('canManageStaff') ? [{ value: 'permissions' as TabValue, label: 'Permissions', icon: Shield }] : []),
           ].map((tab) => (
             <button
               key={tab.value}
@@ -467,6 +476,13 @@ export function StaffDetailPage() {
 
         {/* Time Off Tab */}
         {activeTab === 'timeoff' && <TimeOffManager staffId={staff.id} isAdmin={isAdmin} />}
+
+        {/* Permissions Tab */}
+        {activeTab === 'permissions' && (
+          <PermissionGate permission="canManageStaff">
+            <StaffPermissionsPanel staffUserId={staff.userId} staffRole={staff.role} />
+          </PermissionGate>
+        )}
 
         {/* Edit Modal */}
         <EditStaffModal

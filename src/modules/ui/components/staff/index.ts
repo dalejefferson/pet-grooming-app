@@ -15,3 +15,6 @@ export type { StaffPerformanceDashboardProps } from './StaffPerformanceDashboard
 
 export { StaffCard } from './StaffCard'
 export type { StaffCardProps } from './StaffCard'
+
+export { StaffPermissionsPanel } from './StaffPermissionsPanel'
+export type { StaffPermissionsPanelProps } from './StaffPermissionsPanel'

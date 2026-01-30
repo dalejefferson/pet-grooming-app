@@ -1,9 +1,9 @@
 // Auth module barrel export
 export { authApi } from './api'
-export { useCurrentUser, useUsers, useLogin, useLogout, usePermissions } from './hooks'
+export { useCurrentUser, useUsers, useLogin, useLogout, useUpdateUserPermissions, usePermissions, resolvePermissions } from './hooks'
 export type { UsePermissionsReturn } from './hooks'
-export { PermissionGate } from './components'
-export type { PermissionGateProps } from './components'
+export { PermissionGate, ProtectedRoute } from './components'
+export type { PermissionGateProps, ProtectedRouteProps } from './components'
 export { LoginPage } from './pages'
 export type { User } from './types'
-export { hasRole, isAdmin, isGroomer } from './utils'
+export { hasRole, isAdmin, isGroomer, isOwner } from './utils'

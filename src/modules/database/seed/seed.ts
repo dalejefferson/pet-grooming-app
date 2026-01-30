@@ -35,7 +35,7 @@ export const seedUsers: User[] = [
     id: 'user-1',
     email: 'admin@pawsclaws.com',
     name: 'Sarah Johnson',
-    role: 'admin',
+    role: 'owner',
     organizationId: ORG_ID,
     createdAt: '2024-01-01T00:00:00Z',
   },
@@ -46,6 +46,9 @@ export const seedUsers: User[] = [
     role: 'groomer',
     organizationId: ORG_ID,
     createdAt: '2024-01-15T00:00:00Z',
+    permissionOverrides: {
+      canViewReports: true,
+    },
   },
   {
     id: 'user-3',
@@ -54,6 +57,14 @@ export const seedUsers: User[] = [
     role: 'groomer',
     organizationId: ORG_ID,
     createdAt: '2024-02-01T00:00:00Z',
+  },
+  {
+    id: 'user-4',
+    email: 'alex@pawsclaws.com',
+    name: 'Alex Kim',
+    role: 'receptionist',
+    organizationId: ORG_ID,
+    createdAt: '2024-03-01T00:00:00Z',
   },
 ]
 

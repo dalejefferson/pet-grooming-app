@@ -18,10 +18,11 @@ import type { Groomer, TimeOffRequest, DaySchedule } from '@/types'
 import { useTheme } from '../../context'
 
 type TabValue = 'all' | 'schedule' | 'timeoff'
-type RoleFilter = 'all' | 'admin' | 'groomer' | 'receptionist'
+type RoleFilter = 'all' | 'owner' | 'admin' | 'groomer' | 'receptionist'
 type TimeOffStatusFilter = 'all' | 'pending' | 'approved' | 'rejected'
 
 const ROLE_LABELS: Record<Groomer['role'], string> = {
+  owner: 'Owner',
   admin: 'Admin',
   groomer: 'Groomer',
   receptionist: 'Receptionist',
@@ -177,6 +178,7 @@ export function StaffPage() {
                 <Select
                   options={[
                     { value: 'all', label: 'All Roles' },
+                    { value: 'owner', label: 'Owner' },
                     { value: 'admin', label: 'Admin' },
                     { value: 'groomer', label: 'Groomer' },
                     { value: 'receptionist', label: 'Receptionist' },

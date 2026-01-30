@@ -9,7 +9,7 @@ export interface UsePermissionsReturn {
   currentUser: User | null | undefined
   /** Whether the current user data is still loading */
   isLoading: boolean
-  /** The permissions object for the current user's role */
+  /** The permissions object for the current user (role defaults merged with overrides) */
   permissions: RolePermissions | null
   /** Check if user has a specific permission */
   hasPermission: (permission: keyof RolePermissions) => boolean
@@ -17,7 +17,9 @@ export interface UsePermissionsReturn {
   hasAnyPermission: (permissions: (keyof RolePermissions)[]) => boolean
   /** Check if user has all of the specified permissions */
   hasAllPermissions: (permissions: (keyof RolePermissions)[]) => boolean
-  /** Whether the current user is an admin */
+  /** Whether the current user is an owner */
+  isOwner: boolean
+  /** Whether the current user is an admin (includes owner) */
   isAdmin: boolean
   /** Whether the current user is a groomer */
   isGroomer: boolean
@@ -26,7 +28,22 @@ export interface UsePermissionsReturn {
 }
 
 /**
- * Hook for checking user permissions based on their role.
+ * Resolve effective permissions for any user by merging role defaults with overrides.
+ * Owner role always gets full access regardless of overrides.
+ */
+export function resolvePermissions(user: User): RolePermissions {
+  if (user.role === 'owner') {
+    return ROLE_PERMISSIONS.owner
+  }
+  const roleDefaults = ROLE_PERMISSIONS[user.role]
+  if (!user.permissionOverrides) {
+    return roleDefaults
+  }
+  return { ...roleDefaults, ...user.permissionOverrides }
+}
+
+/**
+ * Hook for checking user permissions based on their role and per-user overrides.
  *
  * @example
  * ```tsx
@@ -48,8 +65,8 @@ export function usePermissions(): UsePermissionsReturn {
     if (!currentUser?.role) {
       return null
     }
-    return ROLE_PERMISSIONS[currentUser.role]
-  }, [currentUser?.role])
+    return resolvePermissions(currentUser)
+  }, [currentUser])
 
   const hasPermission = useMemo(() => {
     return (permission: keyof RolePermissions): boolean => {
@@ -78,7 +95,8 @@ export function usePermissions(): UsePermissionsReturn {
     }
   }, [permissions])
 
-  const isAdmin = currentUser?.role === 'admin'
+  const isOwner = currentUser?.role === 'owner'
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'owner'
   const isGroomer = currentUser?.role === 'groomer'
   const isReceptionist = currentUser?.role === 'receptionist'
 
@@ -89,6 +107,7 @@ export function usePermissions(): UsePermissionsReturn {
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
+    isOwner,
     isAdmin,
     isGroomer,
     isReceptionist,

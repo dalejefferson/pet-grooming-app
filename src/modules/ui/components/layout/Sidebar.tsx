@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   Calendar,
@@ -18,8 +18,10 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLogout } from '@/hooks'
+import { usePermissions } from '@/modules/auth'
 import { APP_NAME } from '@/config/constants'
 import { useTheme } from '../../context'
+import type { RolePermissions } from '@/types'
 
 interface SidebarProps {
   collapsed: boolean
@@ -52,21 +54,27 @@ function SidebarTooltip({ visible, label, top }: TooltipState) {
   )
 }
 
-const navItems = [
-  { to: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/app/calendar', icon: Calendar, label: 'Calendar' },
-  { to: '/app/clients', icon: Users, label: 'Clients' },
-  { to: '/app/pets', icon: Dog, label: 'Pets' },
-  { to: '/app/staff', icon: Users2, label: 'Staff' },
-  { to: '/app/services', icon: Scissors, label: 'Services' },
-  { to: '/app/policies', icon: FileText, label: 'Policies' },
-  { to: '/app/reminders', icon: Bell, label: 'Reminders' },
-  { to: '/app/reports', icon: BarChart3, label: 'Reports' },
+const navItems: { to: string; icon: typeof LayoutDashboard; label: string; permission: keyof RolePermissions | null }[] = [
+  { to: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard', permission: null },
+  { to: '/app/calendar', icon: Calendar, label: 'Calendar', permission: null },
+  { to: '/app/clients', icon: Users, label: 'Clients', permission: 'canManageClients' },
+  { to: '/app/pets', icon: Dog, label: 'Pets', permission: 'canManageClients' },
+  { to: '/app/staff', icon: Users2, label: 'Staff', permission: 'canManageStaff' },
+  { to: '/app/services', icon: Scissors, label: 'Services', permission: 'canManageServices' },
+  { to: '/app/policies', icon: FileText, label: 'Policies', permission: 'canManagePolicies' },
+  { to: '/app/reminders', icon: Bell, label: 'Reminders', permission: 'canManagePolicies' },
+  { to: '/app/reports', icon: BarChart3, label: 'Reports', permission: 'canViewReports' },
 ]
 
 export function Sidebar({ collapsed, onToggle, isMobile = false, onClose }: SidebarProps) {
   const logout = useLogout()
   const { colors } = useTheme()
+  const { hasPermission } = usePermissions()
+
+  const visibleNavItems = useMemo(
+    () => navItems.filter((item) => item.permission === null || hasPermission(item.permission)),
+    [hasPermission]
+  )
   const [tooltip, setTooltip] = useState<TooltipState>({ visible: false, label: '', top: 0 })
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -145,7 +153,7 @@ export function Sidebar({ collapsed, onToggle, isMobile = false, onClose }: Side
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 overflow-y-auto p-4">
-        {navItems.map((item) => (
+        {visibleNavItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
@@ -181,34 +189,36 @@ export function Sidebar({ collapsed, onToggle, isMobile = false, onClose }: Side
 
       {/* Footer */}
       <div className="border-t-2 border-[#1e293b] p-4">
-        <NavLink
-          to="/app/settings"
-          onClick={handleNavClick}
-          onMouseEnter={(e) => showTooltip('Settings', e.currentTarget)}
-          onMouseLeave={hideTooltip}
-          aria-label="Settings"
-          className={({ isActive }) =>
-            cn(
-              'group relative flex items-center rounded-xl text-sm transition-all duration-150',
-              isMobile ? 'min-h-[44px] gap-3 px-3 py-2.5' : (
-                effectiveCollapsed
-                  ? 'h-10 w-10 justify-center mx-auto'
-                  : 'gap-3 px-3 py-2.5'
-              ),
-              isActive ? 'nav-link-active' : 'nav-link-inactive'
-            )
-          }
-        >
-          <Settings className="h-5 w-5 flex-shrink-0" />
-          <span
-            className={cn(
-              'whitespace-nowrap transition-all duration-150',
-              effectiveCollapsed && !isMobile ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'
-            )}
+        {hasPermission('canManageSettings') && (
+          <NavLink
+            to="/app/settings"
+            onClick={handleNavClick}
+            onMouseEnter={(e) => showTooltip('Settings', e.currentTarget)}
+            onMouseLeave={hideTooltip}
+            aria-label="Settings"
+            className={({ isActive }) =>
+              cn(
+                'group relative flex items-center rounded-xl text-sm transition-all duration-150',
+                isMobile ? 'min-h-[44px] gap-3 px-3 py-2.5' : (
+                  effectiveCollapsed
+                    ? 'h-10 w-10 justify-center mx-auto'
+                    : 'gap-3 px-3 py-2.5'
+                ),
+                isActive ? 'nav-link-active' : 'nav-link-inactive'
+              )
+            }
           >
-            Settings
-          </span>
-        </NavLink>
+            <Settings className="h-5 w-5 flex-shrink-0" />
+            <span
+              className={cn(
+                'whitespace-nowrap transition-all duration-150',
+                effectiveCollapsed && !isMobile ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'
+              )}
+            >
+              Settings
+            </span>
+          </NavLink>
+        )}
         <button
           onClick={() => {
             logout.mutate()

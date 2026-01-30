@@ -66,9 +66,18 @@ export function LoginPage() {
           </form>
 
           <div className="mt-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
-            <p className="font-medium">Demo Credentials:</p>
-            <p>Email: admin@pawsclaws.com</p>
-            <p>Password: any password</p>
+            <p className="font-medium mb-1">Demo Accounts (any password):</p>
+            <div className="space-y-1">
+              <button type="button" onClick={() => setEmail('admin@pawsclaws.com')} className="block w-full text-left hover:text-[#1e293b] transition-colors">
+                <span className="font-medium">Owner:</span> admin@pawsclaws.com
+              </button>
+              <button type="button" onClick={() => setEmail('mike@pawsclaws.com')} className="block w-full text-left hover:text-[#1e293b] transition-colors">
+                <span className="font-medium">Groomer:</span> mike@pawsclaws.com
+              </button>
+              <button type="button" onClick={() => setEmail('alex@pawsclaws.com')} className="block w-full text-left hover:text-[#1e293b] transition-colors">
+                <span className="font-medium">Receptionist:</span> alex@pawsclaws.com
+              </button>
+            </div>
           </div>
         </Card>
       </div>

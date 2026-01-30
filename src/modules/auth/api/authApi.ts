@@ -1,4 +1,6 @@
 import type { User } from '../types'
+import type { RolePermissions } from '@/modules/database/types'
+import type { StaffRole } from '@/modules/database/types'
 import { getFromStorage, setToStorage, delay } from '@/modules/database/storage/localStorage'
 import { seedUsers } from '@/modules/database/seed/seed'
 
@@ -46,6 +48,31 @@ export const authApi = {
   async getGroomers(): Promise<User[]> {
     await delay()
     const users = getUsers()
-    return users.filter((u) => u.role === 'groomer' || u.role === 'admin')
+    return users.filter((u) => u.role === 'groomer' || u.role === 'admin' || u.role === 'owner')
+  },
+
+  async updateUserPermissions(
+    userId: string,
+    updates: { role?: StaffRole; permissionOverrides?: Partial<RolePermissions> }
+  ): Promise<User> {
+    await delay()
+    const users = getUsers()
+    const index = users.findIndex((u) => u.id === userId)
+    if (index === -1) throw new Error('User not found')
+
+    users[index] = {
+      ...users[index],
+      ...(updates.role !== undefined && { role: updates.role }),
+      permissionOverrides: updates.permissionOverrides,
+    }
+    setToStorage(USERS_KEY, users)
+
+    // If this is the current user, update their session too
+    const currentUser = getFromStorage<User | null>(CURRENT_USER_KEY, null)
+    if (currentUser?.id === userId) {
+      setToStorage(CURRENT_USER_KEY, users[index])
+    }
+
+    return users[index]
   },
 }

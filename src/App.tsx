@@ -3,7 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '@/modules/database'
 import { ThemeProvider, KeyboardProvider, UndoProvider, ShortcutTipsProvider } from '@/modules/ui/context'
 import { AppLayout, BookingLayout } from '@/modules/ui/components/layout'
-import { LoginPage } from '@/modules/auth'
+import { LoginPage, ProtectedRoute } from '@/modules/auth'
 import {
   DashboardPage,
   CalendarPage,
@@ -41,23 +41,23 @@ function App() {
           {/* Auth routes */}
           <Route path="/login" element={<LoginPage />} />
 
-          {/* Admin app routes */}
-          <Route path="/app" element={<AppLayout />}>
+          {/* Admin app routes - requires authentication */}
+          <Route path="/app" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/app/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="calendar" element={<CalendarPage />} />
-            <Route path="clients" element={<ClientsPage />} />
-            <Route path="clients/:clientId" element={<ClientDetailPage />} />
-            <Route path="pets" element={<PetsPage />} />
-            <Route path="pets/:petId" element={<PetDetailPage />} />
+            <Route path="clients" element={<ProtectedRoute permission="canManageClients"><ClientsPage /></ProtectedRoute>} />
+            <Route path="clients/:clientId" element={<ProtectedRoute permission="canManageClients"><ClientDetailPage /></ProtectedRoute>} />
+            <Route path="pets" element={<ProtectedRoute permission="canManageClients"><PetsPage /></ProtectedRoute>} />
+            <Route path="pets/:petId" element={<ProtectedRoute permission="canManageClients"><PetDetailPage /></ProtectedRoute>} />
             <Route path="groomers" element={<Navigate to="/app/staff" replace />} />
-            <Route path="staff" element={<StaffPage />} />
-            <Route path="staff/:staffId" element={<StaffDetailPage />} />
-            <Route path="services" element={<ServicesPage />} />
-            <Route path="policies" element={<PoliciesPage />} />
-            <Route path="reminders" element={<RemindersPage />} />
-            <Route path="reports" element={<ReportsPage />} />
-            <Route path="settings" element={<SettingsPage />} />
+            <Route path="staff" element={<ProtectedRoute permission="canManageStaff"><StaffPage /></ProtectedRoute>} />
+            <Route path="staff/:staffId" element={<ProtectedRoute permission="canManageStaff"><StaffDetailPage /></ProtectedRoute>} />
+            <Route path="services" element={<ProtectedRoute permission="canManageServices"><ServicesPage /></ProtectedRoute>} />
+            <Route path="policies" element={<ProtectedRoute permission="canManagePolicies"><PoliciesPage /></ProtectedRoute>} />
+            <Route path="reminders" element={<ProtectedRoute permission="canManagePolicies"><RemindersPage /></ProtectedRoute>} />
+            <Route path="reports" element={<ProtectedRoute permission="canViewReports"><ReportsPage /></ProtectedRoute>} />
+            <Route path="settings" element={<ProtectedRoute permission="canManageSettings"><SettingsPage /></ProtectedRoute>} />
           </Route>
 
           {/* Public booking routes */}

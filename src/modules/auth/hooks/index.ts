@@ -1,3 +1,3 @@
-export { useCurrentUser, useUsers, useLogin, useLogout } from './useAuth'
-export { usePermissions } from './usePermissions'
+export { useCurrentUser, useUsers, useLogin, useLogout, useUpdateUserPermissions } from './useAuth'
+export { usePermissions, resolvePermissions } from './usePermissions'
 export type { UsePermissionsReturn } from './usePermissions'

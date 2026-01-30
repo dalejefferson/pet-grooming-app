@@ -15,6 +15,11 @@ const ROLE_BADGES: Record<
   Groomer['role'],
   { color: string; bgColor: string; label: string }
 > = {
+  owner: {
+    color: 'text-[#b45309]',
+    bgColor: 'bg-[#fde68a]',
+    label: 'Owner',
+  },
   admin: {
     color: 'text-[#7c3aed]',
     bgColor: 'bg-[#e9d5ff]',
