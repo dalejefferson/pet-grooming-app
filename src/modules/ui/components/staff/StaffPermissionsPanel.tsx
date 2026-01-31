@@ -71,14 +71,14 @@ export function StaffPermissionsPanel({ staffUserId, staffRole }: StaffPermissio
   const isSelf = currentUser?.id === staffUserId
   const isViewingOwner = staffUser?.role === 'owner'
   const isViewingAdmin = staffUser?.role === 'admin'
-  const canEdit = !isSelf && !isViewingOwner && (isOwner || (!isViewingAdmin))
+  const isSelfOwner = isSelf && isOwner
+  const canEdit = isSelfOwner || (!isSelf && !isViewingOwner && (isOwner || (!isViewingAdmin)))
 
   const roleDefaults = ROLE_PERMISSIONS[selectedRole]
 
   const effectivePermissions = useMemo(() => {
-    if (isViewingOwner) return ROLE_PERMISSIONS.owner
     return { ...roleDefaults, ...localOverrides }
-  }, [isViewingOwner, roleDefaults, localOverrides])
+  }, [roleDefaults, localOverrides])
 
   const handleToggle = useCallback((key: keyof RolePermissions, checked: boolean) => {
     setLocalOverrides((prev) => {
@@ -142,7 +142,7 @@ export function StaffPermissionsPanel({ staffUserId, staffRole }: StaffPermissio
 
   return (
     <div className="space-y-6">
-      {isSelf && (
+      {isSelf && !isOwner && (
         <Card padding="md" colorVariant="lemon">
           <p className="text-sm font-medium text-[#1e293b]">
             You cannot edit your own permissions. Ask another admin or the owner to make changes.
@@ -225,7 +225,7 @@ export function StaffPermissionsPanel({ staffUserId, staffRole }: StaffPermissio
                     <Toggle
                       checked={effectivePermissions[perm.key]}
                       onChange={(checked) => handleToggle(perm.key, checked)}
-                      disabled={!canEdit || isViewingOwner}
+                      disabled={!canEdit}
                     />
                   </div>
                 ))}

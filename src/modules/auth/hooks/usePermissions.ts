@@ -32,9 +32,6 @@ export interface UsePermissionsReturn {
  * Owner role always gets full access regardless of overrides.
  */
 export function resolvePermissions(user: User): RolePermissions {
-  if (user.role === 'owner') {
-    return ROLE_PERMISSIONS.owner
-  }
   const roleDefaults = ROLE_PERMISSIONS[user.role]
   if (!user.permissionOverrides) {
     return roleDefaults
