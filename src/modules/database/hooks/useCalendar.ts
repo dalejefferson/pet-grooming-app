@@ -17,10 +17,11 @@ export function useAppointment(id: string) {
   })
 }
 
-export function useAppointmentsByDay(date: Date, organizationId?: string) {
+export function useAppointmentsByDay(date: Date, organizationId?: string, options?: { refetchInterval?: number }) {
   return useQuery({
     queryKey: ['appointments', 'day', date.toISOString(), organizationId],
     queryFn: () => calendarApi.getByDay(date, organizationId),
+    ...(options?.refetchInterval ? { refetchInterval: options.refetchInterval } : {}),
   })
 }
 

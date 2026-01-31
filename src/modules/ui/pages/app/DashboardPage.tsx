@@ -16,8 +16,8 @@ export function DashboardPage() {
   const { colors } = useTheme()
   const { registerDashboardCycle } = useKeyboardShortcuts()
   const { showUndo } = useUndo()
-  const today = new Date()
-  const { data: todayAppointments = [] } = useAppointmentsByDay(today)
+  const today = useMemo(() => startOfDay(new Date()), [])
+  const { data: todayAppointments = [] } = useAppointmentsByDay(today, undefined, { refetchInterval: 10_000 })
   const { data: clients = [] } = useClients()
   const { data: pets = [] } = usePets()
   const { data: groomers = [] } = useGroomers()
@@ -33,9 +33,7 @@ export function DashboardPage() {
   const deleteAppointment = useDeleteAppointment()
   const createAppointment = useCreateAppointment()
 
-  const [selectedStatuses, setSelectedStatuses] = useState<AppointmentStatus[]>([
-    'requested', 'confirmed', 'checked_in', 'in_progress'
-  ])
+  const [selectedStatuses, setSelectedStatuses] = useState<AppointmentStatus[]>([])
 
   // Issues (No-Shows & Cancellations) range state
   const [issuesRange, setIssuesRange] = useState<'today' | '7days' | '30days'>('today')
@@ -243,43 +241,55 @@ export function DashboardPage() {
             <p className="mt-2 text-gray-600">No upcoming appointments today</p>
           </div>
         ) : (
-          <div className="max-h-[280px] overflow-y-auto space-y-3">
-            {upcomingAppointments.map((appointment) => {
-              const client = clients.find(c => c.id === appointment.clientId)
-              const appointmentPets = appointment.pets.map(p => pets.find(pet => pet.id === p.petId)).filter(Boolean)
-              return (
-                <button
-                  key={appointment.id}
-                  onClick={() => setSelectedAppointment(appointment)}
-                  className="w-full flex items-center justify-between rounded-xl border-2 border-[#1e293b] bg-white p-3 shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b] text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="text-center">
-                      <p className="text-lg font-semibold text-gray-900">
-                        {format(new Date(appointment.startTime), 'h:mm')}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {format(new Date(appointment.startTime), 'a')}
-                      </p>
-                    </div>
-                    <div className="h-10 w-px bg-gray-200" />
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {appointmentPets.map(p => p?.name).join(', ') || `${appointment.pets.length} pet${appointment.pets.length > 1 ? 's' : ''}`}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {client ? `${client.firstName} ${client.lastName}` : `Client #${appointment.clientId.split('-')[1]}`}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge
-                    className={cn(APPOINTMENT_STATUS_COLORS[appointment.status])}
+          <div className="relative">
+            <div className="max-h-[216px] overflow-y-auto space-y-3 scroll-smooth" style={{ scrollbarGutter: 'stable' }}>
+              {upcomingAppointments.map((appointment) => {
+                const client = clients.find(c => c.id === appointment.clientId)
+                const appointmentPets = appointment.pets.map(p => pets.find(pet => pet.id === p.petId)).filter(Boolean)
+                const groomer = groomers.find(g => g.id === appointment.groomerId)
+                return (
+                  <button
+                    key={appointment.id}
+                    onClick={() => setSelectedAppointment(appointment)}
+                    className="w-full flex items-center justify-between rounded-xl border-2 border-[#1e293b] bg-white p-3 shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b] text-left"
                   >
-                    {APPOINTMENT_STATUS_LABELS[appointment.status]}
-                  </Badge>
-                </button>
-              )
-            })}
+                    <div className="flex items-center gap-3">
+                      <div className="text-center min-w-[48px]">
+                        <p className="text-lg font-semibold text-gray-900">
+                          {format(new Date(appointment.startTime), 'h:mm')}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {format(new Date(appointment.startTime), 'a')}
+                        </p>
+                      </div>
+                      <div className="h-10 w-px bg-gray-200" />
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {appointmentPets.map(p => p?.name).join(', ') || `${appointment.pets.length} pet${appointment.pets.length > 1 ? 's' : ''}`}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {client ? `${client.firstName} ${client.lastName}` : `Client #${appointment.clientId.split('-')[1]}`}
+                          {groomer ? ` · ${groomer.firstName}` : ''}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge
+                      className={cn(APPOINTMENT_STATUS_COLORS[appointment.status])}
+                    >
+                      {APPOINTMENT_STATUS_LABELS[appointment.status]}
+                    </Badge>
+                  </button>
+                )
+              })}
+            </div>
+            {upcomingAppointments.length > 3 && (
+              <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent rounded-b-2xl" />
+            )}
+            {upcomingAppointments.length > 3 && (
+              <p className="mt-2 text-center text-xs text-gray-400">
+                Scroll for {upcomingAppointments.length - 3} more appointment{upcomingAppointments.length - 3 > 1 ? 's' : ''}
+              </p>
+            )}
           </div>
         )}
       </Card>
