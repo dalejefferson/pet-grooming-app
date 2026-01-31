@@ -1,32 +1,39 @@
 import { createContext, useContext, useCallback, useEffect, useRef, type ReactNode } from 'react'
-import { useLocation } from 'react-router-dom'
 
 interface KeyboardContextType {
   // Functions to register callbacks from components
   registerSidebarToggle: (toggle: () => void) => void
-  registerCalendarViewCycle: (cycle: () => void) => void
+  registerCalendarNavigate: (navigate: () => void) => void
+  registerCalendarViewCycle: (cycle: (() => void) | null) => void
   registerBookAppointment: (open: () => void) => void
   registerSidebarNavigate: (navigate: (direction: 'up' | 'down') => void) => void
   registerThemeCycle: (cycle: () => void) => void
+  registerReportCycle: (cycle: () => void) => void
+  registerDashboardCycle: (cycle: () => void) => void
 }
 
 const KeyboardContext = createContext<KeyboardContextType | null>(null)
 
 export function KeyboardProvider({ children }: { children: ReactNode }) {
-  const location = useLocation()
-
   // Store callbacks from different parts of the app
   const sidebarToggleRef = useRef<(() => void) | null>(null)
+  const calendarNavigateRef = useRef<(() => void) | null>(null)
   const calendarViewCycleRef = useRef<(() => void) | null>(null)
   const bookAppointmentRef = useRef<(() => void) | null>(null)
   const sidebarNavigateRef = useRef<((direction: 'up' | 'down') => void) | null>(null)
   const themeCycleRef = useRef<(() => void) | null>(null)
+  const reportCycleRef = useRef<(() => void) | null>(null)
+  const dashboardCycleRef = useRef<(() => void) | null>(null)
 
   const registerSidebarToggle = useCallback((toggle: () => void) => {
     sidebarToggleRef.current = toggle
   }, [])
 
-  const registerCalendarViewCycle = useCallback((cycle: () => void) => {
+  const registerCalendarNavigate = useCallback((nav: () => void) => {
+    calendarNavigateRef.current = nav
+  }, [])
+
+  const registerCalendarViewCycle = useCallback((cycle: (() => void) | null) => {
     calendarViewCycleRef.current = cycle
   }, [])
 
@@ -42,6 +49,14 @@ export function KeyboardProvider({ children }: { children: ReactNode }) {
     themeCycleRef.current = cycle
   }, [])
 
+  const registerReportCycle = useCallback((cycle: () => void) => {
+    reportCycleRef.current = cycle
+  }, [])
+
+  const registerDashboardCycle = useCallback((cycle: () => void) => {
+    dashboardCycleRef.current = cycle
+  }, [])
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger shortcuts when typing in inputs
@@ -50,20 +65,28 @@ export function KeyboardProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      // Shift + S: Toggle sidebar
-      if (e.shiftKey && !e.metaKey && !e.ctrlKey && e.key.toLowerCase() === 's') {
+      // S: Toggle sidebar
+      if (!e.shiftKey && !e.metaKey && !e.ctrlKey && e.key.toLowerCase() === 's') {
         e.preventDefault()
         sidebarToggleRef.current?.()
       }
 
-      // Tab: Cycle calendar views (only on calendar page)
-      if (e.key === 'Tab' && !e.shiftKey && !e.metaKey && !e.ctrlKey && location.pathname === '/app/calendar') {
+      // C: Go to calendar
+      if (!e.shiftKey && !e.metaKey && !e.ctrlKey && e.key.toLowerCase() === 'c') {
         e.preventDefault()
-        calendarViewCycleRef.current?.()
+        calendarNavigateRef.current?.()
       }
 
-      // Shift + A: Book appointment
-      if (e.shiftKey && !e.metaKey && !e.ctrlKey && e.key.toLowerCase() === 'a') {
+      // Tab: Cycle calendar views (on calendar page)
+      if (e.key === 'Tab' && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
+        if (calendarViewCycleRef.current) {
+          e.preventDefault()
+          calendarViewCycleRef.current()
+        }
+      }
+
+      // A: Book appointment
+      if (!e.shiftKey && !e.metaKey && !e.ctrlKey && e.key.toLowerCase() === 'a') {
         e.preventDefault()
         bookAppointmentRef.current?.()
       }
@@ -80,19 +103,31 @@ export function KeyboardProvider({ children }: { children: ReactNode }) {
         sidebarNavigateRef.current?.('down')
       }
 
-      // Shift + C: Cycle through color themes
-      if (e.shiftKey && !e.metaKey && !e.ctrlKey && e.key.toLowerCase() === 'c') {
+      // T: Cycle through color themes
+      if (!e.shiftKey && !e.metaKey && !e.ctrlKey && e.key.toLowerCase() === 't') {
         e.preventDefault()
         themeCycleRef.current?.()
+      }
+
+      // R: Cycle report date ranges
+      if (!e.shiftKey && !e.metaKey && !e.ctrlKey && e.key.toLowerCase() === 'r') {
+        e.preventDefault()
+        reportCycleRef.current?.()
+      }
+
+      // D: Cycle dashboard issue ranges
+      if (!e.shiftKey && !e.metaKey && !e.ctrlKey && e.key.toLowerCase() === 'd') {
+        e.preventDefault()
+        dashboardCycleRef.current?.()
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [location.pathname])
+  }, [])
 
   return (
-    <KeyboardContext.Provider value={{ registerSidebarToggle, registerCalendarViewCycle, registerBookAppointment, registerSidebarNavigate, registerThemeCycle }}>
+    <KeyboardContext.Provider value={{ registerSidebarToggle, registerCalendarNavigate, registerCalendarViewCycle, registerBookAppointment, registerSidebarNavigate, registerThemeCycle, registerReportCycle, registerDashboardCycle }}>
       {children}
     </KeyboardContext.Provider>
   )

@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { Download, FileText } from 'lucide-react'
 import { Button } from '../../components/common'
 import { useAppointments, useClients, useServices, useGroomers } from '@/hooks'
 import { format, subDays, parseISO, isWithinInterval, startOfDay, getDay, getHours } from 'date-fns'
 import { cn } from '@/lib/utils'
 import type { AppointmentStatus } from '@/types'
-import { useTheme } from '../../context'
+import { useTheme, useKeyboardShortcuts } from '../../context'
 import { exportReportPdf } from '@/lib/utils/reportPdfExport'
 import { exportReportCsv } from '@/lib/utils/reportCsvExport'
 import {
@@ -28,11 +28,24 @@ import type { DateRange } from '../../components/reports'
 
 export function ReportsPage() {
   const { colors } = useTheme()
+  const { registerReportCycle } = useKeyboardShortcuts()
   const [dateRange, setDateRange] = useState<DateRange>(DATE_RANGES[2]) // Default to 30 days
   const { data: appointments = [] } = useAppointments()
   const { data: clients = [] } = useClients()
   const { data: services = [] } = useServices()
   const { data: groomers = [] } = useGroomers()
+
+  // Cycle through date ranges: 7 -> 14 -> 30 -> 90 -> 7
+  const cycleReportRange = useCallback(() => {
+    setDateRange(current => {
+      const currentIndex = DATE_RANGES.findIndex(r => r.days === current.days)
+      return DATE_RANGES[(currentIndex + 1) % DATE_RANGES.length]
+    })
+  }, [])
+
+  useEffect(() => {
+    registerReportCycle(cycleReportRange)
+  }, [registerReportCycle, cycleReportRange])
 
   const today = startOfDay(new Date())
   const startDate = subDays(today, dateRange.days)

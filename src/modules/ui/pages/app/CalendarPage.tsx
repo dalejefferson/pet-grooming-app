@@ -153,6 +153,7 @@ export function CalendarPage() {
 
   useEffect(() => {
     registerCalendarViewCycle(cycleView)
+    return () => registerCalendarViewCycle(null)
   }, [registerCalendarViewCycle, cycleView])
 
   // Handle book query param from keyboard shortcut

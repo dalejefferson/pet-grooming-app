@@ -33,7 +33,7 @@ export function AppLayout() {
   const [selectedClientId, setSelectedClientId] = useState('')
   const isMobile = useIsMobile()
   const location = useLocation()
-  const { registerSidebarToggle, registerBookAppointment, registerSidebarNavigate, registerThemeCycle } = useKeyboardShortcuts()
+  const { registerSidebarToggle, registerCalendarNavigate, registerBookAppointment, registerSidebarNavigate, registerThemeCycle } = useKeyboardShortcuts()
   const { currentTheme, setTheme } = useTheme()
   const navigate = useNavigate()
 
@@ -72,6 +72,11 @@ export function AppLayout() {
   const { data: services = [] } = useServices()
   const { data: groomers = [] } = useGroomers()
   const createAppointment = useCreateAppointment()
+
+  // Create a stable calendar navigate callback
+  const goToCalendar = useCallback(() => {
+    navigate('/app/calendar')
+  }, [navigate])
 
   // Create a stable toggle callback
   const toggleSidebar = useCallback(() => {
@@ -118,9 +123,10 @@ export function AppLayout() {
   // Register keyboard shortcuts with keyboard context
   useEffect(() => {
     registerSidebarToggle(toggleSidebar)
+    registerCalendarNavigate(goToCalendar)
     registerBookAppointment(openBookAppointment)
     registerThemeCycle(cycleTheme)
-  }, [registerSidebarToggle, registerBookAppointment, registerThemeCycle, toggleSidebar, openBookAppointment, cycleTheme])
+  }, [registerSidebarToggle, registerCalendarNavigate, registerBookAppointment, registerThemeCycle, toggleSidebar, goToCalendar, openBookAppointment, cycleTheme])
 
   // Register sidebar navigation keyboard shortcut
   useEffect(() => {

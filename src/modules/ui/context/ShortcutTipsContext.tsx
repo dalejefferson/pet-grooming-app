@@ -1,12 +1,15 @@
 import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from 'react'
 
 const SHORTCUT_TIPS = [
-  { keys: 'Shift + S', description: 'Collapse or expand the sidebar' },
-  { keys: 'Tab', description: 'Cycle through calendar views (on Calendar page)' },
-  { keys: 'Shift + A', description: 'Quickly book a new appointment' },
+  { keys: 'S', description: 'Collapse or expand the sidebar' },
+  { keys: 'C', description: 'Go to calendar' },
+  { keys: 'Tab', description: 'Cycle calendar views (on Calendar page)' },
+  { keys: 'A', description: 'Quickly book a new appointment' },
+  { keys: 'T', description: 'Cycle through color themes' },
+  { keys: 'R', description: 'Cycle report date ranges' },
+  { keys: 'D', description: 'Cycle dashboard issue ranges' },
   { keys: 'Shift + ↑', description: 'Navigate up in the sidebar menu' },
   { keys: 'Shift + ↓', description: 'Navigate down in the sidebar menu' },
-  { keys: 'Shift + C', description: 'Cycle through color themes' },
 ]
 
 interface ShortcutTipsContextType {

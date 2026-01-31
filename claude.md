@@ -169,11 +169,14 @@ QueryClientProvider > ThemeProvider > BrowserRouter > KeyboardProvider > UndoPro
 
 | Shortcut | Action |
 |----------|--------|
-| `Shift + S` | Toggle sidebar |
+| `S` | Toggle sidebar |
+| `C` | Go to calendar |
 | `Tab` | Cycle calendar views (calendar page only) |
-| `Shift + A` | Book a new appointment |
+| `A` | Book a new appointment |
+| `T` | Cycle through color themes |
+| `R` | Cycle report date ranges |
+| `D` | Cycle dashboard issue ranges |
 | `Shift + Up/Down` | Navigate sidebar menu |
-| `Shift + C` | Cycle through color themes |
 
 ## API Layer
 

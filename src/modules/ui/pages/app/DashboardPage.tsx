@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Calendar, Users, Dog, Clock, TrendingUp, AlertCircle, UserX, XCircle } from 'lucide-react'
 import { Card, CardTitle, Badge } from '../../components/common'
@@ -9,11 +9,12 @@ import { useUndo } from '@/modules/ui/context'
 import { format, subDays, startOfDay } from 'date-fns'
 import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_STATUS_COLORS } from '@/config/constants'
 import { cn } from '@/lib/utils'
-import { useTheme } from '../../context'
+import { useTheme, useKeyboardShortcuts } from '../../context'
 import type { AppointmentStatus, Appointment } from '@/types'
 
 export function DashboardPage() {
   const { colors } = useTheme()
+  const { registerDashboardCycle } = useKeyboardShortcuts()
   const { showUndo } = useUndo()
   const today = new Date()
   const { data: todayAppointments = [] } = useAppointmentsByDay(today)
@@ -38,6 +39,19 @@ export function DashboardPage() {
 
   // Issues (No-Shows & Cancellations) range state
   const [issuesRange, setIssuesRange] = useState<'today' | '7days' | '30days'>('today')
+
+  // Cycle through dashboard issue ranges: today -> 7days -> 30days -> today
+  const cycleDashboardRange = useCallback(() => {
+    setIssuesRange(current => {
+      if (current === 'today') return '7days'
+      if (current === '7days') return '30days'
+      return 'today'
+    })
+  }, [])
+
+  useEffect(() => {
+    registerDashboardCycle(cycleDashboardRange)
+  }, [registerDashboardCycle, cycleDashboardRange])
 
   const issuesDateRange = useMemo(() => {
     const endDate = new Date()
