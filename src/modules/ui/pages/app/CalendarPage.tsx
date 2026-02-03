@@ -1,11 +1,12 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Calendar, dateFnsLocalizer, type View, type Components, type SlotInfo } from 'react-big-calendar'
-import withDragAndDrop, { type EventInteractionArgs } from 'react-big-calendar/lib/addons/dragAndDrop'
-import { format, parse, startOfWeek, endOfWeek, getDay, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from 'date-fns'
-import { enUS } from 'date-fns/locale'
-import 'react-big-calendar/lib/css/react-big-calendar.css'
-import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
+import FullCalendar from '@fullcalendar/react'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import type { EventClickArg, EventDropArg, DateSelectArg, EventContentArg } from '@fullcalendar/core'
+import type { EventResizeDoneArg } from '@fullcalendar/interaction'
+import { format, startOfWeek, endOfWeek, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from 'date-fns'
 
 import { Card, MiniCalendar } from '../../components/common'
 import { useAppointmentsByWeek, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useUpdateAppointment, useClientPets, useServices, useCreateAppointment, useDeleteAppointment, useCurrentUser } from '@/hooks'
@@ -23,27 +24,15 @@ import {
   CreateAppointmentModal,
   RescheduleConfirmModal,
   StatusChangeModal,
-  STATUS_BG_COLORS,
-  STATUS_BORDER_COLORS,
-  STATUS_TEXT_COLORS,
+  toFullCalendarEvent,
+  fromFullCalendarEvent,
   type CalendarEvent,
   type PendingMove,
   type HoverPosition,
   type PetServiceSelection,
 } from '../../components/calendar'
 
-const locales = { 'en-US': enUS }
-
-const localizer = dateFnsLocalizer({
-  format,
-  parse,
-  startOfWeek,
-  getDay,
-  locales,
-})
-
-// Create the drag-and-drop enabled calendar
-const DragAndDropCalendar = withDragAndDrop<CalendarEvent, object>(Calendar)
+const FC_VIEW_MAP = { day: 'timeGridDay', week: 'timeGridWeek', month: 'dayGridMonth' } as const
 
 export function CalendarPage() {
   const { colors } = useTheme()
@@ -51,8 +40,9 @@ export function CalendarPage() {
   const { registerCalendarViewCycle } = useKeyboardShortcuts()
   const { showUndo } = useUndo()
   const [searchParams, setSearchParams] = useSearchParams()
+  const calendarRef = useRef<FullCalendar>(null)
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [view, setView] = useState<View>('month')
+  const [view, setView] = useState<'day' | 'week' | 'month'>('month')
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedStatuses, setSelectedStatuses] = useState<AppointmentStatus[]>([])
@@ -130,6 +120,21 @@ export function CalendarPage() {
     return filtered
   }, [events, searchQuery, selectedStatuses])
 
+  // Transform events for FullCalendar
+  const fcEvents = useMemo(() => filteredEvents.map(toFullCalendarEvent), [filteredEvents])
+
+  // Sync view changes to FullCalendar imperatively
+  useEffect(() => {
+    const api = calendarRef.current?.getApi()
+    if (api) api.changeView(FC_VIEW_MAP[view])
+  }, [view])
+
+  // Sync date changes to FullCalendar imperatively
+  useEffect(() => {
+    const api = calendarRef.current?.getApi()
+    if (api) api.gotoDate(currentDate)
+  }, [currentDate])
+
   // Handle ESC key to clear search
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -139,9 +144,11 @@ export function CalendarPage() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [searchQuery])
 
-  const handleSelectEvent = useCallback((event: CalendarEvent) => setSelectedAppointment(event.resource), [])
-  const handleNavigate = useCallback((date: Date) => setCurrentDate(date), [])
-  const handleViewChange = useCallback((newView: View) => setView(newView), [])
+  const handleEventClick = useCallback((info: EventClickArg) => {
+    setSelectedAppointment(info.event.extendedProps.resource as Appointment)
+  }, [])
+
+  const handleViewChange = useCallback((newView: 'day' | 'week' | 'month') => setView(newView), [])
 
   // Cycle through views: day -> week -> month -> day
   const cycleView = useCallback(() => {
@@ -231,17 +238,19 @@ export function CalendarPage() {
   // Drag and drop handlers
   const handleDragStart = useCallback(() => { setIsDragging(true); setSelectedAppointment(null); setHoveredAppointment(null); setHoverPosition(null) }, [])
 
-  const handleEventDrop = useCallback(({ event, start, end }: EventInteractionArgs<CalendarEvent>) => {
+  const handleEventDrop = useCallback((info: EventDropArg) => {
     setIsDragging(false)
-    if (event.start.getTime() === new Date(start).getTime() && event.end.getTime() === new Date(end).getTime()) return
-    setPendingMove({ event, start: new Date(start), end: new Date(end), isResize: false })
+    if (!info.event.start || !info.event.end) { info.revert(); return }
+    const calEvent = fromFullCalendarEvent(info.event)
+    setPendingMove({ event: calEvent, start: info.event.start, end: info.event.end, isResize: false, revert: info.revert })
     setShowMoveConfirmModal(true)
   }, [])
 
-  const handleEventResize = useCallback(({ event, start, end }: EventInteractionArgs<CalendarEvent>) => {
+  const handleEventResize = useCallback((info: EventResizeDoneArg) => {
     setIsDragging(false)
-    if (event.start.getTime() === new Date(start).getTime() && event.end.getTime() === new Date(end).getTime()) return
-    setPendingMove({ event, start: new Date(start), end: new Date(end), isResize: true })
+    if (!info.event.start || !info.event.end) { info.revert(); return }
+    const calEvent = fromFullCalendarEvent(info.event)
+    setPendingMove({ event: calEvent, start: info.event.start, end: info.event.end, isResize: true, revert: info.revert })
     setShowMoveConfirmModal(true)
   }, [])
 
@@ -252,14 +261,19 @@ export function CalendarPage() {
     setShowMoveConfirmModal(false)
   }, [pendingMove, updateAppointment])
 
-  const handleCancelMove = useCallback(() => { setPendingMove(null); setShowMoveConfirmModal(false) }, [])
+  const handleCancelMove = useCallback(() => {
+    pendingMove?.revert()
+    setPendingMove(null)
+    setShowMoveConfirmModal(false)
+  }, [pendingMove])
 
   // Create appointment handlers
-  const handleSelectSlot = useCallback((slotInfo: SlotInfo) => {
-    setCreateStartTime(format(slotInfo.start, "yyyy-MM-dd'T'HH:mm"))
-    setCreateEndTime(format(slotInfo.end, "yyyy-MM-dd'T'HH:mm"))
+  const handleDateSelect = useCallback((info: DateSelectArg) => {
+    setCreateStartTime(format(info.start, "yyyy-MM-dd'T'HH:mm"))
+    setCreateEndTime(format(info.end, "yyyy-MM-dd'T'HH:mm"))
     setSelectedClientId('')
     setShowCreateModal(true)
+    calendarRef.current?.getApi().unselect()
   }, [])
 
   const handleCreateAppointment = useCallback(async (data: { clientId: string; petServices: PetServiceSelection[]; groomerId: string; notes: string; startTime: string; endTime: string }) => {
@@ -336,56 +350,24 @@ export function CalendarPage() {
     return format(currentDate, 'EEEE, MMMM d, yyyy')
   }, [currentDate, view])
 
-  // Event style getter - compact for month view, detailed for day/week
-  const eventStyleGetter = useCallback((event: CalendarEvent) => {
-    const status = event.resource.status
-    const isMonthView = view === 'month'
-
-    if (isMonthView) {
-      // Compact pill style for month view
-      return {
-        style: {
-          backgroundColor: STATUS_BG_COLORS[status],
-          color: STATUS_TEXT_COLORS[status],
-          border: `1px solid ${STATUS_BORDER_COLORS[status]}`,
-          borderRadius: '6px',
-          padding: '1px 6px',
-          fontSize: '11px',
-          fontWeight: '500',
-          boxShadow: 'none',
-          lineHeight: '1.3',
-        },
-      }
-    }
-
-    // Detailed style for day/week views
-    return {
-      style: {
-        backgroundColor: STATUS_BG_COLORS[status],
-        color: STATUS_TEXT_COLORS[status],
-        border: `2px solid ${STATUS_BORDER_COLORS[status]}`,
-        borderRadius: '12px',
-        padding: '4px 8px',
-        fontSize: '13px',
-        fontWeight: '500',
-        boxShadow: '2px 2px 0px 0px #1e293b',
-      },
-    }
-  }, [view])
-
-  // Event wrapper component
-  const EventWrapper = useCallback(
-    ({ event }: { event: CalendarEvent }) => <CustomEvent event={event} onMouseEnter={handleEventMouseEnter} onMouseLeave={handleEventMouseLeave} />,
-    [handleEventMouseEnter, handleEventMouseLeave]
-  )
-
-  const components: Components<CalendarEvent, object> = useMemo(() => ({ event: EventWrapper, toolbar: () => null }), [EventWrapper])
+  // FullCalendar custom event content renderer
+  const renderEventContent = useCallback((eventInfo: EventContentArg) => {
+    const calEvent = fromFullCalendarEvent(eventInfo.event)
+    return (
+      <CustomEvent
+        event={calEvent}
+        view={eventInfo.view.type}
+        onMouseEnter={handleEventMouseEnter}
+        onMouseLeave={handleEventMouseLeave}
+      />
+    )
+  }, [handleEventMouseEnter, handleEventMouseLeave])
 
   return (
     <div className={cn('min-h-screen p-4 lg:p-6 flex flex-col', colors.pageGradientLight)}>
       <div className="flex flex-col gap-6 flex-1 min-h-0">
         <CalendarToolbar
-          view={view as 'day' | 'week' | 'month'}
+          view={view}
           searchQuery={searchQuery}
           filteredEventsCount={filteredEvents.length}
           totalEventsCount={events.length}
@@ -409,31 +391,30 @@ export function CalendarPage() {
           <Card padding="none" className={cn('flex-1 min-h-0 bg-white/80 backdrop-blur-sm', isDragging && 'cursor-grabbing')}>
             <div className="p-2 sm:p-4 h-full min-h-[500px] overflow-x-auto">
               <div className="min-w-[600px] h-full">
-                <DragAndDropCalendar
-                  localizer={localizer}
-                  events={filteredEvents}
-                  startAccessor="start"
-                  endAccessor="end"
-                  view={view}
-                  date={currentDate}
-                  onNavigate={handleNavigate}
-                  onView={handleViewChange}
-                  onSelectEvent={handleSelectEvent}
-                  eventPropGetter={eventStyleGetter}
-                  components={components}
-                  min={new Date(0, 0, 0, CALENDAR_BUSINESS_HOURS.start)}
-                  max={new Date(0, 0, 0, CALENDAR_BUSINESS_HOURS.end)}
-                  views={['day', 'week', 'month']}
-                  step={15}
-                  timeslots={4}
-                  popup
-                  selectable
-                  draggableAccessor={() => true}
-                  resizable
-                  onDragStart={handleDragStart}
-                  onEventDrop={handleEventDrop}
-                  onEventResize={handleEventResize}
-                  onSelectSlot={handleSelectSlot}
+                <FullCalendar
+                  ref={calendarRef}
+                  plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                  initialView="dayGridMonth"
+                  headerToolbar={false}
+                  events={fcEvents}
+                  eventContent={renderEventContent}
+                  eventClick={handleEventClick}
+                  eventDrop={handleEventDrop}
+                  eventResize={handleEventResize}
+                  eventDragStart={handleDragStart}
+                  select={handleDateSelect}
+                  selectable={true}
+                  editable={true}
+                  slotMinTime={`${String(CALENDAR_BUSINESS_HOURS.start).padStart(2, '0')}:00:00`}
+                  slotMaxTime={`${String(CALENDAR_BUSINESS_HOURS.end).padStart(2, '0')}:00:00`}
+                  slotDuration="00:15:00"
+                  slotLabelInterval="01:00:00"
+                  dayMaxEvents={true}
+                  height="100%"
+                  expandRows={true}
+                  nowIndicator={true}
+                  eventTimeFormat={{ hour: 'numeric', minute: '2-digit', meridiem: 'short' }}
+                  firstDay={0}
                 />
               </div>
             </div>

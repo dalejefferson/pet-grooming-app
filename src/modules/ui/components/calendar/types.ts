@@ -1,4 +1,5 @@
 import type { Appointment, AppointmentStatus, Pet, Groomer, Client, Service } from '@/types'
+import type { EventInput, EventApi } from '@fullcalendar/core'
 
 // Hover popup position type
 export interface HoverPosition {
@@ -6,7 +7,7 @@ export interface HoverPosition {
   y: number
 }
 
-// Calendar event for react-big-calendar
+// Calendar event for FullCalendar
 export interface CalendarEvent {
   id: string
   title: string
@@ -24,6 +25,7 @@ export interface PendingMove {
   start: Date
   end: Date
   isResize: boolean
+  revert: () => void
 }
 
 // Interface for pet service selection in create appointment form
@@ -44,6 +46,7 @@ export interface HoverPopupProps {
 // Custom event component props interface
 export interface CustomEventProps {
   event: CalendarEvent
+  view?: string
   onMouseEnter?: (event: CalendarEvent, e: React.MouseEvent) => void
   onMouseLeave?: () => void
 }
@@ -149,6 +152,41 @@ export const STATUS_BORDER_COLORS: Record<AppointmentStatus, string> = {
   completed: '#49634c',
   cancelled: '#9ca3af',
   no_show: '#f472b6',
+}
+
+/** Convert our CalendarEvent to FullCalendar EventInput */
+export function toFullCalendarEvent(event: CalendarEvent): EventInput {
+  const status = event.resource.status
+  return {
+    id: event.id,
+    title: event.title,
+    start: event.start,
+    end: event.end,
+    backgroundColor: STATUS_BG_COLORS[status],
+    borderColor: STATUS_BORDER_COLORS[status],
+    textColor: STATUS_TEXT_COLORS[status],
+    classNames: [`status-${status}`],
+    extendedProps: {
+      resource: event.resource,
+      clientName: event.clientName,
+      petNames: event.petNames,
+      serviceSummary: event.serviceSummary,
+    },
+  }
+}
+
+/** Extract our CalendarEvent from FullCalendar EventApi */
+export function fromFullCalendarEvent(event: EventApi): CalendarEvent {
+  return {
+    id: event.id,
+    title: event.title,
+    start: event.start!,
+    end: event.end!,
+    resource: event.extendedProps.resource as Appointment,
+    clientName: event.extendedProps.clientName as string,
+    petNames: event.extendedProps.petNames as string,
+    serviceSummary: event.extendedProps.serviceSummary as string,
+  }
 }
 
 export type ViewType = 'day' | 'week' | 'month'

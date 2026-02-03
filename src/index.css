@@ -110,169 +110,143 @@ body {
   border: 2px solid #1e293b;
 }
 
-/* React Big Calendar styles - Pastel neo-brutalist */
-.rbc-calendar {
+/* FullCalendar CSS Variable Overrides */
+:root {
+  --fc-border-color: #1e293b;
+  --fc-today-bg-color: #f0fdf4;
+  --fc-now-indicator-color: #6F8F72;
+  --fc-highlight-color: rgba(111, 143, 114, 0.2);
+  --fc-event-border-color: #1e293b;
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: #f8fafc;
+  --fc-small-font-size: 0.875rem;
+}
+
+/* FullCalendar styles - Pastel neo-brutalist */
+.fc {
   @apply bg-white rounded-2xl;
   border: 2px solid #1e293b;
   box-shadow: 3px 3px 0px 0px #1e293b;
 }
 
-.rbc-header {
+.fc-col-header-cell {
   @apply py-2 font-semibold;
   color: #334155;
   border-bottom: 2px solid #1e293b;
 }
 
-.rbc-time-view {
+.fc-timegrid {
   border: 2px solid #1e293b;
   @apply rounded-2xl;
 }
 
-.rbc-time-header {
+.fc-timegrid .fc-col-header {
   border-bottom: 2px solid #1e293b;
 }
 
-.rbc-time-content {
-  @apply border-t-0;
-}
-
-.rbc-time-slot {
+.fc-timegrid-slot {
   border-top: 1px solid #cbd5e1;
 }
 
-.rbc-timeslot-group {
-  border-bottom: 1px solid #cbd5e1;
+.fc-timegrid-now-indicator-line {
+  border-color: var(--fc-now-indicator-color);
 }
 
-.rbc-day-slot .rbc-time-slot {
-  border-top: 1px solid #cbd5e1;
-}
-
-.rbc-current-time-indicator {
-  @apply bg-primary-500;
-}
-
-.rbc-event {
-  @apply rounded-xl px-2 py-1 text-sm text-white;
-  background-color: #6F8F72;
+/* Event styles */
+.fc-event {
+  @apply rounded-xl px-2 py-1 text-sm;
   border: 2px solid #1e293b;
   box-shadow: 2px 2px 0px 0px #1e293b;
   cursor: pointer;
 }
 
-.rbc-event-content {
+.fc-event-main {
   @apply font-medium;
 }
 
-.rbc-toolbar {
-  @apply mb-4 flex flex-wrap gap-2;
+/* Today cell highlight */
+.fc-day-today {
+  background-color: var(--fc-today-bg-color) !important;
 }
 
-.rbc-toolbar button {
-  @apply px-3 py-1.5 text-sm font-medium rounded-xl bg-white;
-  color: #334155;
-  border: 2px solid #1e293b;
-  box-shadow: 2px 2px 0px 0px #1e293b;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.rbc-toolbar button:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0px 0px #1e293b;
-  background-color: #f0fdf4;
-}
-
-.rbc-toolbar button:active {
-  transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0px 0px #1e293b;
-}
-
-.rbc-toolbar button.rbc-active {
-  background-color: #6F8F72;
-  color: white;
-  border: 2px solid #1e293b;
-}
-
-.rbc-today {
-  background-color: #f0fdf4;
-}
-
-.rbc-event:hover {
-  background-color: #5a7a5d;
+/* Event hover */
+.fc-event:hover {
   transform: translate(-1px, -1px);
   box-shadow: 3px 3px 0px 0px #1e293b;
 }
 
-.rbc-event.rbc-selected {
-  background-color: #49634c;
+/* Event selected */
+.fc-event.fc-event-selected {
+  background-color: #49634c !important;
 }
 
-.rbc-show-more {
+/* "+N more" link */
+.fc-daygrid-more-link {
   color: #6F8F72;
   cursor: pointer;
   @apply font-semibold text-sm;
 }
 
-.rbc-show-more:hover {
+.fc-daygrid-more-link:hover {
   color: #49634c;
 }
 
-/* Month view styles */
-.rbc-month-view {
+/* Month view / daygrid styles */
+.fc-daygrid {
   border: 2px solid #1e293b;
   @apply rounded-2xl overflow-hidden;
 }
 
-/* Header row container - ensure it stays inside rounded corners */
-.rbc-month-view .rbc-month-header {
-  @apply overflow-hidden;
+.fc-view-harness {
+  @apply rounded-2xl overflow-hidden;
 }
 
-.rbc-month-row {
+.fc-daygrid-body tr {
   border-bottom: 1px solid #cbd5e1;
 }
 
-.rbc-month-row:last-child {
+.fc-daygrid-body tr:last-child {
   border-bottom: none;
 }
 
-.rbc-date-cell {
-  @apply py-1 px-2 text-right font-semibold;
+/* Date number styling */
+.fc-daygrid-day-number {
+  @apply py-1 px-2 font-semibold;
   color: #334155;
+  text-align: right;
 }
 
-.rbc-date-cell.rbc-now {
+.fc-day-today .fc-daygrid-day-number {
   color: #6F8F72;
   @apply font-bold;
 }
 
-.rbc-date-cell.rbc-off-range {
+.fc-day-other .fc-daygrid-day-number {
   color: #94a3b8;
 }
 
-.rbc-off-range-bg {
+.fc-day-other {
   background-color: #f8fafc;
 }
 
-/* Month view header - properly contained with no overflow */
-.rbc-month-view .rbc-header {
+/* Month view header - theme-aware */
+.fc-daygrid .fc-col-header-cell {
   border-bottom: 2px solid #1e293b;
   @apply py-3 font-bold text-sm;
   color: var(--text-on-accent-light, #1e293b);
   background-color: var(--accent-color-light);
 }
 
-/* First and last header cells - clean up corners */
-.rbc-month-view .rbc-header:first-child {
+.fc-daygrid .fc-col-header-cell:first-child {
   @apply rounded-tl-xl;
 }
 
-.rbc-month-view .rbc-header:last-child {
+.fc-daygrid .fc-col-header-cell:last-child {
   @apply rounded-tr-xl;
 }
 
 /* Month view events - compact single-line pills */
-.rbc-month-view .rbc-event {
+.fc-daygrid-event {
   @apply text-xs py-0.5 px-2 rounded-lg;
   box-shadow: 1px 1px 0px 0px #1e293b;
   border-width: 2px;
@@ -280,50 +254,100 @@ body {
   max-height: 20px;
 }
 
-/* Hide full details in month view, show compact */
-.rbc-month-view .event-full-details {
-  @apply hidden;
-}
-
-.rbc-month-view .event-compact {
-  @apply block;
-}
-
-/* Ensure events don't overflow their cells */
-.rbc-month-view .rbc-row-segment {
+/* Event harness spacing */
+.fc-daygrid-event-harness {
   @apply py-0.5 px-0.5;
 }
 
-/* Row content should not clip events harshly */
-.rbc-month-view .rbc-row-content {
-  @apply relative;
-  z-index: 4;
-}
-
 /* Day view styles */
-.rbc-day-view .rbc-time-header {
+.fc-timeGridDay-view .fc-col-header {
   border-bottom: 2px solid #1e293b;
 }
 
-.rbc-day-view .rbc-allday-cell {
+.fc-timegrid-allday {
   border-bottom: 1px solid #cbd5e1;
+  @apply min-h-8;
 }
 
-/* Agenda view styles (hidden by default, but styled just in case) */
-.rbc-agenda-view {
-  @apply rounded-2xl overflow-hidden;
+/* "+N more" popover */
+.fc-popover {
+  @apply rounded-xl p-3 z-50;
+  border: 2px solid #1e293b !important;
+  box-shadow: 4px 4px 0px 0px #1e293b;
+  background-color: white;
+}
+
+.fc-popover-header {
+  @apply font-bold text-sm py-2 border-b-2 border-[#1e293b] mb-2;
+  color: #1e293b;
+}
+
+/* Selection highlight */
+.fc-highlight {
+  background-color: var(--fc-highlight-color) !important;
+  border: 2px dashed #6F8F72;
+  @apply rounded-lg;
+}
+
+/* Time gutter styling */
+.fc-timegrid-axis-cushion {
+  @apply text-xs font-medium px-2;
+  color: #64748b;
+}
+
+/* Day cell hover */
+.fc-daygrid-day:hover {
+  background-color: rgba(111, 143, 114, 0.05);
+}
+
+/* Time slot interactions */
+.fc-timegrid-slot {
+  transition: background-color 0.15s ease;
+}
+
+.fc-timegrid-slot:hover {
+  background-color: rgba(111, 143, 114, 0.1);
+  cursor: pointer;
+}
+
+/* Event focus state */
+.fc-event:focus {
+  outline: 2px solid #6F8F72;
+  outline-offset: 2px;
+}
+
+/* Remove FullCalendar default button styles since we use custom toolbar */
+.fc .fc-toolbar {
+  display: none;
+}
+
+/* Ensure events in timegrid have proper styling */
+.fc-timegrid-event {
+  @apply rounded-xl;
   border: 2px solid #1e293b;
+  box-shadow: 2px 2px 0px 0px #1e293b;
 }
 
-.rbc-agenda-date-cell,
-.rbc-agenda-time-cell {
-  @apply font-semibold py-2 px-3;
-  color: #334155;
-  white-space: nowrap;
+/* Override FullCalendar's default event styling to use our per-event colors */
+.fc-daygrid-event .fc-event-main {
+  @apply p-0;
 }
 
-.rbc-agenda-event-cell {
-  @apply py-2 px-3;
+.fc-timegrid-event .fc-event-main {
+  @apply p-1;
+}
+
+/* Ensure the calendar table borders use our ink color */
+.fc table {
+  border-color: #1e293b;
+}
+
+.fc td, .fc th {
+  border-color: #cbd5e1;
+}
+
+.fc .fc-scrollgrid {
+  border-color: #1e293b;
 }
 
 /* ============================================
@@ -446,74 +470,3 @@ body {
   transform-origin: top;
 }
 
-/* Event popup/overlay styles */
-.rbc-overlay {
-  @apply rounded-xl p-3 z-50;
-  border: 2px solid #1e293b;
-  box-shadow: 4px 4px 0px 0px #1e293b;
-  background-color: white;
-}
-
-.rbc-overlay-header {
-  @apply font-bold text-sm py-2 border-b-2 border-[#1e293b] mb-2;
-  color: #1e293b;
-}
-
-/* Selected slot styles */
-.rbc-slot-selection {
-  background-color: rgba(111, 143, 114, 0.2);
-  border: 2px dashed #6F8F72;
-  @apply rounded-lg;
-}
-
-/* Time gutter styling */
-.rbc-time-gutter {
-  @apply text-xs font-medium;
-  color: #64748b;
-}
-
-.rbc-label {
-  @apply px-2;
-}
-
-/* All day row styling */
-.rbc-allday-cell {
-  @apply min-h-8;
-}
-
-/* Row background hover */
-.rbc-day-bg:hover {
-  background-color: rgba(111, 143, 114, 0.05);
-}
-
-/* Time slot hover highlighting - Day and Week views */
-.rbc-time-slot {
-  transition: background-color 0.15s ease;
-}
-
-.rbc-day-slot .rbc-time-slot:hover {
-  background-color: rgba(111, 143, 114, 0.1);
-  cursor: pointer;
-}
-
-/* Time slot group hover for better visual feedback */
-.rbc-timeslot-group:hover {
-  background-color: rgba(111, 143, 114, 0.05);
-}
-
-/* Specific styling for selectable time slots */
-.rbc-day-slot .rbc-timeslot-group:hover .rbc-time-slot {
-  background-color: rgba(111, 143, 114, 0.08);
-}
-
-/* Hover effect on individual time slots in the day column */
-.rbc-day-slot .rbc-events-container + .rbc-timeslot-group .rbc-time-slot:hover,
-.rbc-day-slot .rbc-time-slot:hover {
-  background-color: rgba(111, 143, 114, 0.12);
-}
-
-/* Improve event focus state */
-.rbc-event:focus {
-  outline: 2px solid #6F8F72;
-  outline-offset: 2px;
-}

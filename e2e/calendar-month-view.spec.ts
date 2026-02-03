@@ -4,30 +4,30 @@ test.describe('Calendar Month View', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/app/calendar')
     // Month is the default view, wait for calendar to render
-    await page.waitForSelector('.rbc-month-view', { timeout: 15000 })
+    await page.waitForSelector('.fc-view-harness', { timeout: 15000 })
   })
 
   test('event cards in last row are not clipped by overflow', async ({ page }) => {
-    // Get the month view container
-    const monthView = page.locator('.rbc-month-view')
-    await expect(monthView).toBeVisible()
+    // Get the view harness container
+    const viewHarness = page.locator('.fc-view-harness')
+    await expect(viewHarness).toBeVisible()
 
-    // Get all month rows
-    const monthRows = page.locator('.rbc-month-row')
-    const rowCount = await monthRows.count()
+    // Get all daygrid rows
+    const daygridRows = page.locator('.fc-daygrid-body tr')
+    const rowCount = await daygridRows.count()
     expect(rowCount).toBeGreaterThan(0)
 
     // Get the last row
-    const lastRow = monthRows.nth(rowCount - 1)
+    const lastRow = daygridRows.nth(rowCount - 1)
     await expect(lastRow).toBeVisible()
 
     // Check that no ancestor has overflow: hidden that would clip the events
     // We verify this by checking the computed styles
     const ancestorOverflowCheck = await page.evaluate(() => {
-      const monthView = document.querySelector('.rbc-month-view')
-      if (!monthView) return { hasProblematicOverflow: false, element: null }
+      const viewHarness = document.querySelector('.fc-view-harness')
+      if (!viewHarness) return { hasProblematicOverflow: false, element: null }
 
-      let current: Element | null = monthView
+      let current: Element | null = viewHarness
       while (current && current !== document.body) {
         const style = window.getComputedStyle(current)
         const overflow = style.overflow
@@ -36,7 +36,7 @@ test.describe('Calendar Month View', () => {
         // overflow-hidden on a flex container with scrollable children is problematic
         if (
           (overflow === 'hidden' || overflowY === 'hidden') &&
-          current.classList.contains('rbc-month-view') === false
+          current.classList.contains('fc-view-harness') === false
         ) {
           // Check if this is the Card wrapper which shouldn't have overflow-hidden
           if (current.classList.contains('overflow-hidden')) {
@@ -62,7 +62,7 @@ test.describe('Calendar Month View', () => {
     await page.waitForTimeout(500)
 
     // Get the calendar container bounding box
-    const calendarCard = page.locator('.rbc-calendar').first()
+    const calendarCard = page.locator('.fc').first()
     await expect(calendarCard).toBeVisible()
 
     const boundingBox = await calendarCard.boundingBox()
@@ -81,7 +81,7 @@ test.describe('Calendar Month View', () => {
 
   test('events are visible and not cut off', async ({ page }) => {
     // Look for any event cards on the calendar
-    const events = page.locator('.rbc-event')
+    const events = page.locator('.fc-event')
     const eventCount = await events.count()
 
     if (eventCount > 0) {
@@ -102,11 +102,11 @@ test.describe('Calendar Month View', () => {
   })
 
   test('month view container has proper corner clipping', async ({ page }) => {
-    const monthView = page.locator('.rbc-month-view')
-    await expect(monthView).toBeVisible()
+    const viewHarness = page.locator('.fc-view-harness')
+    await expect(viewHarness).toBeVisible()
 
     // Check the computed styles for proper corner handling
-    const containerStyle = await monthView.evaluate((el) => {
+    const containerStyle = await viewHarness.evaluate((el) => {
       const style = window.getComputedStyle(el)
       return {
         overflow: style.overflow,
@@ -114,7 +114,7 @@ test.describe('Calendar Month View', () => {
       }
     })
 
-    // Month view container SHOULD have overflow-hidden for border-radius clipping
+    // View harness container SHOULD have overflow-hidden for border-radius clipping
     // This ensures the header row corners don't stick outside the rounded border
     expect(containerStyle.overflow).toBe('hidden')
     // Should have rounded corners

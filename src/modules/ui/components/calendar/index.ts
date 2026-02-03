@@ -29,4 +29,6 @@ export {
   STATUS_BG_COLORS,
   STATUS_TEXT_COLORS,
   STATUS_BORDER_COLORS,
+  toFullCalendarEvent,
+  fromFullCalendarEvent,
 } from './types'
