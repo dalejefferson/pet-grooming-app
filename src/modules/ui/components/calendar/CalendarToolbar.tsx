@@ -1,4 +1,5 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Search, X } from 'lucide-react'
 import { Card } from '../common'
 import { cn } from '@/lib/utils'
@@ -16,20 +17,26 @@ interface TooltipState {
 }
 
 function StatusTooltip({ visible, label, left, top }: TooltipState) {
-  if (!visible) return null
+  const [mounted, setMounted] = useState(false)
 
-  return (
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!visible || !mounted) return null
+
+  return createPortal(
     <div
-      className="pointer-events-none fixed z-50 whitespace-nowrap rounded-xl border-2 border-[#1e293b] bg-white px-3 py-1.5 text-sm font-medium text-[#1e293b] shadow-[2px_2px_0px_0px_#1e293b] transition-opacity duration-150"
+      className="pointer-events-none fixed z-[9999] whitespace-nowrap rounded-xl border-2 border-[#1e293b] bg-white px-3 py-1.5 text-sm font-bold text-[#1e293b] shadow-[3px_3px_0px_0px_#1e293b] animate-fade-in"
       style={{
         left: `${left}px`,
         top: `${top}px`,
         transform: 'translateX(-50%)',
-        opacity: visible ? 1 : 0,
       }}
     >
       {label}
-    </div>
+    </div>,
+    document.body
   )
 }
 
@@ -175,9 +182,9 @@ function StatusFilters({ selectedStatuses, onStatusFilterChange }: StatusFilters
     }
 
     const rect = element.getBoundingClientRect()
-    // Position tooltip centered above the button
+    // Position tooltip centered above the button with gap
     const left = rect.left + rect.width / 2
-    const top = rect.top - 36
+    const top = rect.top - 40
     setTooltip({ visible: true, label, left, top })
   }, [])
 
