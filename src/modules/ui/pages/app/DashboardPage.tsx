@@ -184,12 +184,12 @@ export function DashboardPage() {
           <Link key={stat.label} to={stat.link}>
             <Card className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]">
               <div className="flex items-center gap-4">
-                <div className={cn('rounded-lg p-3', stat.color)}>
+                <div className={cn('shrink-0 rounded-lg p-3', stat.color)}>
                   <stat.icon className="h-6 w-6" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  <p className="text-sm text-gray-600">{stat.label}</p>
+                  <p className="truncate text-sm text-gray-600">{stat.label}</p>
                 </div>
               </div>
             </Card>

@@ -1,14 +1,14 @@
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Phone, Mail, MapPin, Dog, Plus, Edit2, Calendar } from 'lucide-react'
-import { Card, CardTitle, Button, Badge, LoadingPage, Modal, Input, Select, Textarea, ImageUpload } from '../../components/common'
+import { Card, CardTitle, Button, Badge, LoadingPage, Modal, Input, Select, Textarea, ImageUpload, ComboBox } from '../../components/common'
 import { CreateAppointmentModal } from '../../components/calendar'
 import type { PetServiceSelection } from '../../components/calendar'
 import { PaymentMethodsSection } from '../../components/payment'
 import { useClient, useClientPets, useUpdateClient, useCreatePet, useOrganization, useServices, useGroomers, useCreateAppointment, useCurrentUser } from '@/hooks'
 import { formatPhone, cn } from '@/lib/utils'
-import { BEHAVIOR_LEVEL_LABELS, COAT_TYPE_LABELS, WEIGHT_RANGE_LABELS } from '@/config/constants'
+import { BEHAVIOR_LEVEL_LABELS, COAT_TYPE_LABELS, WEIGHT_RANGE_LABELS, DOG_BREEDS, CAT_BREEDS } from '@/config/constants'
 import type { Pet, AppointmentStatus } from '@/types'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useTheme } from '../../context'
 
 function PetForm({
@@ -36,6 +36,12 @@ function PetForm({
     groomingNotes: '',
     imageUrl: undefined as string | undefined,
   })
+
+  const breedOptions = useMemo(() => {
+    if (formData.species === 'dog') return DOG_BREEDS.map((b) => ({ value: b, label: b }))
+    if (formData.species === 'cat') return CAT_BREEDS.map((b) => ({ value: b, label: b }))
+    return []
+  }, [formData.species])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -73,14 +79,25 @@ function PetForm({
             { value: 'other', label: 'Other' },
           ]}
           value={formData.species}
-          onChange={(e) => setFormData((p) => ({ ...p, species: e.target.value as Pet['species'] }))}
+          onChange={(e) => setFormData((p) => ({ ...p, species: e.target.value as Pet['species'], breed: '' }))}
         />
-        <Input
-          label="Breed"
-          value={formData.breed}
-          onChange={(e) => setFormData((p) => ({ ...p, breed: e.target.value }))}
-          required
-        />
+        {formData.species === 'other' ? (
+          <Input
+            label="Breed"
+            value={formData.breed}
+            onChange={(e) => setFormData((p) => ({ ...p, breed: e.target.value }))}
+            placeholder="Enter breed"
+            required
+          />
+        ) : (
+          <ComboBox
+            label="Breed"
+            options={breedOptions}
+            value={formData.breed}
+            onChange={(value) => setFormData((p) => ({ ...p, breed: value }))}
+            placeholder="Select or type a breed"
+          />
+        )}
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <Input
@@ -150,6 +167,13 @@ export function ClientDetailPage() {
   const [bookEndTime, setBookEndTime] = useState('')
   const [isEditingNotes, setIsEditingNotes] = useState(false)
   const [notes, setNotes] = useState('')
+  const [isEditingContact, setIsEditingContact] = useState(false)
+  const [contactForm, setContactForm] = useState({
+    email: '',
+    phone: '',
+    address: '',
+    preferredContactMethod: '' as 'email' | 'phone' | 'text',
+  })
 
   if (isLoading) return <LoadingPage />
 
@@ -167,6 +191,19 @@ export function ClientDetailPage() {
   const handleSaveNotes = async () => {
     await updateClient.mutateAsync({ id: client.id, data: { notes } })
     setIsEditingNotes(false)
+  }
+
+  const handleSaveContact = async () => {
+    await updateClient.mutateAsync({
+      id: client.id,
+      data: {
+        email: contactForm.email,
+        phone: contactForm.phone,
+        address: contactForm.address || undefined,
+        preferredContactMethod: contactForm.preferredContactMethod,
+      },
+    })
+    setIsEditingContact(false)
   }
 
   const handleAddPet = async (data: Omit<Pet, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -246,32 +283,99 @@ export function ClientDetailPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Contact Information */}
         <Card>
-          <CardTitle>Contact Information</CardTitle>
-          <div className="mt-4 space-y-3">
-            <div className="flex items-center gap-3">
-              <Mail className="h-5 w-5 text-gray-400" />
-              <a href={`mailto:${client.email}`} className="hover:underline" style={{ color: colors.accentColorDark }}>
-                {client.email}
-              </a>
-            </div>
-            <div className="flex items-center gap-3">
-              <Phone className="h-5 w-5 text-gray-400" />
-              <a href={`tel:${client.phone}`} className="hover:underline" style={{ color: colors.accentColorDark }}>
-                {formatPhone(client.phone)}
-              </a>
-            </div>
-            {client.address && (
-              <div className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 text-gray-400" />
-                <span className="text-gray-700">{client.address}</span>
-              </div>
+          <div className="flex items-center justify-between">
+            <CardTitle>Contact Information</CardTitle>
+            {!isEditingContact && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setContactForm({
+                    email: client.email,
+                    phone: client.phone,
+                    address: client.address || '',
+                    preferredContactMethod: client.preferredContactMethod,
+                  })
+                  setIsEditingContact(true)
+                }}
+              >
+                <Edit2 className="h-4 w-4" />
+              </Button>
             )}
           </div>
-          <div className="mt-4 border-t pt-4">
-            <p className="text-sm text-gray-500">
-              Preferred Contact: {client.preferredContactMethod}
-            </p>
-          </div>
+          {isEditingContact ? (
+            <div className="mt-4 space-y-4">
+              <Input
+                label="Email"
+                type="email"
+                value={contactForm.email}
+                onChange={(e) => setContactForm((p) => ({ ...p, email: e.target.value }))}
+              />
+              <Input
+                label="Phone"
+                type="tel"
+                value={contactForm.phone}
+                onChange={(e) => setContactForm((p) => ({ ...p, phone: e.target.value }))}
+              />
+              <Input
+                label="Address"
+                value={contactForm.address}
+                onChange={(e) => setContactForm((p) => ({ ...p, address: e.target.value }))}
+              />
+              <Select
+                label="Preferred Contact Method"
+                options={[
+                  { value: 'email', label: 'Email' },
+                  { value: 'phone', label: 'Phone' },
+                  { value: 'text', label: 'Text' },
+                ]}
+                value={contactForm.preferredContactMethod}
+                onChange={(e) => setContactForm((p) => ({ ...p, preferredContactMethod: e.target.value as 'email' | 'phone' | 'text' }))}
+              />
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setIsEditingContact(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSaveContact}
+                  loading={updateClient.isPending}
+                  style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
+                  className="hover:opacity-90"
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="mt-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <Mail className="h-5 w-5 text-gray-400" />
+                  <a href={`mailto:${client.email}`} className="hover:underline" style={{ color: colors.accentColorDark }}>
+                    {client.email}
+                  </a>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Phone className="h-5 w-5 text-gray-400" />
+                  <a href={`tel:${client.phone}`} className="hover:underline" style={{ color: colors.accentColorDark }}>
+                    {formatPhone(client.phone)}
+                  </a>
+                </div>
+                {client.address && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-gray-400" />
+                    <span className="text-gray-700">{client.address}</span>
+                  </div>
+                )}
+              </div>
+              <div className="mt-4 border-t pt-4">
+                <p className="text-sm text-gray-500">
+                  Preferred Contact: {client.preferredContactMethod}
+                </p>
+              </div>
+            </>
+          )}
         </Card>
 
         {/* Notes */}

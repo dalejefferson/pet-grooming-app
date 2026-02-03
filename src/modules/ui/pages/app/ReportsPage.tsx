@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { Download, FileText, BarChart3 } from 'lucide-react'
 import { Button, EmptyState } from '../../components/common'
-import { useAppointments, useClients, useServices, useGroomers } from '@/hooks'
+import { useAppointments, useClients, useServices, useGroomers, usePets } from '@/hooks'
 import { format, subDays, parseISO, isWithinInterval, startOfDay, getDay, getHours } from 'date-fns'
 import { cn } from '@/lib/utils'
 import type { AppointmentStatus } from '@/types'
@@ -34,6 +34,7 @@ export function ReportsPage() {
   const { data: clients = [] } = useClients()
   const { data: services = [] } = useServices()
   const { data: groomers = [] } = useGroomers()
+  const { data: pets = [] } = usePets()
 
   // Cycle through date ranges: 7 -> 14 -> 30 -> 90 -> 7
   const cycleReportRange = useCallback(() => {
@@ -304,7 +305,7 @@ export function ReportsPage() {
   }
 
   const handleExportCSV = () => {
-    exportReportCsv(filteredAppointments, clients, services)
+    exportReportCsv(filteredAppointments, clients, services, pets, groomers)
   }
 
   const handleExportPDF = () => {

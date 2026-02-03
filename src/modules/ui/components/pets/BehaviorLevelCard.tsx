@@ -25,14 +25,14 @@ export function BehaviorLevelCard({ pet, onBehaviorChange }: BehaviorLevelCardPr
             <button
               key={level}
               onClick={() => onBehaviorChange(level)}
-              className={`h-8 flex-1 rounded text-sm font-medium transition-colors ${
+              className={`flex-1 rounded-lg border-2 border-[#1e293b] px-2.5 py-1 text-xs font-semibold shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b] active:translate-y-0 active:shadow-[1px_1px_0px_0px_#1e293b] ${
                 level === pet.behaviorLevel
                   ? level <= 2
-                    ? 'bg-success-500 text-white'
+                    ? 'bg-[#d1fae5] text-[#166534]'
                     : level >= 4
-                    ? 'bg-warning-500 text-white'
-                    : 'bg-gray-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-[#fef9c3] text-[#a16207]'
+                    : 'bg-[#f1f5f9] text-[#334155]'
+                  : 'bg-white text-[#334155]'
               }`}
             >
               {level}
