@@ -1,15 +1,16 @@
 import { useState, useMemo } from 'react'
-import { useNavigate, useSearchParams, useOutletContext } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Plus, ArrowRight, ArrowLeft, Check, AlertTriangle } from 'lucide-react'
 import { Card, CardTitle, Button, Input, Select, ComboBox } from '../../components/common'
 import { VaccinationStatusBadge, ExpiredVaccinationWarning } from '../../components/booking'
 import { useClientPets } from '@/hooks'
+import { useBookingContext } from '../../context/BookingContext'
 import { COAT_TYPE_LABELS, WEIGHT_RANGE_LABELS, DOG_BREEDS, CAT_BREEDS } from '@/config/constants'
 import {
   getPetVaccinationStatus,
   getExpiredVaccinations,
 } from '@/lib/utils/vaccinationUtils'
-import type { Organization, Pet } from '@/types'
+import type { Pet } from '@/types'
 
 interface SelectedPet {
   petId?: string
@@ -19,11 +20,10 @@ interface SelectedPet {
 
 export function BookingPetsPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const { organization } = useOutletContext<{ organization: Organization }>()
+  const { organization, bookingState, updateBookingState } = useBookingContext()
 
-  const isNewClient = searchParams.get('new') === 'true'
-  const clientId = searchParams.get('clientId')
+  const isNewClient = bookingState.isNewClient
+  const clientId = bookingState.clientId
 
   const { data: existingPets = [] } = useClientPets(clientId || '')
 
@@ -85,9 +85,15 @@ export function BookingPetsPage() {
   }
 
   const handleContinue = () => {
-    const params = new URLSearchParams(searchParams)
-    params.set('pets', JSON.stringify(selectedPets))
-    navigate(`/book/${organization.slug}/groomer?${params.toString()}`)
+    updateBookingState({
+      selectedPets: selectedPets.map((p) => ({
+        petId: p.petId,
+        isNewPet: p.isNewPet,
+        petInfo: p.petInfo,
+        services: [],
+      })),
+    })
+    navigate(`/book/${organization.slug}/groomer`)
   }
 
   const handleBack = () => {

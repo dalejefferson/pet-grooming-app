@@ -1,74 +1,29 @@
 import type { Groomer } from '../types'
 import { getFromStorage, setToStorage, delay, generateId } from '../storage/localStorage'
+import { seedGroomers } from '../seed/seed'
 
 const STORAGE_KEY = 'groomers'
 
-// Seed data for groomers
-const seedGroomers: Groomer[] = [
-  {
-    id: 'groomer-1',
-    organizationId: 'org-1',
-    userId: 'user-1',
-    firstName: 'Sarah',
-    lastName: 'Johnson',
-    email: 'sarah@pawfectcuts.com',
-    phone: '555-0101',
-    specialties: ['Large Dogs', 'Poodle Cuts', 'Dematting'],
-    imageUrl: undefined,
-    isActive: true,
-    role: 'owner',
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z',
-  },
-  {
-    id: 'groomer-2',
-    organizationId: 'org-1',
-    userId: 'user-2',
-    firstName: 'Mike',
-    lastName: 'Chen',
-    email: 'mike@pawfectcuts.com',
-    phone: '555-0102',
-    specialties: ['Cats', 'Small Dogs', 'Nail Trimming'],
-    imageUrl: undefined,
-    isActive: true,
-    role: 'groomer',
-    createdAt: '2024-02-01T10:00:00Z',
-    updatedAt: '2024-02-01T10:00:00Z',
-  },
-  {
-    id: 'groomer-3',
-    organizationId: 'org-1',
-    userId: 'user-3',
-    firstName: 'Emma',
-    lastName: 'Rodriguez',
-    email: 'emma@pawfectcuts.com',
-    phone: '555-0103',
-    specialties: ['Show Cuts', 'Breed-Specific Styles', 'Puppy Grooming'],
-    imageUrl: undefined,
-    isActive: false,
-    role: 'groomer',
-    createdAt: '2024-03-10T10:00:00Z',
-    updatedAt: '2024-03-10T10:00:00Z',
-  },
-  {
-    id: 'groomer-4',
-    organizationId: 'org-1',
-    userId: 'user-4',
-    firstName: 'Alex',
-    lastName: 'Kim',
-    email: 'alex@pawfectcuts.com',
-    phone: '555-0104',
-    specialties: [],
-    imageUrl: undefined,
-    isActive: true,
-    role: 'receptionist',
-    createdAt: '2024-03-01T10:00:00Z',
-    updatedAt: '2024-03-01T10:00:00Z',
-  },
-]
-
 function getGroomers(): Groomer[] {
-  return getFromStorage<Groomer[]>(STORAGE_KEY, seedGroomers)
+  const groomers = getFromStorage<Groomer[]>(STORAGE_KEY, seedGroomers)
+  // Backfill userId for groomers missing it (stale localStorage from before seed refactor)
+  let changed = false
+  for (const g of groomers) {
+    if (!g.userId) {
+      // Try to match by name against seed data
+      const match = seedGroomers.find(
+        (s) => s.firstName === g.firstName && s.lastName === g.lastName
+      )
+      if (match?.userId) {
+        g.userId = match.userId
+        changed = true
+      }
+    }
+  }
+  if (changed) {
+    saveGroomers(groomers)
+  }
+  return groomers
 }
 
 function saveGroomers(groomers: Groomer[]): void {

@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Plus, Phone, Trash2 } from 'lucide-react'
-import { Card, Button, Input, Badge, Modal, ImageUpload, HistorySection } from '../../components/common'
+import { Search, Plus, Phone, Trash2, Users } from 'lucide-react'
+import { Card, Button, Input, Badge, Modal, ImageUpload, HistorySection, ConfirmDialog, Skeleton, EmptyState } from '../../components/common'
 import { useClients, useClientPets, useCreateClient, useDeleteClient, useDeletedHistory, useAddToHistory } from '@/hooks'
 import { formatPhone, cn } from '@/lib/utils'
+import { debounce } from '@/lib/utils/debounce'
 import type { Client } from '@/types'
 import { useTheme, useUndo } from '../../context'
 
@@ -184,19 +185,31 @@ export function ClientsPage() {
   const { colors } = useTheme()
   const { showUndo } = useUndo()
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [clientToDeleteId, setClientToDeleteId] = useState<string | null>(null)
   const { data: clients = [], isLoading } = useClients()
   const { data: deletedItems = [] } = useDeletedHistory('client')
   const createClient = useCreateClient()
   const deleteClient = useDeleteClient()
   const addToHistory = useAddToHistory()
 
+  const debouncedSetQuery = useMemo(
+    () => debounce((value: string) => setDebouncedQuery(value), 300),
+    []
+  )
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value)
+    debouncedSetQuery(e.target.value)
+  }
+
   const handleDeleteClient = async (clientId: string) => {
     // Find and store the client data before deleting
     const clientToDelete = clients.find(c => c.id === clientId)
     if (!clientToDelete) return
 
-    // Delete immediately (no confirm dialog)
     await deleteClient.mutateAsync(clientId)
 
     // Add to history for restore functionality
@@ -220,16 +233,16 @@ export function ClientsPage() {
     })
   }
 
-  const filteredClients = clients.filter((client) => {
-    if (!searchQuery) return true
-    const query = searchQuery.toLowerCase()
+  const filteredClients = useMemo(() => clients.filter((client) => {
+    if (!debouncedQuery) return true
+    const query = debouncedQuery.toLowerCase()
     return (
       client.firstName.toLowerCase().includes(query) ||
       client.lastName.toLowerCase().includes(query) ||
       client.email.toLowerCase().includes(query) ||
-      client.phone.includes(searchQuery)
+      client.phone.includes(debouncedQuery)
     )
-  })
+  }), [clients, debouncedQuery])
 
   const handleAddClient = async (data: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => {
     await createClient.mutateAsync(data)
@@ -256,21 +269,20 @@ export function ClientsPage() {
         <Input
           placeholder="Search clients..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={handleSearchChange}
           className="pl-10"
         />
       </div>
 
       {isLoading ? (
-        <div className="text-center text-gray-600">Loading clients...</div>
+        <Skeleton variant="card" count={10} />
       ) : filteredClients.length === 0 ? (
-        <Card>
-          <div className="py-8 text-center">
-            <p className="text-gray-600">
-              {searchQuery ? 'No clients found matching your search.' : 'No clients yet.'}
-            </p>
-          </div>
-        </Card>
+        <EmptyState
+          icon={<Users className="h-8 w-8" />}
+          title={debouncedQuery ? 'No clients found' : 'No clients yet'}
+          description={debouncedQuery ? 'No clients match your search. Try a different term.' : 'Get started by adding your first client.'}
+          action={!debouncedQuery ? { label: 'Add Client', onClick: () => setShowAddModal(true) } : undefined}
+        />
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {filteredClients.map((client) => (
@@ -278,7 +290,10 @@ export function ClientsPage() {
               key={client.id}
               client={client}
               accentColor={colors.accentColor}
-              onDelete={() => handleDeleteClient(client.id)}
+              onDelete={() => {
+                setClientToDeleteId(client.id)
+                setDeleteConfirmOpen(true)
+              }}
             />
           ))}
         </div>
@@ -302,6 +317,25 @@ export function ClientsPage() {
         items={deletedItems}
         entityType="client"
         title="Recently Deleted Clients"
+      />
+
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        onClose={() => {
+          setDeleteConfirmOpen(false)
+          setClientToDeleteId(null)
+        }}
+        onConfirm={async () => {
+          if (clientToDeleteId) {
+            await handleDeleteClient(clientToDeleteId)
+          }
+          setDeleteConfirmOpen(false)
+          setClientToDeleteId(null)
+        }}
+        title="Delete Client?"
+        message="This will remove the client. You can restore from history."
+        variant="danger"
+        confirmLabel="Delete"
       />
       </div>
     </div>

@@ -24,3 +24,21 @@ export type {
 
 // Re-export types from performanceApi
 export type { DateRange, StaffPerformanceMetrics } from './performanceApi'
+
+// Re-export status machine utilities
+export {
+  VALID_TRANSITIONS,
+  validateStatusTransition,
+  canTransitionTo,
+  InvalidStatusTransitionError,
+} from './statusMachine'
+
+// Re-export validators
+export {
+  validateMaxPetsPerAppointment,
+  validateAdvanceBooking,
+  validateCancellationWindow,
+  validateVaccinationStatus,
+  validatePetOwnership,
+  BookingValidationError,
+} from './validators'

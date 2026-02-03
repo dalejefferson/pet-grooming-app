@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useNavigate, useSearchParams, useOutletContext } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, CreditCard } from 'lucide-react'
 import { Card, CardTitle, Button, Textarea, LoadingSpinner } from '../../components/common'
 import {
@@ -17,45 +17,24 @@ import type { PetServiceSummary } from '../../components/booking'
 import type { CardInputValue } from '../../components/payment'
 import { useActiveServices, usePolicies, useCreateBooking, useClientPets, useGroomers } from '@/hooks'
 import { useAddPaymentMethod } from '@/modules/database/hooks'
+import { useBookingContext } from '../../context/BookingContext'
 import { formatCurrency } from '@/lib/utils'
 import { format, parseISO, addMinutes } from 'date-fns'
-import type { Organization, BookingState, TipOption, PaymentStatus } from '@/types'
-
-interface SelectedPet {
-  petId?: string
-  isNewPet: boolean
-  petInfo?: {
-    name?: string
-    species?: string
-    breed?: string
-    weightRange?: string
-    coatType?: string
-  }
-  services: { serviceId: string; modifierIds: string[] }[]
-}
+import type { BookingState, TipOption, PaymentStatus } from '@/types'
 
 export function BookingConfirmPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const { organization } = useOutletContext<{ organization: Organization }>()
+  const { organization, bookingState: ctxBookingState, updateBookingState } = useBookingContext()
 
-  const isNewClient = searchParams.get('new') === 'true'
-  const clientId = searchParams.get('clientId')
-  const petsParam = searchParams.get('pets')
-  const date = searchParams.get('date') || ''
-  const time = searchParams.get('time') || ''
-  const groomerId = searchParams.get('groomerId') || undefined
+  const isNewClient = ctxBookingState.isNewClient
+  const clientId = ctxBookingState.clientId
+  const date = ctxBookingState.selectedTimeSlot?.date || ''
+  const time = ctxBookingState.selectedTimeSlot?.startTime || ''
+  const groomerId = ctxBookingState.selectedGroomerId
 
-  const selectedPets: SelectedPet[] = petsParam ? JSON.parse(petsParam) : []
+  const selectedPets = ctxBookingState.selectedPets
 
-  const clientInfo = isNewClient
-    ? {
-        firstName: searchParams.get('firstName') || '',
-        lastName: searchParams.get('lastName') || '',
-        email: searchParams.get('email') || '',
-        phone: searchParams.get('phone') || '',
-      }
-    : undefined
+  const clientInfo = isNewClient ? ctxBookingState.clientInfo : undefined
 
   const { data: services = [] } = useActiveServices(organization.id)
   const { data: policies } = usePolicies(organization.id)
@@ -240,6 +219,7 @@ export function BookingConfirmPage() {
 
     try {
       const result = await createBooking.mutateAsync(bookingState)
+      updateBookingState({ notes })
       navigate(`/book/${organization.slug}/success?appointmentId=${result.appointment.id}`)
     } catch {
       setPaymentStatus('failed')
@@ -247,7 +227,7 @@ export function BookingConfirmPage() {
   }
 
   const handleBack = () => {
-    navigate(`/book/${organization.slug}/times?${searchParams.toString()}`)
+    navigate(`/book/${organization.slug}/times`)
   }
 
   return (

@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, AlertTriangle, User, Trash2 } from 'lucide-react'
-import { Card, Input, Badge, HistorySection } from '../../components/common'
+import { Search, AlertTriangle, User, Trash2, PawPrint } from 'lucide-react'
+import { Card, Input, Badge, HistorySection, ConfirmDialog, Skeleton, EmptyState } from '../../components/common'
 import { usePets, useClients, useDeletePet, useCreatePet, useDeletedHistory, useAddToHistory } from '@/hooks'
+import { debounce } from '@/lib/utils/debounce'
 import type { Pet, Client } from '@/types'
 import { BEHAVIOR_LEVEL_LABELS } from '@/config/constants'
 import { useTheme, useUndo } from '../../context'
@@ -83,12 +84,25 @@ export function PetsPage() {
   const { colors } = useTheme()
   const { showUndo } = useUndo()
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [petToDeleteId, setPetToDeleteId] = useState<string | null>(null)
   const { data: pets = [], isLoading } = usePets()
   const { data: clients = [] } = useClients()
   const { data: deletedItems = [] } = useDeletedHistory('pet')
   const deletePet = useDeletePet()
   const createPet = useCreatePet()
   const addToHistory = useAddToHistory()
+
+  const debouncedSetQuery = useMemo(
+    () => debounce((value: string) => setDebouncedQuery(value), 300),
+    []
+  )
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value)
+    debouncedSetQuery(e.target.value)
+  }
 
   const handleDeletePet = async (petId: string) => {
     const petToDelete = pets.find(p => p.id === petId)
@@ -115,9 +129,9 @@ export function PetsPage() {
     })
   }
 
-  const filteredPets = pets.filter((pet) => {
-    if (!searchQuery) return true
-    const query = searchQuery.toLowerCase()
+  const filteredPets = useMemo(() => pets.filter((pet) => {
+    if (!debouncedQuery) return true
+    const query = debouncedQuery.toLowerCase()
     const client = clients.find((c) => c.id === pet.clientId)
     return (
       pet.name.toLowerCase().includes(query) ||
@@ -125,7 +139,7 @@ export function PetsPage() {
       client?.firstName.toLowerCase().includes(query) ||
       client?.lastName.toLowerCase().includes(query)
     )
-  })
+  }), [pets, clients, debouncedQuery])
 
   return (
     <div className={cn('min-h-screen p-4 lg:p-6', colors.pageGradientLight)}>
@@ -137,21 +151,19 @@ export function PetsPage() {
         <Input
           placeholder="Search pets or owners..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={handleSearchChange}
           className="pl-10"
         />
       </div>
 
       {isLoading ? (
-        <div className="text-center text-gray-600">Loading pets...</div>
+        <Skeleton variant="card" count={10} />
       ) : filteredPets.length === 0 ? (
-        <Card>
-          <div className="py-8 text-center">
-            <p className="text-gray-600">
-              {searchQuery ? 'No pets found matching your search.' : 'No pets registered yet.'}
-            </p>
-          </div>
-        </Card>
+        <EmptyState
+          icon={<PawPrint className="h-8 w-8" />}
+          title={debouncedQuery ? 'No pets found' : 'No pets registered yet'}
+          description={debouncedQuery ? 'No pets match your search. Try a different term.' : 'Pets will appear here once clients add them.'}
+        />
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {filteredPets.map((pet) => {
@@ -161,7 +173,10 @@ export function PetsPage() {
                 key={pet.id}
                 pet={pet}
                 client={client}
-                onDelete={() => handleDeletePet(pet.id)}
+                onDelete={() => {
+                  setPetToDeleteId(pet.id)
+                  setDeleteConfirmOpen(true)
+                }}
               />
             )
           })}
@@ -172,6 +187,25 @@ export function PetsPage() {
         items={deletedItems}
         entityType="pet"
         title="Recently Deleted Pets"
+      />
+
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        onClose={() => {
+          setDeleteConfirmOpen(false)
+          setPetToDeleteId(null)
+        }}
+        onConfirm={async () => {
+          if (petToDeleteId) {
+            await handleDeletePet(petToDeleteId)
+          }
+          setDeleteConfirmOpen(false)
+          setPetToDeleteId(null)
+        }}
+        title="Delete Pet?"
+        message="This will remove the pet. You can restore from history."
+        variant="danger"
+        confirmLabel="Delete"
       />
       </div>
     </div>

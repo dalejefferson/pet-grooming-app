@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { petsApi } from '../api'
+import { useToast } from '@/modules/ui/hooks/useToast'
 import type { Pet, VaccinationRecord } from '../types'
 
 export function usePets(organizationId?: string) {
@@ -27,11 +28,13 @@ export function useClientPets(clientId: string) {
 
 export function useCreatePet() {
   const queryClient = useQueryClient()
+  const { showSuccess } = useToast()
 
   return useMutation({
     mutationFn: (data: Omit<Pet, 'id' | 'createdAt' | 'updatedAt'>) =>
       petsApi.create(data),
     onSuccess: (newPet) => {
+      showSuccess('Pet added')
       queryClient.invalidateQueries({ queryKey: ['pets'] })
       queryClient.invalidateQueries({ queryKey: ['pets', 'client', newPet.clientId] })
     },
@@ -40,11 +43,13 @@ export function useCreatePet() {
 
 export function useUpdatePet() {
   const queryClient = useQueryClient()
+  const { showSuccess } = useToast()
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Pet> }) =>
       petsApi.update(id, data),
     onSuccess: (updatedPet) => {
+      showSuccess('Pet updated')
       queryClient.setQueryData(['pet', updatedPet.id], updatedPet)
       queryClient.invalidateQueries({ queryKey: ['pets'] })
     },
@@ -53,10 +58,12 @@ export function useUpdatePet() {
 
 export function useDeletePet() {
   const queryClient = useQueryClient()
+  const { showSuccess } = useToast()
 
   return useMutation({
     mutationFn: (id: string) => petsApi.delete(id),
     onSuccess: () => {
+      showSuccess('Pet removed')
       queryClient.invalidateQueries({ queryKey: ['pets'] })
     },
   })

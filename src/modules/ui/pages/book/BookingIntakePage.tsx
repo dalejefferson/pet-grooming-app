@@ -1,15 +1,16 @@
 import { useState, useMemo } from 'react'
-import { useNavigate, useSearchParams, useOutletContext } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react'
 import { Card, Button } from '../../components/common'
 import { GroomerDisplayCard, ServiceCategorySection, PetProgressTabs } from '../../components/booking'
 import { useActiveServices, useClientPets, useGroomers } from '@/hooks'
+import { useBookingContext } from '../../context/BookingContext'
 import {
   SERVICE_CATEGORIES,
   SPECIALTY_TO_SERVICE_CATEGORIES,
   DEFAULT_GROOMER_SERVICE_CATEGORIES,
 } from '@/config/constants'
-import type { Organization, Service, Groomer } from '@/types'
+import type { Service, Groomer } from '@/types'
 
 // Helper function to get service categories a groomer can perform
 function getGroomerServiceCategories(groomer: Groomer | null): string[] {
@@ -47,26 +48,16 @@ interface SelectedPet {
 
 export function BookingIntakePage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const { organization } = useOutletContext<{ organization: Organization }>()
+  const { organization, bookingState, updateBookingState } = useBookingContext()
 
-  const clientId = searchParams.get('clientId')
-  const petsParam = searchParams.get('pets')
-  const groomerId = searchParams.get('groomerId') || undefined
+  const clientId = bookingState.clientId
+  const groomerId = bookingState.selectedGroomerId
 
-  // Parse pets from URL params with error handling
-  let initialPets: SelectedPet[] = []
-  if (petsParam) {
-    try {
-      const parsed = JSON.parse(petsParam)
-      initialPets = Array.isArray(parsed)
-        ? parsed.map((p: SelectedPet) => ({ ...p, services: p.services || [] }))
-        : []
-    } catch (e) {
-      console.error('Failed to parse pets param:', petsParam, e)
-      initialPets = []
-    }
-  }
+  // Get pets from context
+  const initialPets: SelectedPet[] = bookingState.selectedPets.map((p) => ({
+    ...p,
+    services: p.services || [],
+  }))
 
   const { data: services = [] } = useActiveServices(organization.id)
   const { data: clientPets = [] } = useClientPets(clientId || '')
@@ -156,9 +147,15 @@ export function BookingIntakePage() {
     if (currentPetIndex < selectedPets.length - 1) {
       setCurrentPetIndex((prev) => prev + 1)
     } else {
-      const params = new URLSearchParams(searchParams)
-      params.set('pets', JSON.stringify(selectedPets))
-      navigate(`/book/${organization.slug}/times?${params.toString()}`)
+      updateBookingState({
+        selectedPets: selectedPets.map((p) => ({
+          petId: p.petId,
+          isNewPet: p.isNewPet,
+          petInfo: p.petInfo,
+          services: p.services,
+        })),
+      })
+      navigate(`/book/${organization.slug}/times`)
     }
   }
 
@@ -166,7 +163,7 @@ export function BookingIntakePage() {
     if (currentPetIndex > 0) {
       setCurrentPetIndex((prev) => prev - 1)
     } else {
-      navigate(`/book/${organization.slug}/groomer?${searchParams.toString()}`)
+      navigate(`/book/${organization.slug}/groomer`)
     }
   }
 
@@ -187,7 +184,6 @@ export function BookingIntakePage() {
         petName={petName}
         services={services}
         organizationSlug={organization.slug}
-        searchParams={searchParams}
         onToggleService={toggleService}
       />
 
@@ -229,7 +225,7 @@ export function BookingIntakePage() {
             variant="outline"
             size="sm"
             className="mt-3"
-            onClick={() => navigate(`/book/${organization.slug}/groomer?${searchParams.toString()}`)}
+            onClick={() => navigate(`/book/${organization.slug}/groomer`)}
           >
             Change Groomer
           </Button>

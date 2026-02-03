@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import { Card, Button, Modal, HistorySection } from '../../components/common'
+import { Card, Button, Modal, HistorySection, ConfirmDialog } from '../../components/common'
 import { ServiceForm, ServiceDisplayCard, EditServiceModal } from '../../components/services'
 import { useServices, useCreateService, useUpdateService, useDeleteService, useDeletedHistory, useAddToHistory } from '@/hooks'
 import { cn } from '@/lib/utils'
@@ -19,6 +19,9 @@ export function ServicesPage() {
 
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingService, setEditingService] = useState<Service | null>(null)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [serviceToDeleteId, setServiceToDeleteId] = useState<string | null>(null)
+  const [deleteFromModal, setDeleteFromModal] = useState(false)
 
   const handleCreate = async (data: Partial<Service>) => {
     await createService.mutateAsync(data as Omit<Service, 'id' | 'createdAt' | 'updatedAt' | 'modifiers'>)
@@ -32,38 +35,30 @@ export function ServicesPage() {
     }
   }
 
-  const handleDelete = async (e: React.MouseEvent, id: string) => {
+  const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation() // Prevent card click from triggering
-    const serviceToDelete = services.find(s => s.id === id)
-    if (!serviceToDelete) return
-
-    await deleteService.mutateAsync(id)
-
-    // Add to history for restore functionality
-    await addToHistory.mutateAsync({
-      entityType: 'service',
-      entityId: serviceToDelete.id,
-      entityName: serviceToDelete.name,
-      data: serviceToDelete,
-    })
-
-    showUndo({
-      type: 'service',
-      label: serviceToDelete.name,
-      data: serviceToDelete,
-      onUndo: async () => {
-        const { id: _id, createdAt, updatedAt, ...serviceData } = serviceToDelete
-        await createService.mutateAsync(serviceData as Omit<Service, 'id' | 'createdAt' | 'updatedAt' | 'modifiers'>)
-      }
-    })
+    setServiceToDeleteId(id)
+    setDeleteFromModal(false)
+    setDeleteConfirmOpen(true)
   }
 
-  const handleDeleteFromModal = async () => {
+  const handleDeleteFromModal = () => {
     if (!editingService) return
+    setServiceToDeleteId(editingService.id)
+    setDeleteFromModal(true)
+    setDeleteConfirmOpen(true)
+  }
 
-    const serviceToDelete = editingService
-    await deleteService.mutateAsync(serviceToDelete.id)
-    setEditingService(null)
+  const handleConfirmDelete = async () => {
+    if (!serviceToDeleteId) return
+    const serviceToDelete = services.find(s => s.id === serviceToDeleteId)
+    if (!serviceToDelete) return
+
+    await deleteService.mutateAsync(serviceToDeleteId)
+
+    if (deleteFromModal) {
+      setEditingService(null)
+    }
 
     // Add to history for restore functionality
     await addToHistory.mutateAsync({
@@ -82,6 +77,9 @@ export function ServicesPage() {
         await createService.mutateAsync(serviceData as Omit<Service, 'id' | 'createdAt' | 'updatedAt' | 'modifiers'>)
       }
     })
+
+    setDeleteConfirmOpen(false)
+    setServiceToDeleteId(null)
   }
 
   return (
@@ -156,6 +154,19 @@ export function ServicesPage() {
         items={deletedItems}
         entityType="service"
         title="Recently Deleted Services"
+      />
+
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        onClose={() => {
+          setDeleteConfirmOpen(false)
+          setServiceToDeleteId(null)
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Service?"
+        message="This will remove the service. You can restore from history."
+        variant="danger"
+        confirmLabel="Delete"
       />
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { Download, FileText } from 'lucide-react'
-import { Button } from '../../components/common'
+import { Download, FileText, BarChart3 } from 'lucide-react'
+import { Button, EmptyState } from '../../components/common'
 import { useAppointments, useClients, useServices, useGroomers } from '@/hooks'
 import { format, subDays, parseISO, isWithinInterval, startOfDay, getDay, getHours } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -366,17 +366,25 @@ export function ReportsPage() {
         <ReportStatsCards stats={stats} colors={colors} />
 
         {/* Charts Grid */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          <RevenueChart data={revenueData} colors={colors} />
-          <AppointmentsChart data={statusData} />
-          <TopServicesChart data={topServicesData} colors={colors} />
-          <NewClientsChart data={clientAcquisitionData} colors={colors} />
-          <GroomerPerformanceChart data={groomerPerformanceData} colors={colors} />
-          <ClientRetentionChart data={clientRetentionData} colors={colors} />
-          <NoShowCancellationChart data={noShowCancellationData} colors={colors} />
-          <PeakHoursChart data={peakHoursData} colors={colors} />
-          <ServiceCategoryRevenueChart data={serviceCategoryRevenueData} colors={colors} />
-        </div>
+        {filteredAppointments.length === 0 ? (
+          <EmptyState
+            icon={<BarChart3 className="h-8 w-8" />}
+            title="No data for this period"
+            description={`No appointments found in the last ${dateRange.days} days. Try selecting a different date range.`}
+          />
+        ) : (
+          <div className="grid gap-6 lg:grid-cols-2">
+            <RevenueChart data={revenueData} colors={colors} />
+            <AppointmentsChart data={statusData} />
+            <TopServicesChart data={topServicesData} colors={colors} />
+            <NewClientsChart data={clientAcquisitionData} colors={colors} />
+            <GroomerPerformanceChart data={groomerPerformanceData} colors={colors} />
+            <ClientRetentionChart data={clientRetentionData} colors={colors} />
+            <NoShowCancellationChart data={noShowCancellationData} colors={colors} />
+            <PeakHoursChart data={peakHoursData} colors={colors} />
+            <ServiceCategoryRevenueChart data={serviceCategoryRevenueData} colors={colors} />
+          </div>
+        )}
       </div>
 
       <ReportsChartStyles />

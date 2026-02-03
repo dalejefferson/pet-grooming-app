@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { calendarApi } from '../api'
+import { useToast } from '@/modules/ui/hooks/useToast'
 import type { Appointment, AppointmentStatus } from '../types'
 
 export function useAppointments(organizationId?: string) {
@@ -67,11 +68,13 @@ export function useGroomerAppointments(groomerId: string) {
 
 export function useCreateAppointment() {
   const queryClient = useQueryClient()
+  const { showSuccess } = useToast()
 
   return useMutation({
     mutationFn: (data: Omit<Appointment, 'id' | 'createdAt' | 'updatedAt'>) =>
       calendarApi.create(data),
     onSuccess: () => {
+      showSuccess('Appointment created')
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
     },
   })
@@ -79,11 +82,13 @@ export function useCreateAppointment() {
 
 export function useUpdateAppointment() {
   const queryClient = useQueryClient()
+  const { showSuccess } = useToast()
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Appointment> }) =>
       calendarApi.update(id, data),
     onSuccess: (updatedAppointment) => {
+      showSuccess('Appointment updated')
       queryClient.setQueryData(
         ['appointment', updatedAppointment.id],
         updatedAppointment
@@ -95,11 +100,13 @@ export function useUpdateAppointment() {
 
 export function useUpdateAppointmentStatus() {
   const queryClient = useQueryClient()
+  const { showSuccess } = useToast()
 
   return useMutation({
     mutationFn: ({ id, status, statusNotes }: { id: string; status: AppointmentStatus; statusNotes?: string }) =>
       calendarApi.updateStatus(id, status, statusNotes),
     onSuccess: (updatedAppointment) => {
+      showSuccess('Status updated')
       queryClient.setQueryData(
         ['appointment', updatedAppointment.id],
         updatedAppointment
@@ -111,10 +118,12 @@ export function useUpdateAppointmentStatus() {
 
 export function useDeleteAppointment() {
   const queryClient = useQueryClient()
+  const { showSuccess } = useToast()
 
   return useMutation({
     mutationFn: (id: string) => calendarApi.delete(id),
     onSuccess: () => {
+      showSuccess('Appointment deleted')
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
     },
   })

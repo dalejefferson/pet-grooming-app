@@ -1,17 +1,23 @@
-import { useSearchParams, useOutletContext, Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useSearchParams, Link } from 'react-router-dom'
 import { CheckCircle, Calendar, MapPin, Phone, User, Users } from 'lucide-react'
 import { Card, Button, Badge } from '../../components/common'
 import { useAppointment, useGroomers } from '@/hooks'
+import { useBookingContext } from '../../context/BookingContext'
 import { format, parseISO } from 'date-fns'
 import { formatCurrency } from '@/lib/utils'
 import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_STATUS_COLORS } from '@/config/constants'
-import type { Organization } from '@/types'
 import { cn } from '@/lib/utils'
 
 export function BookingSuccessPage() {
   const [searchParams] = useSearchParams()
-  const { organization } = useOutletContext<{ organization: Organization }>()
+  const { organization, resetBookingState } = useBookingContext()
   const appointmentId = searchParams.get('appointmentId')
+
+  // Clear booking state on mount since the booking is complete
+  useEffect(() => {
+    resetBookingState()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: appointment } = useAppointment(appointmentId || '')
   const { data: allGroomers = [] } = useGroomers()

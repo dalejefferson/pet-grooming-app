@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react'
-import { useNavigate, useSearchParams, useOutletContext } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { ArrowRight, ArrowLeft, Check, User, Users } from 'lucide-react'
 import { Card, CardTitle, Button } from '../../components/common'
 import { useGroomers } from '@/hooks'
 import { useTheme } from '../../context'
-import type { Organization, Groomer } from '@/types'
+import { useBookingContext } from '../../context/BookingContext'
+import type { Groomer } from '@/types'
 import { cn } from '@/lib/utils'
 
 function GroomerCard({
@@ -89,8 +90,7 @@ function GroomerCard({
 
 export function BookingGroomerPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const { organization } = useOutletContext<{ organization: Organization }>()
+  const { organization, bookingState, updateBookingState } = useBookingContext()
   const { colors } = useTheme()
 
   const { data: allGroomers = [] } = useGroomers()
@@ -98,26 +98,20 @@ export function BookingGroomerPage() {
   // Filter to only active groomers
   const groomers = useMemo(() => allGroomers.filter((g) => g.isActive), [allGroomers])
 
-  // Get selected groomer from URL params (if returning from later step)
-  const initialGroomerId = searchParams.get('groomerId') || undefined
-  const [selectedGroomerId, setSelectedGroomerId] = useState<string | undefined>(initialGroomerId)
+  // Get selected groomer from context (if returning from later step)
+  const [selectedGroomerId, setSelectedGroomerId] = useState<string | undefined>(bookingState.selectedGroomerId)
 
   const handleSelectGroomer = (groomerId: string | undefined) => {
     setSelectedGroomerId(groomerId)
   }
 
   const handleContinue = () => {
-    const params = new URLSearchParams(searchParams)
-    if (selectedGroomerId) {
-      params.set('groomerId', selectedGroomerId)
-    } else {
-      params.delete('groomerId')
-    }
-    navigate(`/book/${organization.slug}/intake?${params.toString()}`)
+    updateBookingState({ selectedGroomerId: selectedGroomerId })
+    navigate(`/book/${organization.slug}/intake`)
   }
 
   const handleBack = () => {
-    navigate(`/book/${organization.slug}/pets?${searchParams.toString()}`)
+    navigate(`/book/${organization.slug}/pets`)
   }
 
   // User can proceed if they've selected a groomer OR "Any Available"

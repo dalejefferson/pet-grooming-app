@@ -27,7 +27,6 @@ interface GroomerDisplayCardProps {
   petName: string | undefined
   services: Service[]
   organizationSlug: string
-  searchParams: URLSearchParams
   onToggleService: (serviceId: string) => void
 }
 
@@ -37,7 +36,6 @@ export function GroomerDisplayCard({
   petName,
   services,
   organizationSlug,
-  searchParams,
   onToggleService,
 }: GroomerDisplayCardProps) {
   const navigate = useNavigate()
@@ -86,7 +84,7 @@ export function GroomerDisplayCard({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => navigate(`/book/${organizationSlug}/groomer?${searchParams.toString()}`)}
+          onClick={() => navigate(`/book/${organizationSlug}/groomer`)}
         >
           Change
         </Button>

@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from './Button'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 
 export interface DrawerProps {
   isOpen: boolean
@@ -30,6 +31,8 @@ export function Drawer({
       document.body.style.overflow = ''
     }
   }, [isOpen])
+
+  const trapRef = useFocusTrap<HTMLDivElement>(isOpen)
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -72,6 +75,7 @@ export function Drawer({
 
       {/* Drawer */}
       <div
+        ref={trapRef}
         role="dialog"
         aria-modal="true"
         aria-label={title || 'Drawer'}

@@ -2,6 +2,7 @@ import { Outlet, useParams } from 'react-router-dom'
 import { Dog } from 'lucide-react'
 import { useOrganizationBySlug } from '@/hooks'
 import { LoadingPage } from '../common'
+import { BookingProvider } from '../../context/BookingContext'
 
 export function BookingLayout() {
   const { orgSlug } = useParams<{ orgSlug: string }>()
@@ -28,34 +29,36 @@ export function BookingLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8]">
-      {/* Header */}
-      <header className="border-b-2 border-[#1e293b] bg-white">
-        <div className="mx-auto max-w-3xl px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl border-2 border-[#1e293b] bg-primary-100 p-2 shadow-[2px_2px_0px_0px_#1e293b]">
-              <Dog className="h-6 w-6 text-primary-600" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-[#1e293b]">{org.name}</h1>
-              <p className="text-sm text-[#64748b]">Book your grooming appointment</p>
+    <BookingProvider organization={org}>
+      <div className="min-h-screen bg-[#FAFAF8]">
+        {/* Header */}
+        <header className="border-b-2 border-[#1e293b] bg-white">
+          <div className="mx-auto max-w-3xl px-4 py-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl border-2 border-[#1e293b] bg-primary-100 p-2 shadow-[2px_2px_0px_0px_#1e293b]">
+                <Dog className="h-6 w-6 text-primary-600" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-[#1e293b]">{org.name}</h1>
+                <p className="text-sm text-[#64748b]">Book your grooming appointment</p>
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main content */}
-      <main className="mx-auto max-w-3xl px-4 py-8">
-        <Outlet context={{ organization: org }} />
-      </main>
+        {/* Main content */}
+        <main className="mx-auto max-w-3xl px-4 py-8">
+          <Outlet />
+        </main>
 
-      {/* Footer */}
-      <footer className="border-t-2 border-[#1e293b] bg-white py-6">
-        <div className="mx-auto max-w-3xl px-4 text-center text-sm text-[#64748b]">
-          <p className="font-semibold text-[#334155]">{org.address}</p>
-          <p className="mt-1">{org.phone} | {org.email}</p>
-        </div>
-      </footer>
-    </div>
+        {/* Footer */}
+        <footer className="border-t-2 border-[#1e293b] bg-white py-6">
+          <div className="mx-auto max-w-3xl px-4 text-center text-sm text-[#64748b]">
+            <p className="font-semibold text-[#334155]">{org.address}</p>
+            <p className="mt-1">{org.phone} | {org.email}</p>
+          </div>
+        </footer>
+      </div>
+    </BookingProvider>
   )
 }

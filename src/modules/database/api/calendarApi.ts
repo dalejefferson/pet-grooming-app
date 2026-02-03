@@ -2,6 +2,7 @@ import type { Appointment, AppointmentStatus, TimeSlot, DayOfWeek, StaffAvailabi
 import { getFromStorage, setToStorage, delay, generateId } from '../storage/localStorage'
 import { seedAppointments } from '../seed/seed'
 import { staffApi } from './staffApi'
+import { validateStatusTransition } from './statusMachine'
 import {
   startOfDay,
   endOfDay,
@@ -115,6 +116,12 @@ export const calendarApi = {
   },
 
   async updateStatus(id: string, status: AppointmentStatus, statusNotes?: string): Promise<Appointment> {
+    await delay()
+    const appointment = await this.getById(id)
+    if (!appointment) {
+      throw new Error('Appointment not found')
+    }
+    validateStatusTransition(appointment.status, status)
     return this.update(id, { status, statusNotes })
   },
 
@@ -218,11 +225,26 @@ export const calendarApi = {
         }
       }
 
+      // Check buffer time between appointments
+      let hasBufferConflict = false
+      if (groomerId && groomerAvailability) {
+        const bufferMinutes = groomerAvailability.bufferMinutesBetweenAppointments
+        hasBufferConflict = dayAppointments.some((apt) => {
+          if (apt.groomerId !== groomerId) return false
+          if (apt.status === 'cancelled' || apt.status === 'no_show') return false
+          const aptEnd = parseISO(apt.endTime)
+          const aptStart = parseISO(apt.startTime)
+          const bufferEnd = addMinutes(aptEnd, bufferMinutes)
+          const bufferStart = addMinutes(aptStart, -bufferMinutes)
+          return currentSlotStart < bufferEnd && slotEnd > bufferStart
+        })
+      }
+
       slots.push({
         date: format(date, 'yyyy-MM-dd'),
         startTime: slotStartTime,
         endTime: slotEndTime,
-        available: !hasConflict && !isDuringBreak,
+        available: !hasConflict && !isDuringBreak && !hasBufferConflict,
         groomerId,
       })
 

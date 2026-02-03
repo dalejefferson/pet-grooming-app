@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { User, UserPlus, ArrowRight } from 'lucide-react'
 import { Card, CardTitle, Button, Input, LoadingPage } from '../../components/common'
 import { useSearchClients, useClient } from '@/hooks'
-import type { Organization, Client } from '@/types'
+import { useBookingContext } from '../../context/BookingContext'
+import type { Client } from '@/types'
 
 export function BookingStartPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { organization } = useOutletContext<{ organization: Organization }>()
+  const { organization, updateBookingState } = useBookingContext()
   const prefilledClientId = searchParams.get('clientId')
 
   const [isNewClient, setIsNewClient] = useState<boolean | null>(null)
@@ -33,19 +34,26 @@ export function BookingStartPage() {
   }, [prefilledClient, prefilledClientId])
 
   const handleContinue = () => {
-    const params = new URLSearchParams()
-
     if (isNewClient) {
-      params.set('new', 'true')
-      params.set('firstName', newClientInfo.firstName)
-      params.set('lastName', newClientInfo.lastName)
-      params.set('email', newClientInfo.email)
-      params.set('phone', newClientInfo.phone)
+      updateBookingState({
+        isNewClient: true,
+        clientInfo: {
+          firstName: newClientInfo.firstName,
+          lastName: newClientInfo.lastName,
+          email: newClientInfo.email,
+          phone: newClientInfo.phone,
+        },
+        clientId: undefined,
+      })
     } else if (selectedClient) {
-      params.set('clientId', selectedClient.id)
+      updateBookingState({
+        isNewClient: false,
+        clientId: selectedClient.id,
+        clientInfo: undefined,
+      })
     }
 
-    navigate(`/book/${organization.slug}/pets?${params.toString()}`)
+    navigate(`/book/${organization.slug}/pets`)
   }
 
   const canContinue =

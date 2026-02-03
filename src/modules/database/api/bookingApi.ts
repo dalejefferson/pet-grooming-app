@@ -6,6 +6,11 @@ import { servicesApi } from './servicesApi'
 import { calendarApi } from './calendarApi'
 import { policiesApi } from './policiesApi'
 import { addMinutes, parseISO } from 'date-fns'
+import {
+  validateMaxPetsPerAppointment,
+  validateAdvanceBooking,
+  validatePetOwnership,
+} from './validators'
 
 export interface BookingResult {
   appointment: Appointment
@@ -111,6 +116,16 @@ export const bookingApi = {
     await delay()
 
     const policies = await policiesApi.get(booking.organizationId)
+
+    // Validate max pets
+    validateMaxPetsPerAppointment(booking.selectedPets.length, policies)
+
+    // Validate advance booking window
+    if (booking.selectedTimeSlot) {
+      const startTime = `${booking.selectedTimeSlot.date}T${booking.selectedTimeSlot.startTime}`
+      validateAdvanceBooking(startTime, policies)
+    }
+
     let client: Client
     let isNewClient = false
     const createdPets: Pet[] = []
@@ -135,6 +150,20 @@ export const bookingApi = {
       client = existingClient
     } else {
       throw new Error('Client information required')
+    }
+
+    // Validate pet ownership for existing pets
+    if (!booking.isNewClient && booking.clientId) {
+      const existingPets: Pet[] = []
+      for (const selectedPet of booking.selectedPets) {
+        if (!selectedPet.isNewPet && selectedPet.petId) {
+          const pet = await petsApi.getById(selectedPet.petId)
+          if (pet) existingPets.push(pet)
+        }
+      }
+      if (existingPets.length > 0) {
+        validatePetOwnership(existingPets, client.id)
+      }
     }
 
     // Create new pets if needed

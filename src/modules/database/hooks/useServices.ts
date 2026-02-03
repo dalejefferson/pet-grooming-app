@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { servicesApi } from '../api'
+import { useToast } from '@/modules/ui/hooks/useToast'
 import type { Service, ServiceModifier } from '../types'
 
 export function useServices(organizationId?: string) {
@@ -36,12 +37,14 @@ export function useServicesByCategory(
 
 export function useCreateService() {
   const queryClient = useQueryClient()
+  const { showSuccess } = useToast()
 
   return useMutation({
     mutationFn: (
       data: Omit<Service, 'id' | 'createdAt' | 'updatedAt' | 'modifiers'>
     ) => servicesApi.create(data),
     onSuccess: () => {
+      showSuccess('Service created')
       queryClient.invalidateQueries({ queryKey: ['services'] })
     },
   })
@@ -49,11 +52,13 @@ export function useCreateService() {
 
 export function useUpdateService() {
   const queryClient = useQueryClient()
+  const { showSuccess } = useToast()
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Service> }) =>
       servicesApi.update(id, data),
     onSuccess: (updatedService) => {
+      showSuccess('Service updated')
       queryClient.setQueryData(['service', updatedService.id], updatedService)
       queryClient.invalidateQueries({ queryKey: ['services'] })
     },
@@ -62,10 +67,12 @@ export function useUpdateService() {
 
 export function useDeleteService() {
   const queryClient = useQueryClient()
+  const { showSuccess } = useToast()
 
   return useMutation({
     mutationFn: (id: string) => servicesApi.delete(id),
     onSuccess: () => {
+      showSuccess('Service deleted')
       queryClient.invalidateQueries({ queryKey: ['services'] })
     },
   })

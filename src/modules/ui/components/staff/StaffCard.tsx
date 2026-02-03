@@ -42,7 +42,11 @@ export function StaffCard({ staff, onClick }: StaffCardProps) {
   const { colors } = useTheme()
 
   const initials = `${staff.firstName.charAt(0)}${staff.lastName.charAt(0)}`
-  const roleBadge = ROLE_BADGES[staff.role]
+  const roleBadge = ROLE_BADGES[staff.role] ?? {
+    color: 'text-[#64748b]',
+    bgColor: 'bg-[#f1f5f9]',
+    label: staff.role ?? 'Unknown',
+  }
 
   const handleClick = () => {
     if (onClick) {

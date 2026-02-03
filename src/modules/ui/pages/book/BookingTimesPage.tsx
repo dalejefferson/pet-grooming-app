@@ -1,29 +1,19 @@
 import { useState, useMemo } from 'react'
-import { useNavigate, useSearchParams, useOutletContext } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, Clock, Users, AlertCircle, Calendar } from 'lucide-react'
 import { Card, Button } from '../../components/common'
 import { useAvailableSlotsForWeek, useActiveServices, useGroomers, useStaffAvailability, useTimeOffRequests } from '@/hooks'
+import { useBookingContext } from '../../context/BookingContext'
 import { format, addWeeks, startOfWeek, addDays, parseISO, isBefore, startOfDay, isWithinInterval } from 'date-fns'
-import type { Organization, Groomer, DayOfWeek } from '@/types'
+import type { Groomer, DayOfWeek } from '@/types'
 import { cn } from '@/lib/utils'
-
-interface SelectedPet {
-  petId?: string
-  isNewPet: boolean
-  petInfo?: {
-    name?: string
-  }
-  services: { serviceId: string; modifierIds: string[] }[]
-}
 
 export function BookingTimesPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const { organization } = useOutletContext<{ organization: Organization }>()
+  const { organization, bookingState, updateBookingState } = useBookingContext()
 
-  const petsParam = searchParams.get('pets')
-  const groomerId = searchParams.get('groomerId') || undefined
-  const selectedPets: SelectedPet[] = petsParam ? JSON.parse(petsParam) : []
+  const groomerId = bookingState.selectedGroomerId
+  const selectedPets = bookingState.selectedPets
 
   const { data: services = [] } = useActiveServices(organization.id)
   const { data: allGroomers = [] } = useGroomers()
@@ -101,19 +91,21 @@ export function BookingTimesPage() {
   const handleContinue = () => {
     if (!selectedSlot) return
 
-    const params = new URLSearchParams(searchParams)
-    params.set('date', selectedSlot.date)
-    params.set('time', selectedSlot.startTime)
     // Pass groomer ID: use selected groomer or the slot's groomer (for "Any")
     const finalGroomerId = groomerId || selectedSlot.groomerId
-    if (finalGroomerId) {
-      params.set('groomerId', finalGroomerId)
-    }
-    navigate(`/book/${organization.slug}/confirm?${params.toString()}`)
+    updateBookingState({
+      selectedTimeSlot: {
+        date: selectedSlot.date,
+        startTime: selectedSlot.startTime,
+        endTime: '', // Will be calculated on confirm page
+      },
+      selectedGroomerId: finalGroomerId,
+    })
+    navigate(`/book/${organization.slug}/confirm`)
   }
 
   const handleBack = () => {
-    navigate(`/book/${organization.slug}/intake?${searchParams.toString()}`)
+    navigate(`/book/${organization.slug}/intake`)
   }
 
   const today = startOfDay(new Date())
@@ -218,7 +210,7 @@ export function BookingTimesPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate(`/book/${organization.slug}/groomer?${searchParams.toString()}`)}
+            onClick={() => navigate(`/book/${organization.slug}/groomer`)}
           >
             Change
           </Button>

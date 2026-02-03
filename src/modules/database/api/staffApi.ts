@@ -19,11 +19,11 @@ function createDefaultWeeklySchedule(): DaySchedule[] {
   ]
 }
 
-// Seed data for staff availability
+// Seed data for staff availability - IDs match seed.ts user-X IDs
 const seedAvailability: StaffAvailability[] = [
   {
     id: 'avail-1',
-    staffId: 'groomer-1',
+    staffId: 'user-2', // Mike Chen
     weeklySchedule: createDefaultWeeklySchedule(),
     maxAppointmentsPerDay: 8,
     bufferMinutesBetweenAppointments: 15,
@@ -31,7 +31,7 @@ const seedAvailability: StaffAvailability[] = [
   },
   {
     id: 'avail-2',
-    staffId: 'groomer-2',
+    staffId: 'user-3', // Lisa Martinez
     weeklySchedule: [
       { dayOfWeek: 0, isWorkingDay: false, startTime: '09:00', endTime: '17:00' },
       { dayOfWeek: 1, isWorkingDay: true, startTime: '10:00', endTime: '18:00' },
@@ -45,21 +45,13 @@ const seedAvailability: StaffAvailability[] = [
     bufferMinutesBetweenAppointments: 10,
     updatedAt: '2024-02-01T10:00:00Z',
   },
-  {
-    id: 'avail-3',
-    staffId: 'groomer-3',
-    weeklySchedule: createDefaultWeeklySchedule(),
-    maxAppointmentsPerDay: 5,
-    bufferMinutesBetweenAppointments: 20,
-    updatedAt: '2024-03-10T10:00:00Z',
-  },
 ]
 
-// Seed data for time off requests
+// Seed data for time off requests - IDs match seed.ts user-X IDs
 const seedTimeOffRequests: TimeOffRequest[] = [
   {
     id: 'timeoff-1',
-    staffId: 'groomer-1',
+    staffId: 'user-2', // Mike Chen
     startDate: '2024-12-23',
     endDate: '2024-12-27',
     reason: 'Holiday vacation',
@@ -68,7 +60,7 @@ const seedTimeOffRequests: TimeOffRequest[] = [
   },
   {
     id: 'timeoff-2',
-    staffId: 'groomer-2',
+    staffId: 'user-3', // Lisa Martinez
     startDate: '2024-12-30',
     endDate: '2024-12-31',
     reason: 'Personal day',

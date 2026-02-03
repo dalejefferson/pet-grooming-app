@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from './Button'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 
 export interface ModalProps {
   isOpen: boolean
@@ -31,6 +32,8 @@ export function Modal({
     }
   }, [isOpen])
 
+  const trapRef = useFocusTrap<HTMLDivElement>(isOpen)
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -58,6 +61,7 @@ export function Modal({
         aria-hidden="true"
       />
       <div
+        ref={trapRef}
         role="dialog"
         aria-modal="true"
         aria-label={title || 'Dialog'}

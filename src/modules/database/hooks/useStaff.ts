@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { staffApi } from '../api/staffApi'
 import { useOrganization } from './useOrganization'
+import { useToast } from '@/modules/ui/hooks/useToast'
 import type { StaffAvailability, TimeOffRequest, DaySchedule } from '../types'
 
 // ============================================
@@ -17,6 +18,7 @@ export function useStaffAvailability(staffId: string) {
 
 export function useUpdateStaffAvailability() {
   const queryClient = useQueryClient()
+  const { showSuccess } = useToast()
 
   return useMutation({
     mutationFn: ({
@@ -27,6 +29,7 @@ export function useUpdateStaffAvailability() {
       availability: Partial<Omit<StaffAvailability, 'id' | 'staffId' | 'updatedAt'>>
     }) => staffApi.updateStaffAvailability(staffId, availability),
     onSuccess: (updatedAvailability) => {
+      showSuccess('Availability updated')
       queryClient.setQueryData(
         ['staffAvailability', updatedAvailability.staffId],
         updatedAvailability
@@ -92,6 +95,7 @@ export function useTimeOffRequest(id: string) {
 
 export function useCreateTimeOffRequest() {
   const queryClient = useQueryClient()
+  const { showSuccess } = useToast()
 
   return useMutation({
     mutationFn: ({
@@ -102,6 +106,7 @@ export function useCreateTimeOffRequest() {
       request: Omit<TimeOffRequest, 'id' | 'staffId' | 'status' | 'createdAt'>
     }) => staffApi.createTimeOffRequest(staffId, request),
     onSuccess: (newRequest) => {
+      showSuccess('Time off requested')
       queryClient.invalidateQueries({ queryKey: ['timeOffRequests'] })
       queryClient.invalidateQueries({ queryKey: ['timeOffRequests', newRequest.staffId] })
       queryClient.invalidateQueries({ queryKey: ['allStaffWithAvailability'] })
@@ -111,6 +116,7 @@ export function useCreateTimeOffRequest() {
 
 export function useUpdateTimeOffRequest() {
   const queryClient = useQueryClient()
+  const { showSuccess } = useToast()
 
   return useMutation({
     mutationFn: ({
@@ -121,6 +127,7 @@ export function useUpdateTimeOffRequest() {
       status: 'pending' | 'approved' | 'rejected'
     }) => staffApi.updateTimeOffRequest(id, status),
     onSuccess: (updatedRequest) => {
+      showSuccess('Time off request updated')
       queryClient.setQueryData(['timeOffRequest', updatedRequest.id], updatedRequest)
       queryClient.invalidateQueries({ queryKey: ['timeOffRequests'] })
       queryClient.invalidateQueries({ queryKey: ['timeOffRequests', updatedRequest.staffId] })
@@ -131,10 +138,12 @@ export function useUpdateTimeOffRequest() {
 
 export function useDeleteTimeOffRequest() {
   const queryClient = useQueryClient()
+  const { showSuccess } = useToast()
 
   return useMutation({
     mutationFn: (id: string) => staffApi.deleteTimeOffRequest(id),
     onSuccess: () => {
+      showSuccess('Time off request deleted')
       queryClient.invalidateQueries({ queryKey: ['timeOffRequests'] })
       queryClient.invalidateQueries({ queryKey: ['allStaffWithAvailability'] })
     },
