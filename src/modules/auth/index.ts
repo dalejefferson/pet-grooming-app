@@ -4,6 +4,7 @@ export { useCurrentUser, useUsers, useLogin, useLogout, useUpdateUserPermissions
 export type { UsePermissionsReturn } from './hooks'
 export { PermissionGate, ProtectedRoute } from './components'
 export type { PermissionGateProps, ProtectedRouteProps } from './components'
+export { AuthProvider, useAuthContext } from './context/AuthContext'
 export { LoginPage } from './pages'
 export type { User } from './types'
 export { hasRole, isAdmin, isGroomer, isOwner } from './utils'

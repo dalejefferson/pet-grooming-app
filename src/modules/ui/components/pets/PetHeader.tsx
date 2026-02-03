@@ -23,6 +23,7 @@ export function PetHeader({ pet, onImageChange }: PetHeaderProps) {
         onImageChange={onImageChange}
         placeholder={petInitial}
         size="lg"
+        bucket="pet-images"
       />
       <div>
         <div className="flex items-center gap-2">

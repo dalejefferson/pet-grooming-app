@@ -1,6 +1,6 @@
-import type { Appointment, AppointmentStatus, TimeSlot, DayOfWeek, StaffAvailability } from '../types'
-import { getFromStorage, setToStorage, delay, generateId } from '../storage/localStorage'
-import { seedAppointments } from '../seed/seed'
+import type { Appointment, AppointmentPet, AppointmentStatus, TimeSlot, DayOfWeek, StaffAvailability } from '../types'
+import { supabase } from '@/lib/supabase/client'
+import { mapAppointment, toDbAppointment } from '../types/supabase-mappers'
 import { staffApi } from './staffApi'
 import { validateStatusTransition } from './statusMachine'
 import {
@@ -18,30 +18,66 @@ import {
   addDays,
 } from 'date-fns'
 
-const STORAGE_KEY = 'appointments'
+/**
+ * Load appointment_pets and their nested appointment_services for a given appointment.
+ */
+async function loadAppointmentPets(appointmentId: string): Promise<AppointmentPet[]> {
+  const { data: aptPets, error: petsError } = await supabase
+    .from('appointment_pets')
+    .select('*')
+    .eq('appointment_id', appointmentId)
+  if (petsError) throw petsError
 
-function getAppointments(): Appointment[] {
-  return getFromStorage<Appointment[]>(STORAGE_KEY, seedAppointments)
+  const result: AppointmentPet[] = []
+  for (const aptPet of aptPets ?? []) {
+    const { data: aptServices, error: svcError } = await supabase
+      .from('appointment_services')
+      .select('*')
+      .eq('appointment_pet_id', aptPet.id)
+    if (svcError) throw svcError
+
+    result.push({
+      petId: aptPet.pet_id,
+      services: (aptServices ?? []).map((svc) => ({
+        serviceId: svc.service_id,
+        appliedModifiers: svc.applied_modifier_ids ?? [],
+        finalDuration: svc.final_duration,
+        finalPrice: Number(svc.final_price),
+      })),
+    })
+  }
+
+  return result
 }
 
-function saveAppointments(appointments: Appointment[]): void {
-  setToStorage(STORAGE_KEY, appointments)
+/**
+ * Load a single appointment row and hydrate with nested pets/services.
+ */
+async function hydrateAppointment(row: Record<string, unknown>): Promise<Appointment> {
+  const pets = await loadAppointmentPets(row.id as string)
+  return mapAppointment(row, pets)
 }
 
 export const calendarApi = {
   async getAll(organizationId?: string): Promise<Appointment[]> {
-    await delay()
-    const appointments = getAppointments()
+    let query = supabase.from('appointments').select('*')
     if (organizationId) {
-      return appointments.filter((a) => a.organizationId === organizationId)
+      query = query.eq('organization_id', organizationId)
     }
-    return appointments
+    const { data, error } = await query
+    if (error) throw error
+    return Promise.all((data ?? []).map(hydrateAppointment))
   },
 
   async getById(id: string): Promise<Appointment | null> {
-    await delay()
-    const appointments = getAppointments()
-    return appointments.find((a) => a.id === id) ?? null
+    const { data, error } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle()
+    if (error) throw error
+    if (!data) return null
+    return hydrateAppointment(data)
   },
 
   async getByDateRange(
@@ -49,13 +85,17 @@ export const calendarApi = {
     endDate: Date,
     organizationId?: string
   ): Promise<Appointment[]> {
-    await delay()
-    const appointments = getAppointments()
-    return appointments.filter((a) => {
-      if (organizationId && a.organizationId !== organizationId) return false
-      const aptStart = parseISO(a.startTime)
-      return isWithinInterval(aptStart, { start: startDate, end: endDate })
-    })
+    let query = supabase
+      .from('appointments')
+      .select('*')
+      .gte('start_time', startDate.toISOString())
+      .lte('start_time', endDate.toISOString())
+    if (organizationId) {
+      query = query.eq('organization_id', organizationId)
+    }
+    const { data, error } = await query
+    if (error) throw error
+    return Promise.all((data ?? []).map(hydrateAppointment))
   },
 
   async getByDay(date: Date, organizationId?: string): Promise<Appointment[]> {
@@ -71,52 +111,83 @@ export const calendarApi = {
   },
 
   async getByClientId(clientId: string): Promise<Appointment[]> {
-    await delay()
-    const appointments = getAppointments()
-    return appointments.filter((a) => a.clientId === clientId)
+    const { data, error } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('client_id', clientId)
+    if (error) throw error
+    return Promise.all((data ?? []).map(hydrateAppointment))
   },
 
   async getByGroomerId(groomerId: string): Promise<Appointment[]> {
-    await delay()
-    const appointments = getAppointments()
-    return appointments.filter((a) => a.groomerId === groomerId)
+    const { data, error } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('groomer_id', groomerId)
+    if (error) throw error
+    return Promise.all((data ?? []).map(hydrateAppointment))
   },
 
   async create(
     data: Omit<Appointment, 'id' | 'createdAt' | 'updatedAt'>
   ): Promise<Appointment> {
-    await delay()
-    const appointments = getAppointments()
-    const now = new Date().toISOString()
-    const newAppointment: Appointment = {
-      ...data,
-      id: generateId(),
-      createdAt: now,
-      updatedAt: now,
+    // 1. Insert the appointment row (without pets)
+    const aptRow = toDbAppointment(data)
+    const { data: inserted, error: aptError } = await supabase
+      .from('appointments')
+      .insert(aptRow)
+      .select()
+      .single()
+    if (aptError) throw aptError
+
+    const appointmentId = inserted.id as string
+
+    // 2. For each pet, insert into appointment_pets, then services
+    for (const pet of data.pets) {
+      const { data: aptPet, error: petError } = await supabase
+        .from('appointment_pets')
+        .insert({
+          appointment_id: appointmentId,
+          pet_id: pet.petId,
+        })
+        .select()
+        .single()
+      if (petError) throw petError
+
+      const aptPetId = aptPet.id as string
+
+      // 3. For each service in that pet, insert into appointment_services
+      for (const svc of pet.services) {
+        const { error: svcError } = await supabase
+          .from('appointment_services')
+          .insert({
+            appointment_pet_id: aptPetId,
+            service_id: svc.serviceId,
+            applied_modifier_ids: svc.appliedModifiers,
+            final_duration: svc.finalDuration,
+            final_price: svc.finalPrice,
+          })
+        if (svcError) throw svcError
+      }
     }
-    appointments.push(newAppointment)
-    saveAppointments(appointments)
-    return newAppointment
+
+    // Return the full appointment with nested data
+    return hydrateAppointment(inserted)
   },
 
   async update(id: string, data: Partial<Appointment>): Promise<Appointment> {
-    await delay()
-    const appointments = getAppointments()
-    const index = appointments.findIndex((a) => a.id === id)
-    if (index === -1) {
-      throw new Error('Appointment not found')
-    }
-    appointments[index] = {
-      ...appointments[index],
-      ...data,
-      updatedAt: new Date().toISOString(),
-    }
-    saveAppointments(appointments)
-    return appointments[index]
+    const row = toDbAppointment(data)
+    const { data: updated, error } = await supabase
+      .from('appointments')
+      .update(row)
+      .eq('id', id)
+      .select()
+      .single()
+    if (error) throw error
+    return hydrateAppointment(updated)
   },
 
   async updateStatus(id: string, status: AppointmentStatus, statusNotes?: string): Promise<Appointment> {
-    await delay()
     const appointment = await this.getById(id)
     if (!appointment) {
       throw new Error('Appointment not found')
@@ -126,10 +197,9 @@ export const calendarApi = {
   },
 
   async delete(id: string): Promise<void> {
-    await delay()
-    const appointments = getAppointments()
-    const filtered = appointments.filter((a) => a.id !== id)
-    saveAppointments(filtered)
+    // Cascading deletes should handle appointment_pets -> appointment_services
+    const { error } = await supabase.from('appointments').delete().eq('id', id)
+    if (error) throw error
   },
 
   async getAvailableSlots(
@@ -138,7 +208,6 @@ export const calendarApi = {
     organizationId: string,
     groomerId?: string
   ): Promise<TimeSlot[]> {
-    await delay()
     const dayAppointments = await this.getByDay(date, organizationId)
 
     // Default business hours: 8 AM to 6 PM
@@ -270,8 +339,6 @@ export const calendarApi = {
     isWorkingDay: boolean
     breakTime: { start: string; end: string } | null
   }> {
-    await delay()
-
     // Get groomer availability
     const groomerAvailability = await staffApi.getStaffAvailability(groomerId)
     if (!groomerAvailability) {
@@ -347,7 +414,6 @@ export const calendarApi = {
     organizationId: string,
     groomerId?: string
   ): Promise<Record<string, TimeSlot[]>> {
-    await delay()
     const result: Record<string, TimeSlot[]> = {}
 
     for (let i = 0; i < 7; i++) {

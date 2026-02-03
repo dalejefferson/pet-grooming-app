@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { useKeyboardShortcuts, useTheme, validThemes } from '../../context'
 import { CreateAppointmentModal } from '../calendar'
 import type { PetServiceSelection } from '../calendar'
-import { useClients, useClientPets, useServices, useGroomers, useCreateAppointment } from '@/hooks'
+import { useClients, useClientPets, useServices, useGroomers, useCreateAppointment, useCurrentUser } from '@/hooks'
 import type { AppointmentStatus } from '@/types'
 
 // Custom hook to detect mobile breakpoint
@@ -36,6 +36,7 @@ export function AppLayout() {
   const { registerSidebarToggle, registerCalendarNavigate, registerBookAppointment, registerSidebarNavigate, registerThemeCycle } = useKeyboardShortcuts()
   const { currentTheme, setTheme } = useTheme()
   const navigate = useNavigate()
+  const { data: currentUser } = useCurrentUser()
 
   // Sidebar routes for keyboard navigation
   const sidebarRoutes = [
@@ -99,7 +100,7 @@ export function AppLayout() {
   const handleCreateAppointment = async (data: { clientId: string; petServices: PetServiceSelection[]; groomerId: string; notes: string; startTime: string; endTime: string }) => {
     try {
       await createAppointment.mutateAsync({
-        organizationId: 'org-1',
+        organizationId: currentUser?.organizationId || '',
         clientId: data.clientId,
         pets: data.petServices.filter((ps) => ps.serviceIds.length > 0).map((ps) => ({
           petId: ps.petId,

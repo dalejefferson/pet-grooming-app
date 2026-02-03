@@ -4,7 +4,7 @@ import { queryClient } from '@/modules/database'
 import { ThemeProvider, KeyboardProvider, UndoProvider, ShortcutTipsProvider, ToastProvider } from '@/modules/ui/context'
 import { ErrorBoundary } from '@/modules/ui/components/common'
 import { AppLayout, BookingLayout } from '@/modules/ui/components/layout'
-import { LoginPage, ProtectedRoute } from '@/modules/auth'
+import { LoginPage, ProtectedRoute, AuthProvider } from '@/modules/auth'
 import {
   DashboardPage,
   CalendarPage,
@@ -34,6 +34,7 @@ function App() {
   return (
     <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
+      <AuthProvider>
       <ThemeProvider>
         <BrowserRouter>
           <KeyboardProvider>
@@ -85,6 +86,7 @@ function App() {
           </KeyboardProvider>
         </BrowserRouter>
       </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
     </ErrorBoundary>
   )

@@ -1,78 +1,115 @@
+import { supabase } from '@/lib/supabase/client'
 import type { User } from '../types'
-import type { RolePermissions } from '@/modules/database/types'
-import type { StaffRole } from '@/modules/database/types'
-import { getFromStorage, setToStorage, delay } from '@/modules/database/storage/localStorage'
-import { seedUsers } from '@/modules/database/seed/seed'
+import type { RolePermissions, StaffRole } from '@/modules/database/types'
 
-const USERS_KEY = 'users'
-const CURRENT_USER_KEY = 'current_user'
-
-function getUsers(): User[] {
-  return getFromStorage<User[]>(USERS_KEY, seedUsers)
+function mapUserRow(row: Record<string, unknown>): User {
+  return {
+    id: row.id as string,
+    email: row.email as string,
+    name: row.name as string,
+    role: row.role as StaffRole,
+    organizationId: row.organization_id as string,
+    avatar: (row.avatar as string) ?? undefined,
+    createdAt: row.created_at as string,
+    permissionOverrides: row.permission_overrides as Partial<RolePermissions> | undefined,
+  }
 }
 
 export const authApi = {
-  async login(email: string, _password: string): Promise<User> {
-    await delay(300) // Simulate network delay
-    const users = getUsers()
-    const user = users.find((u) => u.email === email)
-    if (!user) {
-      throw new Error('Invalid email or password')
-    }
-    // Mock authentication - in real app, verify password
-    setToStorage(CURRENT_USER_KEY, user)
-    return user
+  async login(email: string, password: string): Promise<User> {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) throw new Error(error.message)
+    if (!data.user) throw new Error('No user returned')
+
+    const { data: profile, error: profileError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', data.user.id)
+      .single()
+
+    if (profileError) throw new Error(profileError.message)
+
+    return mapUserRow(profile)
   },
 
   async logout(): Promise<void> {
-    await delay()
-    setToStorage(CURRENT_USER_KEY, null)
+    const { error } = await supabase.auth.signOut()
+    if (error) throw new Error(error.message)
   },
 
   async getCurrentUser(): Promise<User | null> {
-    await delay()
-    return getFromStorage<User | null>(CURRENT_USER_KEY, null)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    const { data: profile, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', user.id)
+      .single()
+
+    if (error || !profile) return null
+
+    return mapUserRow(profile)
   },
 
   async getUsers(): Promise<User[]> {
-    await delay()
-    return getUsers()
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: true })
+
+    if (error) throw new Error(error.message)
+
+    return (data ?? []).map(mapUserRow)
   },
 
   async getUserById(id: string): Promise<User | null> {
-    await delay()
-    const users = getUsers()
-    return users.find((u) => u.id === id) ?? null
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error || !data) return null
+
+    return mapUserRow(data)
   },
 
   async getGroomers(): Promise<User[]> {
-    await delay()
-    const users = getUsers()
-    return users.filter((u) => u.role === 'groomer' || u.role === 'admin' || u.role === 'owner')
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .in('role', ['owner', 'admin', 'groomer'])
+      .order('name', { ascending: true })
+
+    if (error) throw new Error(error.message)
+
+    return (data ?? []).map(mapUserRow)
   },
 
   async updateUserPermissions(
     userId: string,
     updates: { role?: StaffRole; permissionOverrides?: Partial<RolePermissions> }
   ): Promise<User> {
-    await delay()
-    const users = getUsers()
-    const index = users.findIndex((u) => u.id === userId)
-    if (index === -1) throw new Error('User not found')
-
-    users[index] = {
-      ...users[index],
-      ...(updates.role !== undefined && { role: updates.role }),
-      permissionOverrides: updates.permissionOverrides,
-    }
-    setToStorage(USERS_KEY, users)
-
-    // If this is the current user, update their session too
-    const currentUser = getFromStorage<User | null>(CURRENT_USER_KEY, null)
-    if (currentUser?.id === userId) {
-      setToStorage(CURRENT_USER_KEY, users[index])
+    const updateData: Record<string, unknown> = {}
+    if (updates.role !== undefined) updateData.role = updates.role
+    if (updates.permissionOverrides !== undefined) {
+      updateData.permission_overrides = updates.permissionOverrides
     }
 
-    return users[index]
+    const { data, error } = await supabase
+      .from('users')
+      .update(updateData)
+      .eq('id', userId)
+      .select()
+      .single()
+
+    if (error) throw new Error(error.message)
+
+    return mapUserRow(data)
   },
 }

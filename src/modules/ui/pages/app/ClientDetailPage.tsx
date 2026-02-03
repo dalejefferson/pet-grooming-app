@@ -4,7 +4,7 @@ import { Card, CardTitle, Button, Badge, LoadingPage, Modal, Input, Select, Text
 import { CreateAppointmentModal } from '../../components/calendar'
 import type { PetServiceSelection } from '../../components/calendar'
 import { PaymentMethodsSection } from '../../components/payment'
-import { useClient, useClientPets, useUpdateClient, useCreatePet, useOrganization, useServices, useGroomers, useCreateAppointment } from '@/hooks'
+import { useClient, useClientPets, useUpdateClient, useCreatePet, useOrganization, useServices, useGroomers, useCreateAppointment, useCurrentUser } from '@/hooks'
 import { formatPhone, cn } from '@/lib/utils'
 import { BEHAVIOR_LEVEL_LABELS, COAT_TYPE_LABELS, WEIGHT_RANGE_LABELS } from '@/config/constants'
 import type { Pet, AppointmentStatus } from '@/types'
@@ -42,7 +42,7 @@ function PetForm({
     onSubmit({
       ...formData,
       clientId,
-      organizationId: 'org-1',
+      organizationId: user?.organizationId || '',
       vaccinations: [],
     })
   }
@@ -55,6 +55,7 @@ function PetForm({
           onImageChange={(url) => setFormData((p) => ({ ...p, imageUrl: url || undefined }))}
           placeholder={formData.name.charAt(0) || '?'}
           size="lg"
+          bucket="pet-images"
         />
       </div>
       <Input
@@ -133,6 +134,7 @@ function PetForm({
 export function ClientDetailPage() {
   const { colors } = useTheme()
   const { clientId } = useParams<{ clientId: string }>()
+  const { data: user } = useCurrentUser()
   const { data: client, isLoading } = useClient(clientId || '')
   const { data: pets = [] } = useClientPets(clientId || '')
   // Organization hook kept for potential future use
@@ -175,7 +177,7 @@ export function ClientDetailPage() {
   const handleCreateAppointment = async (data: { clientId: string; petServices: PetServiceSelection[]; groomerId: string; notes: string; startTime: string; endTime: string }) => {
     try {
       await createAppointment.mutateAsync({
-        organizationId: 'org-1',
+        organizationId: user?.organizationId || '',
         clientId: data.clientId,
         pets: data.petServices.filter((ps) => ps.serviceIds.length > 0).map((ps) => ({
           petId: ps.petId,
@@ -217,6 +219,7 @@ export function ClientDetailPage() {
               onImageChange={handleImageChange}
               placeholder={clientInitials}
               size="lg"
+              bucket="client-images"
             />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">

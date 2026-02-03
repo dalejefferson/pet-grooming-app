@@ -1,9 +1,7 @@
 import type { Appointment } from '../types'
-import { getFromStorage, delay } from '../storage/localStorage'
-import { parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
-import { seedAppointments } from '../seed/seed'
-
-const APPOINTMENTS_STORAGE_KEY = 'appointments'
+import { supabase } from '@/lib/supabase/client'
+import { mapAppointment } from '../types/supabase-mappers'
+import { parseISO } from 'date-fns'
 
 export interface DateRange {
   startDate: string
@@ -25,9 +23,9 @@ export interface StaffPerformanceMetrics {
   serviceBreakdown: { serviceName: string; count: number; revenue: number }[]
 }
 
-function getAppointments(): Appointment[] {
-  return getFromStorage<Appointment[]>(APPOINTMENTS_STORAGE_KEY, seedAppointments)
-}
+// ============================================
+// Pure calculation helpers (no DB access)
+// ============================================
 
 function calculateAverageRating(): number {
   // Mock rating between 4.5 and 5.0
@@ -107,54 +105,95 @@ function calculateAverageAppointmentDuration(appointments: Appointment[]): numbe
   return Math.round(totalMinutes / appointments.length)
 }
 
+// ============================================
+// Supabase query helper
+// ============================================
+
+async function fetchAppointments(filters: {
+  groomerId?: string
+  organizationId?: string
+  startDate: string
+  endDate: string
+}): Promise<Appointment[]> {
+  let query = supabase
+    .from('appointments')
+    .select('*')
+    .gte('start_time', filters.startDate)
+    .lte('start_time', filters.endDate)
+
+  if (filters.groomerId) {
+    query = query.eq('groomer_id', filters.groomerId)
+  }
+
+  if (filters.organizationId) {
+    query = query.eq('organization_id', filters.organizationId)
+  }
+
+  const { data, error } = await query
+  if (error) throw error
+
+  // Map rows to Appointment type
+  // Note: pets array is stored as JSONB or in a junction table.
+  // mapAppointment expects a pets array; the DB row may include it as JSON.
+  return (data ?? []).map((row: Record<string, unknown>) => {
+    // If the DB stores pets as a JSONB column, it'll be available directly.
+    // Otherwise mapAppointment returns empty pets array which is fine for metrics.
+    const pets = (row.pets as Appointment['pets'] | undefined) ?? []
+    return mapAppointment(row, pets)
+  })
+}
+
+function computeMetrics(
+  staffId: string,
+  dateRange: DateRange,
+  staffAppointments: Appointment[]
+): StaffPerformanceMetrics {
+  const completedAppointments = staffAppointments.filter((a) => a.status === 'completed')
+  const cancelledAppointments = staffAppointments.filter((a) => a.status === 'cancelled')
+  const noShowAppointments = staffAppointments.filter((a) => a.status === 'no_show')
+
+  const totalRevenue = completedAppointments.reduce((sum, apt) => sum + apt.totalAmount, 0)
+  const noShowRate =
+    staffAppointments.length > 0
+      ? Number(((noShowAppointments.length / staffAppointments.length) * 100).toFixed(1))
+      : 0
+  const cancellationRate =
+    staffAppointments.length > 0
+      ? Number(((cancelledAppointments.length / staffAppointments.length) * 100).toFixed(1))
+      : 0
+
+  return {
+    staffId,
+    dateRange,
+    appointmentsCompleted: completedAppointments.length,
+    appointmentsScheduled: staffAppointments.length,
+    totalRevenue: Number(totalRevenue.toFixed(2)),
+    averageRating: calculateAverageRating(),
+    noShowRate,
+    cancellationRate,
+    clientReturnRate: calculateClientReturnRate(completedAppointments),
+    averageAppointmentDuration: calculateAverageAppointmentDuration(completedAppointments),
+    peakHours: calculatePeakHours(completedAppointments),
+    serviceBreakdown: calculateServiceBreakdown(completedAppointments),
+  }
+}
+
+// ============================================
+// Performance API
+// ============================================
+
 export const performanceApi = {
   async getStaffPerformance(
     staffId: string,
     dateRange: DateRange
   ): Promise<StaffPerformanceMetrics> {
-    await delay()
-
-    const allAppointments = getAppointments()
-
-    // Filter appointments for this staff member within date range
-    const startDate = startOfDay(parseISO(dateRange.startDate))
-    const endDate = endOfDay(parseISO(dateRange.endDate))
-
-    const staffAppointments = allAppointments.filter((apt) => {
-      if (apt.groomerId !== staffId) return false
-      const aptDate = parseISO(apt.startTime)
-      return isWithinInterval(aptDate, { start: startDate, end: endDate })
+    const staffAppointments = await fetchAppointments({
+      groomerId: staffId,
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate,
     })
 
-    // Calculate metrics
-    const completedAppointments = staffAppointments.filter((a) => a.status === 'completed')
-    const cancelledAppointments = staffAppointments.filter((a) => a.status === 'cancelled')
-    const noShowAppointments = staffAppointments.filter((a) => a.status === 'no_show')
-
-    const totalRevenue = completedAppointments.reduce((sum, apt) => sum + apt.totalAmount, 0)
-    const noShowRate =
-      staffAppointments.length > 0
-        ? Number(((noShowAppointments.length / staffAppointments.length) * 100).toFixed(1))
-        : 0
-    const cancellationRate =
-      staffAppointments.length > 0
-        ? Number(((cancelledAppointments.length / staffAppointments.length) * 100).toFixed(1))
-        : 0
-
-    return {
-      staffId,
-      dateRange,
-      appointmentsCompleted: completedAppointments.length,
-      appointmentsScheduled: staffAppointments.length,
-      totalRevenue: Number(totalRevenue.toFixed(2)),
-      averageRating: calculateAverageRating(),
-      noShowRate,
-      cancellationRate,
-      clientReturnRate: calculateClientReturnRate(completedAppointments),
-      averageAppointmentDuration: calculateAverageAppointmentDuration(completedAppointments),
-      peakHours: calculatePeakHours(completedAppointments),
-      serviceBreakdown: calculateServiceBreakdown(completedAppointments),
-    }
+    return computeMetrics(staffId, dateRange, staffAppointments)
   },
 
   async getTeamPerformance(
@@ -164,18 +203,10 @@ export const performanceApi = {
     overall: Omit<StaffPerformanceMetrics, 'staffId'>
     byStaff: StaffPerformanceMetrics[]
   }> {
-    await delay()
-
-    const allAppointments = getAppointments()
-
-    // Filter appointments for this organization within date range
-    const startDate = startOfDay(parseISO(dateRange.startDate))
-    const endDate = endOfDay(parseISO(dateRange.endDate))
-
-    const orgAppointments = allAppointments.filter((apt) => {
-      if (apt.organizationId !== organizationId) return false
-      const aptDate = parseISO(apt.startTime)
-      return isWithinInterval(aptDate, { start: startDate, end: endDate })
+    const orgAppointments = await fetchAppointments({
+      organizationId,
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate,
     })
 
     // Get unique staff IDs
@@ -226,8 +257,6 @@ export const performanceApi = {
     staffIds: string[],
     dateRange: DateRange
   ): Promise<StaffPerformanceMetrics[]> {
-    await delay()
-
     return Promise.all(staffIds.map((staffId) => this.getStaffPerformance(staffId, dateRange)))
   },
 
@@ -235,8 +264,6 @@ export const performanceApi = {
     staffId: string,
     periods: DateRange[]
   ): Promise<StaffPerformanceMetrics[]> {
-    await delay()
-
     return Promise.all(periods.map((period) => this.getStaffPerformance(staffId, period)))
   },
 }

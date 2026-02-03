@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button, Input, Select, Textarea, Toggle } from '../common'
 import { useTheme } from '../../context'
 import { SERVICE_CATEGORIES } from '@/config/constants'
+import { useCurrentUser } from '@/modules/auth'
 import type { Service } from '@/types'
 
 interface ServiceFormProps {
@@ -18,6 +19,7 @@ export function ServiceForm({
   isLoading,
 }: ServiceFormProps) {
   const { colors } = useTheme()
+  const { data: user } = useCurrentUser()
   const [formData, setFormData] = useState({
     name: service?.name || '',
     description: service?.description || '',
@@ -31,7 +33,7 @@ export function ServiceForm({
     e.preventDefault()
     onSubmit({
       ...formData,
-      organizationId: 'org-1',
+      organizationId: user?.organizationId || '',
     })
   }
 

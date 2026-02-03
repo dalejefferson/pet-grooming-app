@@ -1,39 +1,42 @@
 import type { ReminderSchedule, Appointment, Client, Pet } from '../types'
-import { getFromStorage, setToStorage, delay } from '../storage/localStorage'
-import { seedReminders } from '../seed/seed'
+import { supabase } from '@/lib/supabase/client'
+import { mapReminderSchedule, toDbReminderSchedule } from '../types/supabase-mappers'
 import { format, parseISO } from 'date-fns'
 
-const STORAGE_KEY = 'reminders'
-
-function getReminders(): ReminderSchedule {
-  return getFromStorage<ReminderSchedule>(STORAGE_KEY, seedReminders)
-}
-
-function saveReminders(reminders: ReminderSchedule): void {
-  setToStorage(STORAGE_KEY, reminders)
-}
-
 export const remindersApi = {
-  async get(organizationId?: string): Promise<ReminderSchedule> {
-    await delay()
-    const reminders = getReminders()
-    // For MVP, we only have one organization
-    if (organizationId && reminders.organizationId !== organizationId) {
-      return seedReminders
+  async get(organizationId?: string): Promise<ReminderSchedule | null> {
+    if (!organizationId) {
+      const { data, error } = await supabase
+        .from('reminder_schedules')
+        .select('*')
+        .limit(1)
+        .maybeSingle()
+
+      if (error) throw error
+      return data ? mapReminderSchedule(data) : null
     }
-    return reminders
+
+    const { data, error } = await supabase
+      .from('reminder_schedules')
+      .select('*')
+      .eq('organization_id', organizationId)
+      .maybeSingle()
+
+    if (error) throw error
+    return data ? mapReminderSchedule(data) : null
   },
 
   async update(data: Partial<ReminderSchedule>): Promise<ReminderSchedule> {
-    await delay()
-    const reminders = getReminders()
-    const updated: ReminderSchedule = {
-      ...reminders,
-      ...data,
-      updatedAt: new Date().toISOString(),
-    }
-    saveReminders(updated)
-    return updated
+    const dbData = toDbReminderSchedule(data)
+
+    const { data: row, error } = await supabase
+      .from('reminder_schedules')
+      .upsert(dbData, { onConflict: 'organization_id' })
+      .select()
+      .single()
+
+    if (error) throw error
+    return mapReminderSchedule(row)
   },
 
   async updateAppointmentReminders(
@@ -41,8 +44,12 @@ export const remindersApi = {
   ): Promise<ReminderSchedule> {
     const reminders = await this.get()
     return this.update({
+      organizationId: reminders?.organizationId,
       appointmentReminders: {
-        ...reminders.appointmentReminders,
+        ...(reminders?.appointmentReminders ?? {
+          enabled48h: true, enabled24h: true, enabled2h: false,
+          template48h: '', template24h: '', template2h: '',
+        }),
         ...settings,
       },
     })
@@ -53,8 +60,11 @@ export const remindersApi = {
   ): Promise<ReminderSchedule> {
     const reminders = await this.get()
     return this.update({
+      organizationId: reminders?.organizationId,
       dueForGrooming: {
-        ...reminders.dueForGrooming,
+        ...(reminders?.dueForGrooming ?? {
+          enabled: false, intervalDays: 42, template: '',
+        }),
         ...settings,
       },
     })
@@ -66,15 +76,14 @@ export const remindersApi = {
     client?: Client,
     pet?: Pet
   ): Promise<string> {
-    await delay()
     const reminders = await this.get()
 
     let template: string
     if (templateKey === 'dueForGrooming') {
-      template = reminders.dueForGrooming.template
+      template = reminders?.dueForGrooming.template ?? ''
     } else {
-      const key = `template${templateKey}` as keyof typeof reminders.appointmentReminders
-      template = reminders.appointmentReminders[key] as string
+      const key = `template${templateKey}` as keyof NonNullable<typeof reminders>['appointmentReminders']
+      template = (reminders?.appointmentReminders[key] as string) ?? ''
     }
 
     // Replace placeholders with sample or actual data
@@ -103,7 +112,6 @@ export const remindersApi = {
     template2h: string
     dueForGrooming: string
   }> {
-    await delay()
     return {
       template48h:
         "Hi {{clientName}}! This is a reminder that {{petName}}'s grooming appointment is in 2 days on {{date}} at {{time}}. Reply CONFIRM to confirm or call us to reschedule.",

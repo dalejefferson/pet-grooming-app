@@ -1,50 +1,60 @@
 import type { Organization } from '../types'
-import { getFromStorage, setToStorage, delay } from '../storage/localStorage'
-import { seedOrganization } from '../seed/seed'
-
-const STORAGE_KEY = 'organizations'
-
-function getOrganizations(): Organization[] {
-  return getFromStorage<Organization[]>(STORAGE_KEY, [seedOrganization])
-}
-
-function saveOrganizations(orgs: Organization[]): void {
-  setToStorage(STORAGE_KEY, orgs)
-}
+import { supabase } from '@/lib/supabase/client'
+import { mapOrganization, toDbOrganization } from '../types/supabase-mappers'
 
 export const orgApi = {
   async getBySlug(slug: string): Promise<Organization | null> {
-    await delay()
-    const orgs = getOrganizations()
-    return orgs.find((o) => o.slug === slug) ?? null
+    const { data, error } = await supabase
+      .from('organizations')
+      .select('*')
+      .eq('slug', slug)
+      .single()
+
+    if (error) {
+      // PGRST116 = no rows returned
+      if (error.code === 'PGRST116') return null
+      throw new Error(error.message)
+    }
+
+    return data ? mapOrganization(data) : null
   },
 
   async getById(id: string): Promise<Organization | null> {
-    await delay()
-    const orgs = getOrganizations()
-    return orgs.find((o) => o.id === id) ?? null
+    const { data, error } = await supabase
+      .from('organizations')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') return null
+      throw new Error(error.message)
+    }
+
+    return data ? mapOrganization(data) : null
   },
 
   async update(id: string, data: Partial<Organization>): Promise<Organization> {
-    await delay()
-    const orgs = getOrganizations()
-    const index = orgs.findIndex((o) => o.id === id)
-    if (index === -1) {
-      throw new Error('Organization not found')
-    }
-    orgs[index] = {
-      ...orgs[index],
-      ...data,
-      updatedAt: new Date().toISOString(),
-    }
-    saveOrganizations(orgs)
-    return orgs[index]
+    const dbData = toDbOrganization(data)
+    const { data: row, error } = await supabase
+      .from('organizations')
+      .update(dbData)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw new Error(error.message)
+    return mapOrganization(row)
   },
 
   async getCurrent(): Promise<Organization> {
-    await delay()
-    const orgs = getOrganizations()
-    // For MVP, return the first (only) organization
-    return orgs[0]
+    const { data, error } = await supabase
+      .from('organizations')
+      .select('*')
+      .limit(1)
+      .single()
+
+    if (error) throw new Error(error.message)
+    return mapOrganization(data)
   },
 }

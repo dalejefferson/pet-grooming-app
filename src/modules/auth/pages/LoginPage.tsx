@@ -9,7 +9,7 @@ export function LoginPage() {
   const navigate = useNavigate()
   const login = useLogin()
   const [email, setEmail] = useState('admin@pawsclaws.com')
-  const [password, setPassword] = useState('password')
+  const [password, setPassword] = useState('demo123')
   const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,15 +66,15 @@ export function LoginPage() {
           </form>
 
           <div className="mt-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
-            <p className="font-medium mb-1">Demo Accounts (any password):</p>
+            <p className="font-medium mb-1">Demo Accounts (password: demo123):</p>
             <div className="space-y-1">
-              <button type="button" onClick={() => setEmail('admin@pawsclaws.com')} className="block w-full text-left hover:text-[#1e293b] transition-colors">
+              <button type="button" onClick={() => { setEmail('admin@pawsclaws.com'); setPassword('demo123') }} className="block w-full text-left hover:text-[#1e293b] transition-colors">
                 <span className="font-medium">Owner:</span> admin@pawsclaws.com
               </button>
-              <button type="button" onClick={() => setEmail('mike@pawsclaws.com')} className="block w-full text-left hover:text-[#1e293b] transition-colors">
+              <button type="button" onClick={() => { setEmail('mike@pawsclaws.com'); setPassword('demo123') }} className="block w-full text-left hover:text-[#1e293b] transition-colors">
                 <span className="font-medium">Groomer:</span> mike@pawsclaws.com
               </button>
-              <button type="button" onClick={() => setEmail('alex@pawsclaws.com')} className="block w-full text-left hover:text-[#1e293b] transition-colors">
+              <button type="button" onClick={() => { setEmail('alex@pawsclaws.com'); setPassword('demo123') }} className="block w-full text-left hover:text-[#1e293b] transition-colors">
                 <span className="font-medium">Receptionist:</span> alex@pawsclaws.com
               </button>
             </div>

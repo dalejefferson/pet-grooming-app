@@ -8,7 +8,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
 
 import { Card, MiniCalendar } from '../../components/common'
-import { useAppointmentsByWeek, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useUpdateAppointment, useClientPets, useServices, useCreateAppointment, useDeleteAppointment } from '@/hooks'
+import { useAppointmentsByWeek, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useUpdateAppointment, useClientPets, useServices, useCreateAppointment, useDeleteAppointment, useCurrentUser } from '@/hooks'
 import { CALENDAR_BUSINESS_HOURS } from '@/config/constants'
 import { cn } from '@/lib/utils'
 import type { Appointment, AppointmentStatus } from '@/types'
@@ -47,6 +47,7 @@ const DragAndDropCalendar = withDragAndDrop<CalendarEvent, object>(Calendar)
 
 export function CalendarPage() {
   const { colors } = useTheme()
+  const { data: currentUser } = useCurrentUser()
   const { registerCalendarViewCycle } = useKeyboardShortcuts()
   const { showUndo } = useUndo()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -264,7 +265,7 @@ export function CalendarPage() {
   const handleCreateAppointment = useCallback(async (data: { clientId: string; petServices: PetServiceSelection[]; groomerId: string; notes: string; startTime: string; endTime: string }) => {
     try {
       await createAppointment.mutateAsync({
-        organizationId: 'org-1',
+        organizationId: currentUser?.organizationId || '',
         clientId: data.clientId,
         pets: data.petServices.filter((ps) => ps.serviceIds.length > 0).map((ps) => ({
           petId: ps.petId,

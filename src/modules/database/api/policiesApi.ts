@@ -1,43 +1,44 @@
 import type { BookingPolicies } from '../types'
-import { getFromStorage, setToStorage, delay } from '../storage/localStorage'
-import { seedPolicies } from '../seed/seed'
-
-const STORAGE_KEY = 'policies'
-
-function getPolicies(): BookingPolicies {
-  return getFromStorage<BookingPolicies>(STORAGE_KEY, seedPolicies)
-}
-
-function savePolicies(policies: BookingPolicies): void {
-  setToStorage(STORAGE_KEY, policies)
-}
+import { supabase } from '@/lib/supabase/client'
+import { mapBookingPolicies, toDbBookingPolicies } from '../types/supabase-mappers'
 
 export const policiesApi = {
-  async get(organizationId?: string): Promise<BookingPolicies> {
-    await delay()
-    const policies = getPolicies()
-    // For MVP, we only have one organization
-    if (organizationId && policies.organizationId !== organizationId) {
-      // Return default policies if org doesn't match
-      return seedPolicies
+  async get(organizationId?: string): Promise<BookingPolicies | null> {
+    if (!organizationId) {
+      const { data, error } = await supabase
+        .from('booking_policies')
+        .select('*')
+        .limit(1)
+        .maybeSingle()
+
+      if (error) throw error
+      return data ? mapBookingPolicies(data) : null
     }
-    return policies
+
+    const { data, error } = await supabase
+      .from('booking_policies')
+      .select('*')
+      .eq('organization_id', organizationId)
+      .maybeSingle()
+
+    if (error) throw error
+    return data ? mapBookingPolicies(data) : null
   },
 
   async update(data: Partial<BookingPolicies>): Promise<BookingPolicies> {
-    await delay()
-    const policies = getPolicies()
-    const updated: BookingPolicies = {
-      ...policies,
-      ...data,
-      updatedAt: new Date().toISOString(),
-    }
-    savePolicies(updated)
-    return updated
+    const dbData = toDbBookingPolicies(data)
+
+    const { data: row, error } = await supabase
+      .from('booking_policies')
+      .upsert(dbData, { onConflict: 'organization_id' })
+      .select()
+      .single()
+
+    if (error) throw error
+    return mapBookingPolicies(row)
   },
 
   async generatePolicyText(policies: BookingPolicies): Promise<string> {
-    await delay()
     const parts: string[] = []
 
     if (policies.depositRequired) {
@@ -69,7 +70,7 @@ export const policiesApi = {
 
   async calculateDeposit(totalAmount: number, organizationId: string): Promise<number> {
     const policies = await this.get(organizationId)
-    if (!policies.depositRequired) return 0
+    if (!policies || !policies.depositRequired) return 0
 
     const percentageDeposit = (totalAmount * policies.depositPercentage) / 100
     return Math.max(percentageDeposit, policies.depositMinimum)

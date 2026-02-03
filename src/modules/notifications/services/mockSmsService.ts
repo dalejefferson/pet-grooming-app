@@ -1,9 +1,8 @@
 /**
  * Mock SMS Service
- * Simulates SMS sending with localStorage persistence for development/demo purposes
+ * Simulates SMS sending for development/demo purposes
+ * Will be replaced with Twilio integration
  */
-
-import { getFromStorage, setToStorage, generateId } from '@/modules/database/storage/localStorage'
 
 const STORAGE_KEY = 'sent_sms'
 
@@ -16,9 +15,6 @@ export interface SentSms {
 
 /**
  * Simulates sending an SMS
- * @param to - Recipient phone number
- * @param body - SMS message content
- * @returns The sent SMS record
  */
 export async function sendSms(to: string, body: string): Promise<SentSms> {
   // Simulate network delay (200-500ms)
@@ -26,7 +22,7 @@ export async function sendSms(to: string, body: string): Promise<SentSms> {
   await new Promise((resolve) => setTimeout(resolve, delay))
 
   const sms: SentSms = {
-    id: generateId(),
+    id: crypto.randomUUID(),
     to,
     body,
     sentAt: new Date().toISOString(),
@@ -38,26 +34,31 @@ export async function sendSms(to: string, body: string): Promise<SentSms> {
     body: sms.body.substring(0, 50) + (sms.body.length > 50 ? '...' : ''),
   })
 
-  // Store in localStorage
-  const messages = getFromStorage<SentSms[]>(STORAGE_KEY, [])
-  messages.push(sms)
-  setToStorage(STORAGE_KEY, messages)
+  // Store in localStorage for dev visibility
+  try {
+    const messages = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
+    messages.push(sms)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages))
+  } catch { /* ignore storage errors */ }
 
   return sms
 }
 
 /**
  * Retrieves the history of sent SMS messages
- * @returns Array of sent SMS messages, newest first
  */
 export function getSmsHistory(): SentSms[] {
-  const messages = getFromStorage<SentSms[]>(STORAGE_KEY, [])
-  return messages.sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())
+  try {
+    const messages: SentSms[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
+    return messages.sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())
+  } catch {
+    return []
+  }
 }
 
 /**
  * Clears all sent SMS history
  */
 export function clearSmsHistory(): void {
-  setToStorage(STORAGE_KEY, [])
+  localStorage.removeItem(STORAGE_KEY)
 }

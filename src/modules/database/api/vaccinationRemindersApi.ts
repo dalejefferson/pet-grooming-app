@@ -5,50 +5,22 @@ import type {
   Pet,
   Client,
 } from '../types'
-import { getFromStorage, setToStorage, delay, generateId } from '../storage/localStorage'
-import { seedVaccinationReminderSettings, seedPets, seedClients } from '../seed/seed'
+import { supabase } from '@/lib/supabase/client'
+import {
+  mapVaccinationReminderSettings,
+  toDbVaccinationReminderSettings,
+  mapVaccinationReminder,
+  toDbVaccinationReminder,
+  mapPet,
+  mapVaccinationRecord,
+  mapClient,
+} from '../types/supabase-mappers'
 import {
   getVaccinationStatus,
   getPetVaccinationStatus,
   canBookPet,
   getDaysUntilExpiration,
 } from '@/lib/utils/vaccinationUtils'
-
-const SETTINGS_KEY = 'vaccination_reminder_settings'
-const REMINDERS_KEY = 'vaccination_reminders'
-const PETS_KEY = 'pets'
-const CLIENTS_KEY = 'clients'
-
-// ============================================
-// Internal helpers
-// ============================================
-
-function getSettings(): VaccinationReminderSettings {
-  return getFromStorage<VaccinationReminderSettings>(
-    SETTINGS_KEY,
-    seedVaccinationReminderSettings
-  )
-}
-
-function saveSettings(settings: VaccinationReminderSettings): void {
-  setToStorage(SETTINGS_KEY, settings)
-}
-
-function getReminders(): VaccinationReminder[] {
-  return getFromStorage<VaccinationReminder[]>(REMINDERS_KEY, [])
-}
-
-function saveReminders(reminders: VaccinationReminder[]): void {
-  setToStorage(REMINDERS_KEY, reminders)
-}
-
-function getPets(): Pet[] {
-  return getFromStorage<Pet[]>(PETS_KEY, seedPets)
-}
-
-function getClients(): Client[] {
-  return getFromStorage<Client[]>(CLIENTS_KEY, seedClients)
-}
 
 // ============================================
 // Types for API responses
@@ -78,6 +50,46 @@ export interface BookingEligibility {
 }
 
 // ============================================
+// Internal helpers
+// ============================================
+
+async function fetchPets(organizationId?: string): Promise<Pet[]> {
+  let query = supabase.from('pets').select('*')
+  if (organizationId) {
+    query = query.eq('organization_id', organizationId)
+  }
+
+  const { data: petRows, error: petError } = await query
+  if (petError) throw petError
+  if (!petRows || petRows.length === 0) return []
+
+  // Fetch vaccination records for all these pets
+  const petIds = petRows.map((p: { id: string }) => p.id)
+  const { data: vaxRows, error: vaxError } = await supabase
+    .from('vaccination_records')
+    .select('*')
+    .in('pet_id', petIds)
+
+  if (vaxError) throw vaxError
+
+  // Group vaccinations by pet_id
+  const vaxByPet: Record<string, ReturnType<typeof mapVaccinationRecord>[]> = {}
+  for (const vr of vaxRows ?? []) {
+    const pid = vr.pet_id as string
+    if (!vaxByPet[pid]) vaxByPet[pid] = []
+    vaxByPet[pid].push(mapVaccinationRecord(vr))
+  }
+
+  return petRows.map((row: Record<string, unknown>) => mapPet(row, vaxByPet[(row as { id: string }).id] ?? []))
+}
+
+async function fetchClients(): Promise<Client[]> {
+  const { data, error } = await supabase.from('clients').select('*')
+  if (error) throw error
+  return (data ?? []).map((row: Record<string, unknown>) => mapClient(row))
+}
+
+// ============================================
 // Vaccination Reminders API
 // ============================================
 
@@ -86,28 +98,41 @@ export const vaccinationRemindersApi = {
   // Settings CRUD
   // ============================================
 
-  async getSettings(organizationId?: string): Promise<VaccinationReminderSettings> {
-    await delay()
-    const settings = getSettings()
-    // For MVP, we only have one organization
-    if (organizationId && settings.organizationId !== organizationId) {
-      return seedVaccinationReminderSettings
+  async getSettings(organizationId?: string): Promise<VaccinationReminderSettings | null> {
+    if (!organizationId) {
+      const { data, error } = await supabase
+        .from('vaccination_reminder_settings')
+        .select('*')
+        .limit(1)
+        .maybeSingle()
+
+      if (error) throw error
+      return data ? mapVaccinationReminderSettings(data) : null
     }
-    return settings
+
+    const { data, error } = await supabase
+      .from('vaccination_reminder_settings')
+      .select('*')
+      .eq('organization_id', organizationId)
+      .maybeSingle()
+
+    if (error) throw error
+    return data ? mapVaccinationReminderSettings(data) : null
   },
 
   async updateSettings(
     data: Partial<VaccinationReminderSettings>
   ): Promise<VaccinationReminderSettings> {
-    await delay()
-    const settings = getSettings()
-    const updated: VaccinationReminderSettings = {
-      ...settings,
-      ...data,
-      updatedAt: new Date().toISOString(),
-    }
-    saveSettings(updated)
-    return updated
+    const dbData = toDbVaccinationReminderSettings(data)
+
+    const { data: row, error } = await supabase
+      .from('vaccination_reminder_settings')
+      .upsert(dbData, { onConflict: 'organization_id' })
+      .select()
+      .single()
+
+    if (error) throw error
+    return mapVaccinationReminderSettings(row)
   },
 
   // ============================================
@@ -115,76 +140,109 @@ export const vaccinationRemindersApi = {
   // ============================================
 
   async getAllReminders(organizationId?: string): Promise<VaccinationReminder[]> {
-    await delay()
-    const reminders = getReminders()
-    if (!organizationId) return reminders
+    if (!organizationId) {
+      const { data, error } = await supabase
+        .from('vaccination_reminders')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      return (data ?? []).map(mapVaccinationReminder)
+    }
 
     // Filter by organization via pets
-    const pets = getPets()
-    const orgPetIds = pets
-      .filter((p) => p.organizationId === organizationId)
-      .map((p) => p.id)
+    const { data: petRows, error: petError } = await supabase
+      .from('pets')
+      .select('id')
+      .eq('organization_id', organizationId)
 
-    return reminders.filter((r) => orgPetIds.includes(r.petId))
+    if (petError) throw petError
+    const orgPetIds = (petRows ?? []).map((p: { id: string }) => p.id)
+
+    if (orgPetIds.length === 0) return []
+
+    const { data, error } = await supabase
+      .from('vaccination_reminders')
+      .select('*')
+      .in('pet_id', orgPetIds)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return (data ?? []).map(mapVaccinationReminder)
   },
 
   async getReminderById(id: string): Promise<VaccinationReminder | null> {
-    await delay()
-    const reminders = getReminders()
-    return reminders.find((r) => r.id === id) ?? null
+    const { data, error } = await supabase
+      .from('vaccination_reminders')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle()
+
+    if (error) throw error
+    return data ? mapVaccinationReminder(data) : null
   },
 
   async getRemindersByPetId(petId: string): Promise<VaccinationReminder[]> {
-    await delay()
-    const reminders = getReminders()
-    return reminders.filter((r) => r.petId === petId)
+    const { data, error } = await supabase
+      .from('vaccination_reminders')
+      .select('*')
+      .eq('pet_id', petId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return (data ?? []).map(mapVaccinationReminder)
   },
 
   async getRemindersByClientId(clientId: string): Promise<VaccinationReminder[]> {
-    await delay()
-    const reminders = getReminders()
-    return reminders.filter((r) => r.clientId === clientId)
+    const { data, error } = await supabase
+      .from('vaccination_reminders')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return (data ?? []).map(mapVaccinationReminder)
   },
 
   async createReminder(
     data: Omit<VaccinationReminder, 'id' | 'createdAt'>
   ): Promise<VaccinationReminder> {
-    await delay()
-    const reminders = getReminders()
-    const now = new Date().toISOString()
-    const newReminder: VaccinationReminder = {
-      ...data,
-      id: generateId(),
-      createdAt: now,
-    }
-    reminders.push(newReminder)
-    saveReminders(reminders)
-    return newReminder
+    const dbData = toDbVaccinationReminder(data)
+
+    const { data: row, error } = await supabase
+      .from('vaccination_reminders')
+      .insert(dbData)
+      .select()
+      .single()
+
+    if (error) throw error
+    return mapVaccinationReminder(row)
   },
 
   async updateReminder(
     id: string,
     data: Partial<VaccinationReminder>
   ): Promise<VaccinationReminder> {
-    await delay()
-    const reminders = getReminders()
-    const index = reminders.findIndex((r) => r.id === id)
-    if (index === -1) {
-      throw new Error('Vaccination reminder not found')
-    }
-    reminders[index] = {
-      ...reminders[index],
-      ...data,
-    }
-    saveReminders(reminders)
-    return reminders[index]
+    const dbData = toDbVaccinationReminder(data)
+
+    const { data: row, error } = await supabase
+      .from('vaccination_reminders')
+      .update(dbData)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return mapVaccinationReminder(row)
   },
 
   async deleteReminder(id: string): Promise<void> {
-    await delay()
-    const reminders = getReminders()
-    const filtered = reminders.filter((r) => r.id !== id)
-    saveReminders(filtered)
+    const { error } = await supabase
+      .from('vaccination_reminders')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
   },
 
   async dismissReminder(id: string): Promise<VaccinationReminder> {
@@ -210,14 +268,8 @@ export const vaccinationRemindersApi = {
     daysAhead: number = 30,
     organizationId?: string
   ): Promise<PetWithExpiringVaccinations[]> {
-    await delay()
-
-    let pets = getPets()
-    const clients = getClients()
-
-    if (organizationId) {
-      pets = pets.filter((p) => p.organizationId === organizationId)
-    }
+    const pets = await fetchPets(organizationId)
+    const clients = await fetchClients()
 
     const results: PetWithExpiringVaccinations[] = []
 
@@ -282,20 +334,35 @@ export const vaccinationRemindersApi = {
    * Returns eligibility status and reason if blocked
    */
   async checkBookingEligibility(petId: string): Promise<BookingEligibility> {
-    await delay()
+    // Fetch the pet with vaccinations
+    const { data: petRow, error: petError } = await supabase
+      .from('pets')
+      .select('*')
+      .eq('id', petId)
+      .maybeSingle()
 
-    const pets = getPets()
-    const pet = pets.find((p) => p.id === petId)
-
-    if (!pet) {
+    if (petError) throw petError
+    if (!petRow) {
       return {
         canBook: false,
         reason: 'Pet not found',
       }
     }
 
-    const settings = getSettings()
-    const result = canBookPet(pet, settings.blockBookingOnExpired)
+    // Fetch vaccination records for the pet
+    const { data: vaxRows, error: vaxError } = await supabase
+      .from('vaccination_records')
+      .select('*')
+      .eq('pet_id', petId)
+
+    if (vaxError) throw vaxError
+
+    const vaccinations = (vaxRows ?? []).map(mapVaccinationRecord)
+    const pet = mapPet(petRow, vaccinations)
+
+    const settings = await this.getSettings()
+    const blockOnExpired = settings?.blockBookingOnExpired ?? false
+    const result = canBookPet(pet, blockOnExpired)
 
     if (!result.canBook) {
       // Get details about expired vaccinations
@@ -322,9 +389,13 @@ export const vaccinationRemindersApi = {
    * Useful for notification jobs
    */
   async getPendingReminders(): Promise<VaccinationReminder[]> {
-    await delay()
-    const reminders = getReminders()
-    return reminders.filter((r) => r.status === 'pending')
+    const { data, error } = await supabase
+      .from('vaccination_reminders')
+      .select('*')
+      .eq('status', 'pending')
+
+    if (error) throw error
+    return (data ?? []).map(mapVaccinationReminder)
   },
 
   /**
@@ -332,10 +403,8 @@ export const vaccinationRemindersApi = {
    * This would typically be called by a scheduled job
    */
   async generateReminders(organizationId?: string): Promise<VaccinationReminder[]> {
-    await delay()
-
-    const settings = getSettings()
-    if (!settings.enabled) {
+    const settings = await this.getSettings(organizationId)
+    if (!settings || !settings.enabled) {
       return []
     }
 
@@ -344,7 +413,7 @@ export const vaccinationRemindersApi = {
       organizationId
     )
 
-    const existingReminders = getReminders()
+    const existingReminders = await this.getAllReminders(organizationId)
     const newReminders: VaccinationReminder[] = []
 
     for (const { pet, vaccinations } of expiringPets) {
@@ -375,8 +444,7 @@ export const vaccinationRemindersApi = {
           if (settings.channels.email) channels.push('email')
           if (settings.channels.sms) channels.push('sms')
 
-          const newReminder: VaccinationReminder = {
-            id: generateId(),
+          const reminderData: Omit<VaccinationReminder, 'id' | 'createdAt'> = {
             petId: pet.id,
             clientId: pet.clientId,
             vaccinationId: vax.id,
@@ -385,17 +453,12 @@ export const vaccinationRemindersApi = {
             reminderType,
             status: 'pending',
             channels,
-            createdAt: new Date().toISOString(),
           }
 
-          newReminders.push(newReminder)
+          const created = await this.createReminder(reminderData)
+          newReminders.push(created)
         }
       }
-    }
-
-    if (newReminders.length > 0) {
-      const allReminders = [...existingReminders, ...newReminders]
-      saveReminders(allReminders)
     }
 
     return newReminders
@@ -411,8 +474,6 @@ export const vaccinationRemindersApi = {
     totalPendingReminders: number
     totalSentReminders: number
   }> {
-    await delay()
-
     const [expiringPets, reminders] = await Promise.all([
       this.getExpiringVaccinations(30, organizationId),
       this.getAllReminders(organizationId),

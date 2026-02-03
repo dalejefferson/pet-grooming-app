@@ -1,5 +1,4 @@
 import type { Appointment, BookingState, Client, Pet, Service } from '../types'
-import { delay } from '../storage/localStorage'
 import { clientsApi } from './clientsApi'
 import { petsApi } from './petsApi'
 import { servicesApi } from './servicesApi'
@@ -37,8 +36,6 @@ export const bookingApi = {
       }[]
     }[]
   }> {
-    await delay()
-
     const policies = await policiesApi.get(booking.organizationId)
     let totalDuration = 0
     let totalPrice = 0
@@ -113,8 +110,6 @@ export const bookingApi = {
   },
 
   async createBooking(booking: BookingState): Promise<BookingResult> {
-    await delay()
-
     const policies = await policiesApi.get(booking.organizationId)
 
     // Validate max pets
@@ -256,7 +251,6 @@ export const bookingApi = {
   async getServicesWithModifiers(
     organizationId: string
   ): Promise<Service[]> {
-    await delay()
     return servicesApi.getActive(organizationId)
   },
 
@@ -267,7 +261,6 @@ export const bookingApi = {
     organizationId: string,
     groomerId?: string
   ): Promise<boolean> {
-    await delay()
     const dateObj = parseISO(`${date}T${startTime}`)
     const slots = await calendarApi.getAvailableSlots(
       dateObj,

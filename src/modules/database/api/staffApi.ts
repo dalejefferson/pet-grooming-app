@@ -1,10 +1,14 @@
-import type { StaffAvailability, TimeOffRequest, DaySchedule, DayOfWeek } from '../types'
-import { getFromStorage, setToStorage, delay, generateId } from '../storage/localStorage'
-import { groomersApi } from './groomersApi'
+import type { Groomer, StaffAvailability, TimeOffRequest, DaySchedule, DayOfWeek } from '../types'
+import { supabase } from '@/lib/supabase/client'
+import {
+  mapGroomer,
+  toDbGroomer,
+  mapStaffAvailability,
+  toDbStaffAvailability,
+  mapTimeOffRequest,
+  toDbTimeOffRequest,
+} from '../types/supabase-mappers'
 import { parseISO, isWithinInterval, parse } from 'date-fns'
-
-const AVAILABILITY_STORAGE_KEY = 'staff_availability'
-const TIME_OFF_STORAGE_KEY = 'time_off_requests'
 
 // Default weekly schedule (Mon-Fri 9-5, weekends off)
 function createDefaultWeeklySchedule(): DaySchedule[] {
@@ -19,214 +23,233 @@ function createDefaultWeeklySchedule(): DaySchedule[] {
   ]
 }
 
-// Seed data for staff availability - IDs match seed.ts user-X IDs
-const seedAvailability: StaffAvailability[] = [
-  {
-    id: 'avail-1',
-    staffId: 'user-2', // Mike Chen
-    weeklySchedule: createDefaultWeeklySchedule(),
-    maxAppointmentsPerDay: 8,
-    bufferMinutesBetweenAppointments: 15,
-    updatedAt: '2024-01-15T10:00:00Z',
-  },
-  {
-    id: 'avail-2',
-    staffId: 'user-3', // Lisa Martinez
-    weeklySchedule: [
-      { dayOfWeek: 0, isWorkingDay: false, startTime: '09:00', endTime: '17:00' },
-      { dayOfWeek: 1, isWorkingDay: true, startTime: '10:00', endTime: '18:00' },
-      { dayOfWeek: 2, isWorkingDay: true, startTime: '10:00', endTime: '18:00' },
-      { dayOfWeek: 3, isWorkingDay: false, startTime: '10:00', endTime: '18:00' },
-      { dayOfWeek: 4, isWorkingDay: true, startTime: '10:00', endTime: '18:00' },
-      { dayOfWeek: 5, isWorkingDay: true, startTime: '10:00', endTime: '18:00' },
-      { dayOfWeek: 6, isWorkingDay: true, startTime: '09:00', endTime: '15:00' },
-    ],
-    maxAppointmentsPerDay: 6,
-    bufferMinutesBetweenAppointments: 10,
-    updatedAt: '2024-02-01T10:00:00Z',
-  },
-]
-
-// Seed data for time off requests - IDs match seed.ts user-X IDs
-const seedTimeOffRequests: TimeOffRequest[] = [
-  {
-    id: 'timeoff-1',
-    staffId: 'user-2', // Mike Chen
-    startDate: '2024-12-23',
-    endDate: '2024-12-27',
-    reason: 'Holiday vacation',
-    status: 'approved',
-    createdAt: '2024-11-15T10:00:00Z',
-  },
-  {
-    id: 'timeoff-2',
-    staffId: 'user-3', // Lisa Martinez
-    startDate: '2024-12-30',
-    endDate: '2024-12-31',
-    reason: 'Personal day',
-    status: 'pending',
-    createdAt: '2024-12-01T10:00:00Z',
-  },
-]
-
-function getAvailabilities(): StaffAvailability[] {
-  return getFromStorage<StaffAvailability[]>(AVAILABILITY_STORAGE_KEY, seedAvailability)
-}
-
-function saveAvailabilities(availabilities: StaffAvailability[]): void {
-  setToStorage(AVAILABILITY_STORAGE_KEY, availabilities)
-}
-
-function getTimeOffRequestsList(): TimeOffRequest[] {
-  return getFromStorage<TimeOffRequest[]>(TIME_OFF_STORAGE_KEY, seedTimeOffRequests)
-}
-
-function saveTimeOffRequests(requests: TimeOffRequest[]): void {
-  setToStorage(TIME_OFF_STORAGE_KEY, requests)
-}
-
 export interface StaffPerformanceInput {
   staffId: string
   startDate?: string
   endDate?: string
 }
 
+/**
+ * Load a groomer row and hydrate with availability + time-off.
+ */
+async function hydrateGroomer(row: Record<string, unknown>): Promise<Groomer> {
+  const availability = await staffApi.getStaffAvailability(row.id as string)
+  const timeOff = await staffApi.getTimeOffRequests(row.id as string)
+  return mapGroomer(row, availability ?? undefined, timeOff)
+}
+
 export const staffApi = {
-  // Re-export groomer functions for convenience
-  getAll: groomersApi.getAll.bind(groomersApi),
-  getById: groomersApi.getById.bind(groomersApi),
-  create: groomersApi.create.bind(groomersApi),
-  update: groomersApi.update.bind(groomersApi),
-  delete: groomersApi.delete.bind(groomersApi),
+  // =============================================
+  // Groomer CRUD (previously delegated to groomersApi)
+  // =============================================
 
-  // Staff availability functions
+  async getAll(organizationId?: string): Promise<Groomer[]> {
+    let query = supabase.from('groomers').select('*')
+    if (organizationId) {
+      query = query.eq('organization_id', organizationId)
+    }
+    const { data, error } = await query
+    if (error) throw error
+    const groomers = await Promise.all((data ?? []).map(hydrateGroomer))
+    return groomers
+  },
+
+  async getById(id: string): Promise<Groomer | null> {
+    const { data, error } = await supabase
+      .from('groomers')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle()
+    if (error) throw error
+    if (!data) return null
+    return hydrateGroomer(data)
+  },
+
+  async getByUserId(userId: string): Promise<Groomer | null> {
+    const { data, error } = await supabase
+      .from('groomers')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle()
+    if (error) throw error
+    if (!data) return null
+    return hydrateGroomer(data)
+  },
+
+  async create(data: Omit<Groomer, 'id' | 'createdAt' | 'updatedAt'>): Promise<Groomer> {
+    const row = toDbGroomer(data)
+    const { data: inserted, error } = await supabase
+      .from('groomers')
+      .insert(row)
+      .select()
+      .single()
+    if (error) throw error
+    return hydrateGroomer(inserted)
+  },
+
+  async update(id: string, data: Partial<Groomer>): Promise<Groomer> {
+    const row = toDbGroomer(data)
+    const { data: updated, error } = await supabase
+      .from('groomers')
+      .update(row)
+      .eq('id', id)
+      .select()
+      .single()
+    if (error) throw error
+    return hydrateGroomer(updated)
+  },
+
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase.from('groomers').delete().eq('id', id)
+    if (error) throw error
+  },
+
+  // =============================================
+  // Staff availability
+  // =============================================
+
   async getStaffAvailability(staffId: string): Promise<StaffAvailability | null> {
-    await delay()
-    const availabilities = getAvailabilities()
-    const existing = availabilities.find((a) => a.staffId === staffId)
+    const { data, error } = await supabase
+      .from('staff_availability')
+      .select('*')
+      .eq('staff_id', staffId)
+      .maybeSingle()
+    if (error) throw error
 
-    if (existing) {
-      return existing
+    if (data) {
+      return mapStaffAvailability(data)
     }
 
     // If no availability exists, create a default one
-    const newAvailability: StaffAvailability = {
-      id: generateId(),
+    const defaultRow = toDbStaffAvailability({
       staffId,
       weeklySchedule: createDefaultWeeklySchedule(),
       maxAppointmentsPerDay: 8,
       bufferMinutesBetweenAppointments: 15,
-      updatedAt: new Date().toISOString(),
-    }
+    })
 
-    availabilities.push(newAvailability)
-    saveAvailabilities(availabilities)
+    const { data: inserted, error: insertError } = await supabase
+      .from('staff_availability')
+      .insert(defaultRow)
+      .select()
+      .single()
+    if (insertError) throw insertError
 
-    return newAvailability
+    return mapStaffAvailability(inserted)
   },
 
   async updateStaffAvailability(
     staffId: string,
     availability: Partial<Omit<StaffAvailability, 'id' | 'staffId' | 'updatedAt'>>
   ): Promise<StaffAvailability> {
-    await delay()
-    const availabilities = getAvailabilities()
-    const index = availabilities.findIndex((a) => a.staffId === staffId)
+    // Check if a row exists
+    const { data: existing, error: fetchError } = await supabase
+      .from('staff_availability')
+      .select('id')
+      .eq('staff_id', staffId)
+      .maybeSingle()
+    if (fetchError) throw fetchError
 
-    if (index === -1) {
+    if (!existing) {
       // Create new availability if it doesn't exist
-      const newAvailability: StaffAvailability = {
-        id: generateId(),
+      const row = toDbStaffAvailability({
         staffId,
         weeklySchedule: availability.weeklySchedule ?? createDefaultWeeklySchedule(),
         maxAppointmentsPerDay: availability.maxAppointmentsPerDay ?? 8,
         bufferMinutesBetweenAppointments: availability.bufferMinutesBetweenAppointments ?? 15,
-        updatedAt: new Date().toISOString(),
-      }
-      availabilities.push(newAvailability)
-      saveAvailabilities(availabilities)
-      return newAvailability
+      })
+      const { data: inserted, error: insertError } = await supabase
+        .from('staff_availability')
+        .insert(row)
+        .select()
+        .single()
+      if (insertError) throw insertError
+      return mapStaffAvailability(inserted)
     }
 
-    availabilities[index] = {
-      ...availabilities[index],
-      ...availability,
-      updatedAt: new Date().toISOString(),
-    }
-    saveAvailabilities(availabilities)
-    return availabilities[index]
+    const row = toDbStaffAvailability(availability)
+    const { data: updated, error: updateError } = await supabase
+      .from('staff_availability')
+      .update(row)
+      .eq('staff_id', staffId)
+      .select()
+      .single()
+    if (updateError) throw updateError
+    return mapStaffAvailability(updated)
   },
 
-  // Time off request functions
+  // =============================================
+  // Time off requests
+  // =============================================
+
   async getTimeOffRequests(staffId?: string): Promise<TimeOffRequest[]> {
-    await delay()
-    const requests = getTimeOffRequestsList()
+    let query = supabase.from('time_off_requests').select('*')
     if (staffId) {
-      return requests.filter((r) => r.staffId === staffId)
+      query = query.eq('staff_id', staffId)
     }
-    return requests
+    const { data, error } = await query
+    if (error) throw error
+    return (data ?? []).map(mapTimeOffRequest)
   },
 
   async getTimeOffRequestById(id: string): Promise<TimeOffRequest | null> {
-    await delay()
-    const requests = getTimeOffRequestsList()
-    return requests.find((r) => r.id === id) ?? null
+    const { data, error } = await supabase
+      .from('time_off_requests')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle()
+    if (error) throw error
+    if (!data) return null
+    return mapTimeOffRequest(data)
   },
 
   async createTimeOffRequest(
     staffId: string,
     request: Omit<TimeOffRequest, 'id' | 'staffId' | 'status' | 'createdAt'>
   ): Promise<TimeOffRequest> {
-    await delay()
-    const requests = getTimeOffRequestsList()
-    const newRequest: TimeOffRequest = {
-      ...request,
-      id: generateId(),
+    const row = toDbTimeOffRequest({
       staffId,
+      ...request,
       status: 'pending',
-      createdAt: new Date().toISOString(),
-    }
-    requests.push(newRequest)
-    saveTimeOffRequests(requests)
-    return newRequest
+    })
+    const { data, error } = await supabase
+      .from('time_off_requests')
+      .insert(row)
+      .select()
+      .single()
+    if (error) throw error
+    return mapTimeOffRequest(data)
   },
 
   async updateTimeOffRequest(
     id: string,
     status: 'pending' | 'approved' | 'rejected'
   ): Promise<TimeOffRequest> {
-    await delay()
-    const requests = getTimeOffRequestsList()
-    const index = requests.findIndex((r) => r.id === id)
-
-    if (index === -1) {
-      throw new Error('Time off request not found')
-    }
-
-    requests[index] = {
-      ...requests[index],
-      status,
-    }
-    saveTimeOffRequests(requests)
-    return requests[index]
+    const { data, error } = await supabase
+      .from('time_off_requests')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single()
+    if (error) throw error
+    return mapTimeOffRequest(data)
   },
 
   async deleteTimeOffRequest(id: string): Promise<void> {
-    await delay()
-    const requests = getTimeOffRequestsList()
-    const filtered = requests.filter((r) => r.id !== id)
-    saveTimeOffRequests(filtered)
+    const { error } = await supabase.from('time_off_requests').delete().eq('id', id)
+    if (error) throw error
   },
 
-  // Availability check function
+  // =============================================
+  // Availability check
+  // =============================================
+
   async isStaffAvailable(
     staffId: string,
     date: string,
     startTime: string,
     endTime: string
   ): Promise<boolean> {
-    await delay()
-
     // Get staff availability settings
     const availability = await this.getStaffAvailability(staffId)
     if (!availability) {
@@ -283,14 +306,16 @@ export const staffApi = {
     return true
   },
 
+  // =============================================
   // Get all staff with their availability
+  // =============================================
+
   async getAllWithAvailability(organizationId?: string): Promise<Array<{
-    groomer: Awaited<ReturnType<typeof groomersApi.getById>>
+    groomer: Groomer
     availability: StaffAvailability | null
     timeOffRequests: TimeOffRequest[]
   }>> {
-    await delay()
-    const groomers = await groomersApi.getAll(organizationId)
+    const groomers = await this.getAll(organizationId)
 
     const result = await Promise.all(
       groomers.map(async (groomer) => ({

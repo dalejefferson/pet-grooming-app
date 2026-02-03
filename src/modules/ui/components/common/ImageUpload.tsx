@@ -1,12 +1,14 @@
-import { useRef, type ChangeEvent } from 'react'
-import { Camera, X } from 'lucide-react'
+import { useRef, useState, type ChangeEvent } from 'react'
+import { Camera, X, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { storageApi, type BucketName } from '@/lib/supabase/storage'
 
 export interface ImageUploadProps {
   currentImage?: string
   onImageChange: (imageUrl: string | null) => void
   placeholder?: string // initials or icon
   size?: 'sm' | 'md' | 'lg'
+  bucket?: BucketName
   className?: string
 }
 
@@ -27,15 +29,17 @@ export function ImageUpload({
   onImageChange,
   placeholder = '?',
   size = 'md',
+  bucket = 'avatars',
   className,
 }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
 
   const handleClick = () => {
-    fileInputRef.current?.click()
+    if (!uploading) fileInputRef.current?.click()
   }
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -51,13 +55,21 @@ export function ImageUpload({
       return
     }
 
-    // Convert to base64
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string
-      onImageChange(base64)
+    setUploading(true)
+    try {
+      // Delete previous image if it's a Supabase URL
+      if (currentImage && currentImage.includes('supabase')) {
+        storageApi.deleteFile(bucket, currentImage).catch(() => {})
+      }
+
+      const publicUrl = await storageApi.uploadFile({ bucket, file })
+      onImageChange(publicUrl)
+    } catch (err) {
+      alert('Upload failed. Please try again.')
+      console.error('Image upload error:', err)
+    } finally {
+      setUploading(false)
     }
-    reader.readAsDataURL(file)
 
     // Reset input so same file can be selected again
     e.target.value = ''
@@ -78,7 +90,9 @@ export function ImageUpload({
           sizeClasses[size]
         )}
       >
-        {currentImage ? (
+        {uploading ? (
+          <Loader2 className={cn('animate-spin text-[#64748b]', iconSizes[size])} />
+        ) : currentImage ? (
           <img
             src={currentImage}
             alt="Uploaded image preview"
@@ -89,9 +103,11 @@ export function ImageUpload({
         )}
 
         {/* Camera overlay on hover */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100">
-          <Camera className={cn('text-white', iconSizes[size])} />
-        </div>
+        {!uploading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100">
+            <Camera className={cn('text-white', iconSizes[size])} />
+          </div>
+        )}
       </button>
 
       {/* Remove button */}

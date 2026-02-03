@@ -1,7 +1,8 @@
-import { useRef, type ChangeEvent } from 'react'
-import { Upload, FileText, X, ExternalLink } from 'lucide-react'
+import { useRef, useState, type ChangeEvent } from 'react'
+import { Upload, FileText, X, ExternalLink, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from './Button'
+import { storageApi, type BucketName } from '@/lib/supabase/storage'
 
 export interface DocumentUploadProps {
   currentDocument?: string
@@ -9,19 +10,22 @@ export interface DocumentUploadProps {
   label?: string
   accept?: string
   maxSizeMB?: number
+  bucket?: BucketName
   className?: string
 }
 
-// Helper to determine file type from base64 data URL
-function getFileType(dataUrl: string): 'pdf' | 'image' | 'unknown' {
-  if (dataUrl.startsWith('data:application/pdf')) return 'pdf'
-  if (dataUrl.startsWith('data:image/')) return 'image'
+// Helper to determine file type from URL or data URL
+function getFileType(url: string): 'pdf' | 'image' | 'unknown' {
+  if (url.startsWith('data:application/pdf')) return 'pdf'
+  if (url.startsWith('data:image/')) return 'image'
+  if (url.match(/\.pdf(\?|$)/i)) return 'pdf'
+  if (url.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i)) return 'image'
   return 'unknown'
 }
 
-// Helper to get file name from data URL (for display purposes)
-function getDisplayName(dataUrl: string): string {
-  const type = getFileType(dataUrl)
+// Helper to get file name from URL (for display purposes)
+function getDisplayName(url: string): string {
+  const type = getFileType(url)
   if (type === 'pdf') return 'PDF Document'
   if (type === 'image') return 'Image Document'
   return 'Document'
@@ -33,15 +37,17 @@ export function DocumentUpload({
   label = 'Document',
   accept = 'image/*,.pdf,application/pdf',
   maxSizeMB = 5,
+  bucket = 'vaccination-documents',
   className,
 }: DocumentUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
 
   const handleClick = () => {
-    fileInputRef.current?.click()
+    if (!uploading) fileInputRef.current?.click()
   }
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -58,13 +64,21 @@ export function DocumentUpload({
       return
     }
 
-    // Convert to base64
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string
-      onDocumentChange(base64)
+    setUploading(true)
+    try {
+      // Delete previous document if it's a Supabase URL
+      if (currentDocument && currentDocument.includes('supabase')) {
+        storageApi.deleteFile(bucket, currentDocument).catch(() => {})
+      }
+
+      const publicUrl = await storageApi.uploadFile({ bucket, file })
+      onDocumentChange(publicUrl)
+    } catch (err) {
+      alert('Upload failed. Please try again.')
+      console.error('Document upload error:', err)
+    } finally {
+      setUploading(false)
     }
-    reader.readAsDataURL(file)
 
     // Reset input so same file can be selected again
     e.target.value = ''
@@ -78,12 +92,17 @@ export function DocumentUpload({
   const handleView = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (currentDocument) {
-      // Open in new tab
+      // For Supabase URLs and regular URLs, open directly
+      if (!currentDocument.startsWith('data:')) {
+        window.open(currentDocument, '_blank')
+        return
+      }
+
+      // For base64 data URLs (legacy), open in new tab with custom viewer
       const newWindow = window.open()
       if (newWindow) {
         const fileType = getFileType(currentDocument)
         if (fileType === 'pdf') {
-          // For PDFs, embed in an iframe
           newWindow.document.write(`
             <html>
               <head><title>Vaccination Document</title></head>
@@ -93,7 +112,6 @@ export function DocumentUpload({
             </html>
           `)
         } else {
-          // For images, display directly
           newWindow.document.write(`
             <html>
               <head><title>Vaccination Document</title></head>
@@ -152,11 +170,21 @@ export function DocumentUpload({
         <button
           type="button"
           onClick={handleClick}
-          className="w-full rounded-xl border-2 border-dashed border-[#cbd5e1] bg-[#f8fafc] p-4 text-center transition-all hover:border-[#1e293b] hover:bg-[#f1f5f9] focus:outline-none focus:ring-2 focus:ring-[#1e293b] focus:ring-offset-2"
+          disabled={uploading}
+          className="w-full rounded-xl border-2 border-dashed border-[#cbd5e1] bg-[#f8fafc] p-4 text-center transition-all hover:border-[#1e293b] hover:bg-[#f1f5f9] focus:outline-none focus:ring-2 focus:ring-[#1e293b] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          <Upload className="mx-auto h-6 w-6 text-[#94a3b8]" />
-          <p className="mt-1 text-sm text-[#64748b]">Upload vaccination certificate</p>
-          <p className="text-xs text-[#94a3b8]">PDF, JPG, or PNG (max {maxSizeMB}MB)</p>
+          {uploading ? (
+            <>
+              <Loader2 className="mx-auto h-6 w-6 text-[#64748b] animate-spin" />
+              <p className="mt-1 text-sm text-[#64748b]">Uploading...</p>
+            </>
+          ) : (
+            <>
+              <Upload className="mx-auto h-6 w-6 text-[#94a3b8]" />
+              <p className="mt-1 text-sm text-[#64748b]">Upload vaccination certificate</p>
+              <p className="text-xs text-[#94a3b8]">PDF, JPG, or PNG (max {maxSizeMB}MB)</p>
+            </>
+          )}
         </button>
       )}
 

@@ -51,8 +51,9 @@ export function Header({ onMenuClick, title }: HeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const { data: notifications = [] } = useNotifications()
-  const { data: unreadCount = 0 } = useUnreadNotificationCount()
+  const orgId = user?.organizationId
+  const { data: notifications = [] } = useNotifications(orgId)
+  const { data: unreadCount = 0 } = useUnreadNotificationCount(orgId)
   const markAllRead = useMarkAllNotificationsRead()
 
   const themeNames = Object.keys(themeColors) as ThemeName[]
@@ -68,7 +69,7 @@ export function Header({ onMenuClick, title }: HeaderProps) {
   }
 
   const handleMarkAllRead = () => {
-    markAllRead.mutate('org-1')
+    if (orgId) markAllRead.mutate(orgId)
   }
 
   // Close dropdown when clicking outside

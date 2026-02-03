@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Plus, Phone, Trash2, Users } from 'lucide-react'
 import { Card, Button, Input, Badge, Modal, ImageUpload, HistorySection, ConfirmDialog, Skeleton, EmptyState } from '../../components/common'
-import { useClients, useClientPets, useCreateClient, useDeleteClient, useDeletedHistory, useAddToHistory } from '@/hooks'
+import { useClients, useClientPets, useCreateClient, useDeleteClient, useDeletedHistory, useAddToHistory, useCurrentUser } from '@/hooks'
 import { formatPhone, cn } from '@/lib/utils'
 import { debounce } from '@/lib/utils/debounce'
 import type { Client } from '@/types'
@@ -13,11 +13,13 @@ function ClientForm({
   onCancel,
   isLoading,
   accentColor,
+  organizationId,
 }: {
   onSubmit: (data: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => void
   onCancel: () => void
   isLoading: boolean
   accentColor: string
+  organizationId: string
 }) {
   const { colors } = useTheme()
   const [formData, setFormData] = useState({
@@ -34,7 +36,7 @@ function ClientForm({
     e.preventDefault()
     onSubmit({
       ...formData,
-      organizationId: 'org-1',
+      organizationId,
       preferredContactMethod: 'email',
       isNewClient: true,
     })
@@ -54,6 +56,7 @@ function ClientForm({
           onImageChange={(url) => setFormData((p) => ({ ...p, imageUrl: url || undefined }))}
           placeholder={getInitials()}
           size="lg"
+          bucket="client-images"
         />
       </div>
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
@@ -189,6 +192,7 @@ export function ClientsPage() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [clientToDeleteId, setClientToDeleteId] = useState<string | null>(null)
+  const { data: user } = useCurrentUser()
   const { data: clients = [], isLoading } = useClients()
   const { data: deletedItems = [] } = useDeletedHistory('client')
   const createClient = useCreateClient()
@@ -310,6 +314,7 @@ export function ClientsPage() {
           onCancel={() => setShowAddModal(false)}
           isLoading={createClient.isPending}
           accentColor={colors.accentColorDark}
+          organizationId={user?.organizationId || ''}
         />
       </Modal>
 

@@ -29,12 +29,13 @@ export const notificationKeys = {
 
 /**
  * Hook to get all notifications for an organization
- * @param organizationId - Optional organization filter (defaults to 'org-1')
+ * @param organizationId - Optional organization filter (from authenticated user)
  */
-export function useNotifications(organizationId: string = 'org-1') {
+export function useNotifications(organizationId?: string) {
   return useQuery({
     queryKey: notificationKeys.list(organizationId),
-    queryFn: () => getNotifications(organizationId),
+    queryFn: () => getNotifications(organizationId!),
+    enabled: !!organizationId,
     // Refresh every 30 seconds
     refetchInterval: 30 * 1000,
   })
@@ -42,12 +43,13 @@ export function useNotifications(organizationId: string = 'org-1') {
 
 /**
  * Hook to get unread notification count
- * @param organizationId - Optional organization filter (defaults to 'org-1')
+ * @param organizationId - Optional organization filter (from authenticated user)
  */
-export function useUnreadNotificationCount(organizationId: string = 'org-1') {
+export function useUnreadNotificationCount(organizationId?: string) {
   return useQuery({
     queryKey: notificationKeys.unreadCount(organizationId),
-    queryFn: () => getUnreadCount(organizationId),
+    queryFn: () => getUnreadCount(organizationId!),
+    enabled: !!organizationId,
     // Refresh every 15 seconds
     refetchInterval: 15 * 1000,
   })
@@ -110,7 +112,7 @@ export function useMarkAllNotificationsRead() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (organizationId: string = 'org-1'): Promise<{ count: number; organizationId: string }> => {
+    mutationFn: async (organizationId: string): Promise<{ count: number; organizationId: string }> => {
       const count = markAllAsRead(organizationId)
       return { count, organizationId }
     },

@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { X } from 'lucide-react'
 import { Button, Input, Badge, Toggle, ImageUpload } from '../common'
 import { useTheme } from '../../context'
-import { usePermissions } from '@/modules/auth'
+import { usePermissions, useCurrentUser } from '@/modules/auth'
 import type { Groomer } from '@/types'
 
 const BASE_ROLE_OPTIONS = [
@@ -42,6 +42,7 @@ export function GroomerForm({
   isLoading,
 }: GroomerFormProps) {
   const { colors } = useTheme()
+  const { data: user } = useCurrentUser()
   const { isOwner } = usePermissions()
   const roleOptions = useMemo(
     () => isOwner
@@ -65,7 +66,7 @@ export function GroomerForm({
     e.preventDefault()
     onSubmit({
       ...formData,
-      organizationId: 'org-1',
+      organizationId: user?.organizationId || '',
       imageUrl: formData.imageUrl || undefined,
     })
   }

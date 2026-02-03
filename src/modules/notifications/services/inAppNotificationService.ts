@@ -1,143 +1,149 @@
 /**
  * In-App Notification Service
- * Manages in-app notifications with localStorage persistence
+ * Manages in-app notifications with Supabase persistence
  */
 
-import { getFromStorage, setToStorage, generateId } from '@/modules/database/storage/localStorage'
+import { supabase } from '@/lib/supabase/client'
 import type { InAppNotification } from '@/types'
 
-const STORAGE_KEY = 'in_app_notifications'
+function mapNotification(row: Record<string, unknown>): InAppNotification {
+  return {
+    id: row.id as string,
+    organizationId: row.organization_id as string,
+    type: row.type as InAppNotification['type'],
+    title: row.title as string,
+    message: row.message as string,
+    read: row.read as boolean,
+    actionUrl: (row.action_url as string) ?? undefined,
+    createdAt: row.created_at as string,
+  }
+}
 
 /**
  * Creates a new in-app notification
- * @param notification - Notification data (without id and createdAt)
- * @returns The created notification
  */
 export async function createNotification(
   notification: Omit<InAppNotification, 'id' | 'createdAt'>
 ): Promise<InAppNotification> {
-  // Simulate minimal delay for consistency
-  await new Promise((resolve) => setTimeout(resolve, 50))
-
-  const newNotification: InAppNotification = {
-    ...notification,
-    id: generateId(),
-    createdAt: new Date().toISOString(),
-  }
-
-  // Log to console for debugging
   console.log(`[In-App Notification] Creating notification:`, {
-    type: newNotification.type,
-    title: newNotification.title,
+    type: notification.type,
+    title: notification.title,
   })
 
-  // Store in localStorage
-  const notifications = getFromStorage<InAppNotification[]>(STORAGE_KEY, [])
-  notifications.push(newNotification)
-  setToStorage(STORAGE_KEY, notifications)
+  const { data, error } = await supabase
+    .from('in_app_notifications')
+    .insert({
+      organization_id: notification.organizationId,
+      type: notification.type,
+      title: notification.title,
+      message: notification.message,
+      read: notification.read ?? false,
+      action_url: notification.actionUrl,
+    })
+    .select()
+    .single()
 
-  return newNotification
+  if (error) throw new Error(error.message)
+  return mapNotification(data)
 }
 
 /**
  * Retrieves all notifications for an organization
- * @param organizationId - Optional organization filter
- * @returns Array of notifications, newest first
  */
-export function getNotifications(organizationId?: string): InAppNotification[] {
-  const notifications = getFromStorage<InAppNotification[]>(STORAGE_KEY, [])
+export async function getNotifications(organizationId?: string): Promise<InAppNotification[]> {
+  let query = supabase
+    .from('in_app_notifications')
+    .select('*')
+    .order('created_at', { ascending: false })
 
-  const filtered = organizationId
-    ? notifications.filter((n) => n.organizationId === organizationId)
-    : notifications
+  if (organizationId) {
+    query = query.eq('organization_id', organizationId)
+  }
 
-  return filtered.sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )
+  const { data, error } = await query
+  if (error) throw new Error(error.message)
+  return (data ?? []).map(mapNotification)
 }
 
 /**
  * Gets the count of unread notifications for an organization
- * @param organizationId - Optional organization filter
- * @returns Count of unread notifications
  */
-export function getUnreadCount(organizationId?: string): number {
-  const notifications = getNotifications(organizationId)
-  return notifications.filter((n) => !n.read).length
+export async function getUnreadCount(organizationId?: string): Promise<number> {
+  let query = supabase
+    .from('in_app_notifications')
+    .select('id', { count: 'exact', head: true })
+    .eq('read', false)
+
+  if (organizationId) {
+    query = query.eq('organization_id', organizationId)
+  }
+
+  const { count, error } = await query
+  if (error) throw new Error(error.message)
+  return count ?? 0
 }
 
 /**
  * Marks a specific notification as read
- * @param id - Notification ID
- * @returns The updated notification, or null if not found
  */
-export function markAsRead(id: string): InAppNotification | null {
-  const notifications = getFromStorage<InAppNotification[]>(STORAGE_KEY, [])
-  const index = notifications.findIndex((n) => n.id === id)
+export async function markAsRead(id: string): Promise<InAppNotification | null> {
+  const { data, error } = await supabase
+    .from('in_app_notifications')
+    .update({ read: true })
+    .eq('id', id)
+    .select()
+    .single()
 
-  if (index === -1) {
-    return null
+  if (error) {
+    if (error.code === 'PGRST116') return null
+    throw new Error(error.message)
   }
-
-  notifications[index] = {
-    ...notifications[index],
-    read: true,
-  }
-
-  setToStorage(STORAGE_KEY, notifications)
-  return notifications[index]
+  return data ? mapNotification(data) : null
 }
 
 /**
  * Marks all notifications for an organization as read
- * @param organizationId - Optional organization filter
- * @returns Number of notifications marked as read
  */
-export function markAllAsRead(organizationId?: string): number {
-  const notifications = getFromStorage<InAppNotification[]>(STORAGE_KEY, [])
-  let count = 0
+export async function markAllAsRead(organizationId?: string): Promise<number> {
+  let query = supabase
+    .from('in_app_notifications')
+    .update({ read: true })
+    .eq('read', false)
 
-  const updated = notifications.map((n) => {
-    if (!n.read && (!organizationId || n.organizationId === organizationId)) {
-      count++
-      return { ...n, read: true }
-    }
-    return n
-  })
+  if (organizationId) {
+    query = query.eq('organization_id', organizationId)
+  }
 
-  setToStorage(STORAGE_KEY, updated)
-  return count
+  const { data, error } = await query.select()
+  if (error) throw new Error(error.message)
+  return data?.length ?? 0
 }
 
 /**
  * Deletes a notification
- * @param id - Notification ID
- * @returns True if deleted, false if not found
  */
-export function deleteNotification(id: string): boolean {
-  const notifications = getFromStorage<InAppNotification[]>(STORAGE_KEY, [])
-  const index = notifications.findIndex((n) => n.id === id)
+export async function deleteNotification(id: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('in_app_notifications')
+    .delete()
+    .eq('id', id)
 
-  if (index === -1) {
-    return false
-  }
-
-  notifications.splice(index, 1)
-  setToStorage(STORAGE_KEY, notifications)
+  if (error) throw new Error(error.message)
   return true
 }
 
 /**
  * Clears all notifications
- * @param organizationId - Optional organization filter (if not provided, clears all)
  */
-export function clearNotifications(organizationId?: string): void {
-  if (!organizationId) {
-    setToStorage(STORAGE_KEY, [])
-    return
+export async function clearNotifications(organizationId?: string): Promise<void> {
+  let query = supabase.from('in_app_notifications').delete()
+
+  if (organizationId) {
+    query = query.eq('organization_id', organizationId)
+  } else {
+    query = query.neq('id', '')
   }
 
-  const notifications = getFromStorage<InAppNotification[]>(STORAGE_KEY, [])
-  const filtered = notifications.filter((n) => n.organizationId !== organizationId)
-  setToStorage(STORAGE_KEY, filtered)
+  const { error } = await query
+  if (error) throw new Error(error.message)
 }

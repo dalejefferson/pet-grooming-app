@@ -1,114 +1,178 @@
 import type { Service, ServiceModifier } from '../types'
-import { getFromStorage, setToStorage, delay, generateId } from '../storage/localStorage'
-import { seedServices } from '../seed/seed'
+import { supabase } from '@/lib/supabase/client'
+import {
+  mapService,
+  toDbService,
+  mapServiceModifier,
+  toDbServiceModifier,
+} from '../types/supabase-mappers'
 
-const STORAGE_KEY = 'services'
+async function fetchModifiers(serviceId: string): Promise<ServiceModifier[]> {
+  const { data, error } = await supabase
+    .from('service_modifiers')
+    .select('*')
+    .eq('service_id', serviceId)
 
-function getServices(): Service[] {
-  return getFromStorage<Service[]>(STORAGE_KEY, seedServices)
+  if (error) throw new Error(error.message)
+  return (data ?? []).map(mapServiceModifier)
 }
 
-function saveServices(services: Service[]): void {
-  setToStorage(STORAGE_KEY, services)
+async function fetchModifiersForServices(serviceIds: string[]) {
+  if (serviceIds.length === 0) return new Map<string, ServiceModifier[]>()
+
+  const { data, error } = await supabase
+    .from('service_modifiers')
+    .select('*')
+    .in('service_id', serviceIds)
+
+  if (error) throw new Error(error.message)
+
+  const map = new Map<string, ServiceModifier[]>()
+  for (const row of data ?? []) {
+    const mod = mapServiceModifier(row)
+    const existing = map.get(row.service_id) ?? []
+    existing.push(mod)
+    map.set(row.service_id, existing)
+  }
+  return map
+}
+
+async function fetchServiceWithModifiers(serviceId: string): Promise<Service | null> {
+  const { data, error } = await supabase
+    .from('services')
+    .select('*')
+    .eq('id', serviceId)
+    .single()
+
+  if (error) {
+    if (error.code === 'PGRST116') return null
+    throw new Error(error.message)
+  }
+
+  if (!data) return null
+
+  const modifiers = await fetchModifiers(serviceId)
+  return mapService(data, modifiers)
 }
 
 export const servicesApi = {
   async getAll(organizationId?: string): Promise<Service[]> {
-    await delay()
-    const services = getServices()
+    let query = supabase.from('services').select('*')
+
     if (organizationId) {
-      return services.filter((s) => s.organizationId === organizationId)
+      query = query.eq('organization_id', organizationId)
     }
-    return services
+
+    const { data, error } = await query
+    if (error) throw new Error(error.message)
+
+    const rows = data ?? []
+    const serviceIds = rows.map((r) => r.id)
+    const modMap = await fetchModifiersForServices(serviceIds)
+
+    return rows.map((row) => mapService(row, modMap.get(row.id) ?? []))
   },
 
   async getActive(organizationId?: string): Promise<Service[]> {
-    await delay()
-    const services = getServices()
-    return services.filter((s) => {
-      if (organizationId && s.organizationId !== organizationId) return false
-      return s.isActive
-    })
+    let query = supabase
+      .from('services')
+      .select('*')
+      .eq('is_active', true)
+
+    if (organizationId) {
+      query = query.eq('organization_id', organizationId)
+    }
+
+    const { data, error } = await query
+    if (error) throw new Error(error.message)
+
+    const rows = data ?? []
+    const serviceIds = rows.map((r) => r.id)
+    const modMap = await fetchModifiersForServices(serviceIds)
+
+    return rows.map((row) => mapService(row, modMap.get(row.id) ?? []))
   },
 
   async getById(id: string): Promise<Service | null> {
-    await delay()
-    const services = getServices()
-    return services.find((s) => s.id === id) ?? null
+    return fetchServiceWithModifiers(id)
   },
 
   async getByCategory(
     category: Service['category'],
     organizationId?: string
   ): Promise<Service[]> {
-    await delay()
-    const services = getServices()
-    return services.filter((s) => {
-      if (organizationId && s.organizationId !== organizationId) return false
-      return s.category === category && s.isActive
-    })
+    let query = supabase
+      .from('services')
+      .select('*')
+      .eq('category', category)
+      .eq('is_active', true)
+
+    if (organizationId) {
+      query = query.eq('organization_id', organizationId)
+    }
+
+    const { data, error } = await query
+    if (error) throw new Error(error.message)
+
+    const rows = data ?? []
+    const serviceIds = rows.map((r) => r.id)
+    const modMap = await fetchModifiersForServices(serviceIds)
+
+    return rows.map((row) => mapService(row, modMap.get(row.id) ?? []))
   },
 
   async create(
     data: Omit<Service, 'id' | 'createdAt' | 'updatedAt' | 'modifiers'>
   ): Promise<Service> {
-    await delay()
-    const services = getServices()
-    const now = new Date().toISOString()
-    const newService: Service = {
-      ...data,
-      id: generateId(),
-      modifiers: [],
-      createdAt: now,
-      updatedAt: now,
-    }
-    services.push(newService)
-    saveServices(services)
-    return newService
+    const dbData = toDbService(data)
+    const { data: row, error } = await supabase
+      .from('services')
+      .insert(dbData)
+      .select()
+      .single()
+
+    if (error) throw new Error(error.message)
+    return mapService(row, [])
   },
 
   async update(id: string, data: Partial<Service>): Promise<Service> {
-    await delay()
-    const services = getServices()
-    const index = services.findIndex((s) => s.id === id)
-    if (index === -1) {
-      throw new Error('Service not found')
-    }
-    services[index] = {
-      ...services[index],
-      ...data,
-      updatedAt: new Date().toISOString(),
-    }
-    saveServices(services)
-    return services[index]
+    const dbData = toDbService(data)
+    const { data: row, error } = await supabase
+      .from('services')
+      .update(dbData)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw new Error(error.message)
+
+    const modifiers = await fetchModifiers(row.id)
+    return mapService(row, modifiers)
   },
 
   async delete(id: string): Promise<void> {
-    await delay()
-    const services = getServices()
-    const filtered = services.filter((s) => s.id !== id)
-    saveServices(filtered)
+    const { error } = await supabase
+      .from('services')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw new Error(error.message)
   },
 
   async addModifier(
     serviceId: string,
     modifier: Omit<ServiceModifier, 'id' | 'serviceId'>
   ): Promise<Service> {
-    await delay()
-    const services = getServices()
-    const index = services.findIndex((s) => s.id === serviceId)
-    if (index === -1) {
-      throw new Error('Service not found')
-    }
-    const newModifier: ServiceModifier = {
-      ...modifier,
-      id: generateId(),
-      serviceId,
-    }
-    services[index].modifiers.push(newModifier)
-    services[index].updatedAt = new Date().toISOString()
-    saveServices(services)
-    return services[index]
+    const dbMod = toDbServiceModifier({ ...modifier, serviceId })
+    const { error } = await supabase
+      .from('service_modifiers')
+      .insert(dbMod)
+
+    if (error) throw new Error(error.message)
+
+    const service = await fetchServiceWithModifiers(serviceId)
+    if (!service) throw new Error('Service not found')
+    return service
   },
 
   async updateModifier(
@@ -116,39 +180,29 @@ export const servicesApi = {
     modifierId: string,
     data: Partial<ServiceModifier>
   ): Promise<Service> {
-    await delay()
-    const services = getServices()
-    const serviceIndex = services.findIndex((s) => s.id === serviceId)
-    if (serviceIndex === -1) {
-      throw new Error('Service not found')
-    }
-    const modIndex = services[serviceIndex].modifiers.findIndex(
-      (m) => m.id === modifierId
-    )
-    if (modIndex === -1) {
-      throw new Error('Modifier not found')
-    }
-    services[serviceIndex].modifiers[modIndex] = {
-      ...services[serviceIndex].modifiers[modIndex],
-      ...data,
-    }
-    services[serviceIndex].updatedAt = new Date().toISOString()
-    saveServices(services)
-    return services[serviceIndex]
+    const dbMod = toDbServiceModifier(data)
+    const { error } = await supabase
+      .from('service_modifiers')
+      .update(dbMod)
+      .eq('id', modifierId)
+
+    if (error) throw new Error(error.message)
+
+    const service = await fetchServiceWithModifiers(serviceId)
+    if (!service) throw new Error('Service not found')
+    return service
   },
 
   async removeModifier(serviceId: string, modifierId: string): Promise<Service> {
-    await delay()
-    const services = getServices()
-    const index = services.findIndex((s) => s.id === serviceId)
-    if (index === -1) {
-      throw new Error('Service not found')
-    }
-    services[index].modifiers = services[index].modifiers.filter(
-      (m) => m.id !== modifierId
-    )
-    services[index].updatedAt = new Date().toISOString()
-    saveServices(services)
-    return services[index]
+    const { error } = await supabase
+      .from('service_modifiers')
+      .delete()
+      .eq('id', modifierId)
+
+    if (error) throw new Error(error.message)
+
+    const service = await fetchServiceWithModifiers(serviceId)
+    if (!service) throw new Error('Service not found')
+    return service
   },
 }

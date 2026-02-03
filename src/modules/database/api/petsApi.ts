@@ -1,109 +1,159 @@
 import type { Pet, VaccinationRecord } from '../types'
-import { getFromStorage, setToStorage, delay, generateId } from '../storage/localStorage'
-import { seedPets } from '../seed/seed'
+import { supabase } from '@/lib/supabase/client'
+import {
+  mapPet,
+  toDbPet,
+  mapVaccinationRecord,
+  toDbVaccinationRecord,
+} from '../types/supabase-mappers'
 
-const STORAGE_KEY = 'pets'
+async function fetchVaccinations(petId: string): Promise<VaccinationRecord[]> {
+  const { data, error } = await supabase
+    .from('vaccination_records')
+    .select('*')
+    .eq('pet_id', petId)
 
-function getPets(): Pet[] {
-  return getFromStorage<Pet[]>(STORAGE_KEY, seedPets)
+  if (error) throw new Error(error.message)
+  return (data ?? []).map(mapVaccinationRecord)
 }
 
-function savePets(pets: Pet[]): void {
-  setToStorage(STORAGE_KEY, pets)
+async function fetchVaccinationsForPets(petIds: string[]) {
+  if (petIds.length === 0) return new Map<string, VaccinationRecord[]>()
+
+  const { data, error } = await supabase
+    .from('vaccination_records')
+    .select('*')
+    .in('pet_id', petIds)
+
+  if (error) throw new Error(error.message)
+
+  const map = new Map<string, VaccinationRecord[]>()
+  for (const row of data ?? []) {
+    const vax = mapVaccinationRecord(row)
+    const existing = map.get(row.pet_id) ?? []
+    existing.push(vax)
+    map.set(row.pet_id, existing)
+  }
+  return map
+}
+
+async function fetchPetWithVaccinations(petId: string): Promise<Pet | null> {
+  const { data, error } = await supabase
+    .from('pets')
+    .select('*')
+    .eq('id', petId)
+    .single()
+
+  if (error) {
+    if (error.code === 'PGRST116') return null
+    throw new Error(error.message)
+  }
+
+  if (!data) return null
+
+  const vaccinations = await fetchVaccinations(petId)
+  return mapPet(data, vaccinations)
 }
 
 export const petsApi = {
   async getAll(organizationId?: string): Promise<Pet[]> {
-    await delay()
-    const pets = getPets()
+    let query = supabase.from('pets').select('*')
+
     if (organizationId) {
-      return pets.filter((p) => p.organizationId === organizationId)
+      query = query.eq('organization_id', organizationId)
     }
-    return pets
+
+    const { data, error } = await query
+    if (error) throw new Error(error.message)
+
+    const rows = data ?? []
+    const petIds = rows.map((r) => r.id)
+    const vaxMap = await fetchVaccinationsForPets(petIds)
+
+    return rows.map((row) => mapPet(row, vaxMap.get(row.id) ?? []))
   },
 
   async getById(id: string): Promise<Pet | null> {
-    await delay()
-    const pets = getPets()
-    return pets.find((p) => p.id === id) ?? null
+    return fetchPetWithVaccinations(id)
   },
 
   async getByClientId(clientId: string): Promise<Pet[]> {
-    await delay()
-    const pets = getPets()
-    return pets.filter((p) => p.clientId === clientId)
+    const { data, error } = await supabase
+      .from('pets')
+      .select('*')
+      .eq('client_id', clientId)
+
+    if (error) throw new Error(error.message)
+
+    const rows = data ?? []
+    const petIds = rows.map((r) => r.id)
+    const vaxMap = await fetchVaccinationsForPets(petIds)
+
+    return rows.map((row) => mapPet(row, vaxMap.get(row.id) ?? []))
   },
 
   async create(data: Omit<Pet, 'id' | 'createdAt' | 'updatedAt'>): Promise<Pet> {
-    await delay()
-    const pets = getPets()
-    const now = new Date().toISOString()
-    const newPet: Pet = {
-      ...data,
-      id: generateId(),
-      createdAt: now,
-      updatedAt: now,
-    }
-    pets.push(newPet)
-    savePets(pets)
-    return newPet
+    const dbData = toDbPet(data)
+    const { data: row, error } = await supabase
+      .from('pets')
+      .insert(dbData)
+      .select()
+      .single()
+
+    if (error) throw new Error(error.message)
+    return mapPet(row, [])
   },
 
   async update(id: string, data: Partial<Pet>): Promise<Pet> {
-    await delay()
-    const pets = getPets()
-    const index = pets.findIndex((p) => p.id === id)
-    if (index === -1) {
-      throw new Error('Pet not found')
-    }
-    pets[index] = {
-      ...pets[index],
-      ...data,
-      updatedAt: new Date().toISOString(),
-    }
-    savePets(pets)
-    return pets[index]
+    const dbData = toDbPet(data)
+    const { data: row, error } = await supabase
+      .from('pets')
+      .update(dbData)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw new Error(error.message)
+
+    const vaccinations = await fetchVaccinations(row.id)
+    return mapPet(row, vaccinations)
   },
 
   async delete(id: string): Promise<void> {
-    await delay()
-    const pets = getPets()
-    const filtered = pets.filter((p) => p.id !== id)
-    savePets(filtered)
+    const { error } = await supabase
+      .from('pets')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw new Error(error.message)
   },
 
   async addVaccination(
     petId: string,
     vaccination: Omit<VaccinationRecord, 'id'>
   ): Promise<Pet> {
-    await delay()
-    const pets = getPets()
-    const index = pets.findIndex((p) => p.id === petId)
-    if (index === -1) {
-      throw new Error('Pet not found')
-    }
-    const newVax: VaccinationRecord = {
-      ...vaccination,
-      id: generateId(),
-    }
-    pets[index].vaccinations.push(newVax)
-    pets[index].updatedAt = new Date().toISOString()
-    savePets(pets)
-    return pets[index]
+    const dbVax = toDbVaccinationRecord({ ...vaccination, petId })
+    const { error } = await supabase
+      .from('vaccination_records')
+      .insert(dbVax)
+
+    if (error) throw new Error(error.message)
+
+    const pet = await fetchPetWithVaccinations(petId)
+    if (!pet) throw new Error('Pet not found')
+    return pet
   },
 
   async removeVaccination(petId: string, vaccinationId: string): Promise<Pet> {
-    await delay()
-    const pets = getPets()
-    const index = pets.findIndex((p) => p.id === petId)
-    if (index === -1) {
-      throw new Error('Pet not found')
-    }
-    pets[index].vaccinations = pets[index].vaccinations.filter(
-      (v) => v.id !== vaccinationId
-    )
-    pets[index].updatedAt = new Date().toISOString()
-    savePets(pets)
-    return pets[index]
+    const { error } = await supabase
+      .from('vaccination_records')
+      .delete()
+      .eq('id', vaccinationId)
+
+    if (error) throw new Error(error.message)
+
+    const pet = await fetchPetWithVaccinations(petId)
+    if (!pet) throw new Error('Pet not found')
+    return pet
   },
 }
