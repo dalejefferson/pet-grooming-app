@@ -51,7 +51,21 @@ export const authApi = {
       .eq('id', user.id)
       .single()
 
-    if (error || !profile) return null
+    if (error || !profile) {
+      // Profile may not exist yet for new OAuth users (trigger race condition).
+      // Wait briefly and retry once.
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      const { data: retryProfile, error: retryError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+      if (retryError || !retryProfile) return null
+
+      return mapUserRow(retryProfile)
+    }
 
     return mapUserRow(profile)
   },

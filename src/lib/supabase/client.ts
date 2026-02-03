@@ -14,6 +14,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     storageKey: 'sit-pretty-auth',
     storage: window.localStorage,
+    flowType: 'pkce',
+    detectSessionInUrl: true,
   },
 })
 

@@ -4,7 +4,7 @@ import { queryClient } from '@/modules/database'
 import { ThemeProvider, KeyboardProvider, UndoProvider, ShortcutTipsProvider, ToastProvider } from '@/modules/ui/context'
 import { ErrorBoundary } from '@/modules/ui/components/common'
 import { AppLayout, BookingLayout } from '@/modules/ui/components/layout'
-import { LoginPage, ProtectedRoute, AuthProvider } from '@/modules/auth'
+import { LoginPage, AuthCallbackPage, ProtectedRoute, AuthProvider } from '@/modules/auth'
 import {
   DashboardPage,
   CalendarPage,
@@ -44,6 +44,7 @@ function App() {
           <Routes>
           {/* Auth routes */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
           {/* Admin app routes - requires authentication */}
           <Route path="/app" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
