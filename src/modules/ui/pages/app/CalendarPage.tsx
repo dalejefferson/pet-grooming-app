@@ -256,9 +256,16 @@ export function CalendarPage() {
 
   const handleConfirmMove = useCallback(async () => {
     if (!pendingMove) return
-    try { await updateAppointment.mutateAsync({ id: pendingMove.event.resource.id, data: { startTime: pendingMove.start.toISOString(), endTime: pendingMove.end.toISOString() } }) } catch { /* Error handled by react-query */ }
-    setPendingMove(null)
-    setShowMoveConfirmModal(false)
+    try {
+      await updateAppointment.mutateAsync({ id: pendingMove.event.resource.id, data: { startTime: pendingMove.start.toISOString(), endTime: pendingMove.end.toISOString() } })
+      setPendingMove(null)
+      setShowMoveConfirmModal(false)
+    } catch {
+      // Revert the drag on failure; global MutationCache.onError shows the toast
+      pendingMove.revert()
+      setPendingMove(null)
+      setShowMoveConfirmModal(false)
+    }
   }, [pendingMove, updateAppointment])
 
   const handleCancelMove = useCallback(() => {
@@ -298,8 +305,10 @@ export function CalendarPage() {
       })
       setShowCreateModal(false)
       setSelectedClientId('')
-    } catch { /* Error handled by react-query */ }
-  }, [createAppointment, services])
+    } catch {
+      // Keep modal open so user can retry; global MutationCache.onError shows the toast
+    }
+  }, [createAppointment, services, currentUser?.organizationId])
 
   const handleCloseCreateModal = useCallback(() => { setShowCreateModal(false); setSelectedClientId('') }, [])
 

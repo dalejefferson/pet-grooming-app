@@ -9,6 +9,8 @@ import {
   validateMaxPetsPerAppointment,
   validateAdvanceBooking,
   validatePetOwnership,
+  validateVaccinationStatus,
+  BookingValidationError,
 } from './validators'
 
 export interface BookingResult {
@@ -147,17 +149,26 @@ export const bookingApi = {
       throw new Error('Client information required')
     }
 
-    // Validate pet ownership for existing pets
-    if (!booking.isNewClient && booking.clientId) {
-      const existingPets: Pet[] = []
-      for (const selectedPet of booking.selectedPets) {
-        if (!selectedPet.isNewPet && selectedPet.petId) {
-          const pet = await petsApi.getById(selectedPet.petId)
-          if (pet) existingPets.push(pet)
-        }
+    // Validate pet ownership and vaccinations for existing pets
+    const existingPetsForValidation: Pet[] = []
+    for (const selectedPet of booking.selectedPets) {
+      if (!selectedPet.isNewPet && selectedPet.petId) {
+        const pet = await petsApi.getById(selectedPet.petId)
+        if (pet) existingPetsForValidation.push(pet)
       }
-      if (existingPets.length > 0) {
-        validatePetOwnership(existingPets, client.id)
+    }
+
+    if (!booking.isNewClient && booking.clientId && existingPetsForValidation.length > 0) {
+      validatePetOwnership(existingPetsForValidation, client.id)
+    }
+
+    // Check vaccination status for all existing pets
+    if (existingPetsForValidation.length > 0) {
+      const vaccinationResult = validateVaccinationStatus(existingPetsForValidation)
+      if (vaccinationResult.hasExpired) {
+        throw new BookingValidationError(
+          `Cannot book: ${vaccinationResult.expiredPets.join(', ')} ${vaccinationResult.expiredPets.length === 1 ? 'has' : 'have'} expired vaccinations. Please update vaccination records before booking.`
+        )
       }
     }
 

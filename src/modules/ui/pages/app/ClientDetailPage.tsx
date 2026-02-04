@@ -13,12 +13,14 @@ import { useTheme } from '../../context'
 
 function PetForm({
   clientId,
+  organizationId,
   onSubmit,
   onCancel,
   isLoading,
   accentColor,
 }: {
   clientId: string
+  organizationId: string
   onSubmit: (data: Omit<Pet, 'id' | 'createdAt' | 'updatedAt'>) => void
   onCancel: () => void
   isLoading: boolean
@@ -48,7 +50,7 @@ function PetForm({
     onSubmit({
       ...formData,
       clientId,
-      organizationId: user?.organizationId || '',
+      organizationId,
       vaccinations: [],
     })
   }
@@ -174,6 +176,7 @@ export function ClientDetailPage() {
     address: '',
     preferredContactMethod: '' as 'email' | 'phone' | 'text',
   })
+  const [contactErrors, setContactErrors] = useState<{ email?: string; phone?: string }>({})
 
   if (isLoading) return <LoadingPage />
 
@@ -194,6 +197,20 @@ export function ClientDetailPage() {
   }
 
   const handleSaveContact = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const phoneRegex = /^[+]?[\d\s()-]{7,}$/
+    const errors: { email?: string; phone?: string } = {}
+    if (contactForm.email && !emailRegex.test(contactForm.email)) {
+      errors.email = 'Please enter a valid email address'
+    }
+    if (contactForm.phone && !phoneRegex.test(contactForm.phone)) {
+      errors.phone = 'Please enter a valid phone number'
+    }
+    if (Object.keys(errors).length > 0) {
+      setContactErrors(errors)
+      return
+    }
+    setContactErrors({})
     await updateClient.mutateAsync({
       id: client.id,
       data: {
@@ -232,7 +249,9 @@ export function ClientDetailPage() {
         totalAmount: data.petServices.reduce((total, ps) => total + ps.serviceIds.reduce((sum, sid) => sum + (services.find((s) => s.id === sid)?.basePrice || 0), 0), 0),
       })
       setShowBookModal(false)
-    } catch { /* Error handled by react-query */ }
+    } catch {
+      // Error stays visible via react-query; keep modal open so user can retry
+    }
   }
 
   const clientInitials = (client.firstName.charAt(0) + client.lastName.charAt(0)).toUpperCase()
@@ -309,13 +328,21 @@ export function ClientDetailPage() {
                 label="Email"
                 type="email"
                 value={contactForm.email}
-                onChange={(e) => setContactForm((p) => ({ ...p, email: e.target.value }))}
+                onChange={(e) => {
+                  setContactForm((p) => ({ ...p, email: e.target.value }))
+                  if (contactErrors.email) setContactErrors((p) => ({ ...p, email: undefined }))
+                }}
+                error={contactErrors.email}
               />
               <Input
                 label="Phone"
                 type="tel"
                 value={contactForm.phone}
-                onChange={(e) => setContactForm((p) => ({ ...p, phone: e.target.value }))}
+                onChange={(e) => {
+                  setContactForm((p) => ({ ...p, phone: e.target.value }))
+                  if (contactErrors.phone) setContactErrors((p) => ({ ...p, phone: undefined }))
+                }}
+                error={contactErrors.phone}
               />
               <Input
                 label="Address"
@@ -498,6 +525,7 @@ export function ClientDetailPage() {
       >
         <PetForm
           clientId={client.id}
+          organizationId={user?.organizationId || ''}
           onSubmit={handleAddPet}
           onCancel={() => setShowAddPetModal(false)}
           isLoading={createPet.isPending}

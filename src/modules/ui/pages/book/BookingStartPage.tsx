@@ -21,6 +21,7 @@ export function BookingStartPage() {
     email: '',
     phone: '',
   })
+  const [validationErrors, setValidationErrors] = useState<{ email?: string; phone?: string }>({})
 
   const { data: searchResults = [] } = useSearchClients(searchQuery, organization.id)
   const { data: prefilledClient, isLoading: isLoadingPrefilledClient } = useClient(prefilledClientId || '')
@@ -34,6 +35,7 @@ export function BookingStartPage() {
   }, [prefilledClient, prefilledClientId])
 
   const handleContinue = () => {
+    if (isNewClient && !validateFields()) return
     if (isNewClient) {
       updateBookingState({
         isNewClient: true,
@@ -56,12 +58,32 @@ export function BookingStartPage() {
     navigate(`/book/${organization.slug}/pets`)
   }
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const phoneRegex = /^[+]?[\d\s()-]{7,}$/
+
+  const validateFields = () => {
+    const errors: { email?: string; phone?: string } = {}
+    if (newClientInfo.email && !emailRegex.test(newClientInfo.email)) {
+      errors.email = 'Please enter a valid email address'
+    }
+    if (newClientInfo.phone && !phoneRegex.test(newClientInfo.phone)) {
+      errors.phone = 'Please enter a valid phone number'
+    }
+    setValidationErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  const isEmailValid = !newClientInfo.email || emailRegex.test(newClientInfo.email)
+  const isPhoneValid = !newClientInfo.phone || phoneRegex.test(newClientInfo.phone)
+
   const canContinue =
     (isNewClient &&
       newClientInfo.firstName &&
       newClientInfo.lastName &&
       newClientInfo.email &&
-      newClientInfo.phone) ||
+      newClientInfo.phone &&
+      isEmailValid &&
+      isPhoneValid) ||
     (!isNewClient && selectedClient)
 
   // Show loading state when fetching prefilled client
@@ -223,18 +245,22 @@ export function BookingStartPage() {
               label="Email"
               type="email"
               value={newClientInfo.email}
-              onChange={(e) =>
+              onChange={(e) => {
                 setNewClientInfo((p) => ({ ...p, email: e.target.value }))
-              }
+                if (validationErrors.email) setValidationErrors((p) => ({ ...p, email: undefined }))
+              }}
+              error={validationErrors.email || (!isEmailValid && newClientInfo.email ? 'Please enter a valid email address' : undefined)}
               required
             />
             <Input
               label="Phone"
               type="tel"
               value={newClientInfo.phone}
-              onChange={(e) =>
+              onChange={(e) => {
                 setNewClientInfo((p) => ({ ...p, phone: e.target.value }))
-              }
+                if (validationErrors.phone) setValidationErrors((p) => ({ ...p, phone: undefined }))
+              }}
+              error={validationErrors.phone || (!isPhoneValid && newClientInfo.phone ? 'Please enter a valid phone number' : undefined)}
               required
             />
           </div>

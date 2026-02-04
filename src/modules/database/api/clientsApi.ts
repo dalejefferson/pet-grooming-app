@@ -1,6 +1,8 @@
 import type { Client } from '../types'
 import { supabase } from '@/lib/supabase/client'
 import { mapClient, toDbClient, mapPaymentMethod } from '../types/supabase-mappers'
+import { petsApi } from './petsApi'
+import { calendarApi } from './calendarApi'
 
 async function fetchPaymentMethods(clientId: string) {
   const { data, error } = await supabase
@@ -140,6 +142,26 @@ export const clientsApi = {
   },
 
   async delete(id: string): Promise<void> {
+    // Cascade: delete appointments referencing this client
+    const appointments = await calendarApi.getByClientId(id)
+    for (const apt of appointments) {
+      await calendarApi.delete(apt.id)
+    }
+
+    // Cascade: delete pets belonging to this client
+    const pets = await petsApi.getByClientId(id)
+    for (const pet of pets) {
+      await petsApi.delete(pet.id)
+    }
+
+    // Delete payment methods
+    const { error: pmError } = await supabase
+      .from('payment_methods')
+      .delete()
+      .eq('client_id', id)
+    if (pmError) throw new Error(pmError.message)
+
+    // Finally delete the client
     const { error } = await supabase
       .from('clients')
       .delete()
