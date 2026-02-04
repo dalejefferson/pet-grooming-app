@@ -38,38 +38,41 @@ export function PaymentForm({
             </div>
           </div>
         </div>
-      ) : paymentStatus === 'failed' ? (
-        <div className="mt-4 rounded-xl border-2 border-danger-500 bg-danger-50 p-4">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="h-6 w-6 text-danger-600" />
-            <div>
-              <p className="font-semibold text-danger-900">Payment Failed</p>
-              <p className="text-sm text-danger-700">Please try again or use a different card.</p>
-            </div>
-          </div>
-        </div>
-      ) : clientId ? (
-        // Show PaymentMethodSelector for logged-in clients
-        <div className="mt-4">
-          <PaymentMethodSelector
-            clientId={clientId}
-            selectedId={selectedPaymentMethodId}
-            onSelect={onPaymentMethodSelect || (() => {})}
-            onAddNew={onAddNewCard}
-            showAddNew={true}
-          />
-        </div>
       ) : (
-        // Guest checkout - show new card input only
-        <div className="mt-4">
-          <PaymentMethodSelector
-            clientId=""
-            selectedId={null}
-            onSelect={() => {}}
-            onAddNew={onAddNewCard}
-            showAddNew={true}
-          />
-        </div>
+        <>
+          {paymentStatus === 'failed' && (
+            <div className="mt-4 rounded-xl border-2 border-danger-500 bg-danger-50 p-4">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-6 w-6 text-danger-600" />
+                <div>
+                  <p className="font-semibold text-danger-900">Payment Failed</p>
+                  <p className="text-sm text-danger-700">Please try again or use a different card.</p>
+                </div>
+              </div>
+            </div>
+          )}
+          {clientId ? (
+            <div className="mt-4">
+              <PaymentMethodSelector
+                clientId={clientId}
+                selectedId={selectedPaymentMethodId}
+                onSelect={onPaymentMethodSelect || (() => {})}
+                onAddNew={onAddNewCard}
+                showAddNew={true}
+              />
+            </div>
+          ) : (
+            <div className="mt-4">
+              <PaymentMethodSelector
+                clientId=""
+                selectedId={null}
+                onSelect={() => {}}
+                onAddNew={onAddNewCard}
+                showAddNew={true}
+              />
+            </div>
+          )}
+        </>
       )}
     </Card>
   )

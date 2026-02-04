@@ -149,6 +149,7 @@ export function BookingConfirmPage() {
     setNewCardValue(cardValue)
     setSaveNewCard(saveForFuture)
     setSelectedPaymentMethodId(null) // Clear any selected saved method
+    if (paymentStatus === 'failed') setPaymentStatus('pending')
   }
 
   // Handle selecting a payment method
@@ -159,6 +160,7 @@ export function BookingConfirmPage() {
       setNewCardValue(null)
       setSaveNewCard(false)
     }
+    if (paymentStatus === 'failed') setPaymentStatus('pending')
   }
 
   const handlePayment = async () => {
