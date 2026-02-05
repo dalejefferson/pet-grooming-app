@@ -1,4 +1,4 @@
-import { Card, CardTitle, Button, Input } from '../../components/common'
+import { Card, CardTitle, Button, Input, AddressAutocomplete } from '../../components/common'
 import { useOrganization, useUpdateOrganization } from '@/hooks'
 import { useTheme, themeColors, type ThemeName } from '../../context'
 import { useState, useEffect } from 'react'
@@ -174,10 +174,10 @@ export function SettingsPage() {
             onChange={(e) => handleChange('slug', e.target.value)}
             helperText="Used in your booking URL: /book/your-slug"
           />
-          <Input
+          <AddressAutocomplete
             label="Address"
             value={formData.address || ''}
-            onChange={(e) => handleChange('address', e.target.value)}
+            onChange={(val) => handleChange('address', val)}
           />
           <div className="grid gap-4 sm:grid-cols-2">
             <Input

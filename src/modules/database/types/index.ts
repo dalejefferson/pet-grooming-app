@@ -397,6 +397,7 @@ export interface BookingState {
     lastName: string
     email: string
     phone: string
+    address?: string
   }
   selectedPets: {
     petId?: string

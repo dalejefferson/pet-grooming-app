@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Plus, Phone, Trash2, Users } from 'lucide-react'
-import { Card, Button, Input, Badge, Modal, ImageUpload, HistorySection, ConfirmDialog, Skeleton, EmptyState } from '../../components/common'
+import { Card, Button, Input, Badge, Modal, ImageUpload, HistorySection, ConfirmDialog, Skeleton, EmptyState, AddressAutocomplete } from '../../components/common'
 import { useClients, useClientPets, useCreateClient, useDeleteClient, useDeletedHistory, useAddToHistory, useCurrentUser } from '@/hooks'
 import { formatPhone, cn } from '@/lib/utils'
 import { debounce } from '@/lib/utils/debounce'
@@ -87,10 +87,10 @@ function ClientForm({
         onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
         required
       />
-      <Input
+      <AddressAutocomplete
         label="Address"
         value={formData.address}
-        onChange={(e) => setFormData((p) => ({ ...p, address: e.target.value }))}
+        onChange={(val) => setFormData((p) => ({ ...p, address: val }))}
       />
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
         <Button type="button" variant="outline" onClick={onCancel} className="min-h-[44px] sm:min-h-0">

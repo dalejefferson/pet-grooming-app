@@ -54,3 +54,6 @@ export type { EmptyStateProps } from './EmptyState'
 
 export { ErrorBoundary } from './ErrorBoundary'
 export type { ErrorBoundaryProps } from './ErrorBoundary'
+
+export { AddressAutocomplete } from './AddressAutocomplete'
+export type { AddressAutocompleteProps } from './AddressAutocomplete'

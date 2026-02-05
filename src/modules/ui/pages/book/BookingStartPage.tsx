@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { User, UserPlus, ArrowRight } from 'lucide-react'
-import { Card, CardTitle, Button, Input, LoadingPage } from '../../components/common'
+import { Card, CardTitle, Button, Input, LoadingPage, AddressAutocomplete } from '../../components/common'
 import { useSearchClients, useClient } from '@/hooks'
 import { useBookingContext } from '../../context/BookingContext'
 import type { Client } from '@/types'
@@ -20,6 +20,7 @@ export function BookingStartPage() {
     lastName: '',
     email: '',
     phone: '',
+    address: '',
   })
   const [validationErrors, setValidationErrors] = useState<{ email?: string; phone?: string }>({})
 
@@ -44,6 +45,7 @@ export function BookingStartPage() {
           lastName: newClientInfo.lastName,
           email: newClientInfo.email,
           phone: newClientInfo.phone,
+          address: newClientInfo.address || undefined,
         },
         clientId: undefined,
       })
@@ -262,6 +264,12 @@ export function BookingStartPage() {
               }}
               error={validationErrors.phone || (!isPhoneValid && newClientInfo.phone ? 'Please enter a valid phone number' : undefined)}
               required
+            />
+            <AddressAutocomplete
+              label="Address"
+              value={newClientInfo.address}
+              onChange={(val) => setNewClientInfo((p) => ({ ...p, address: val }))}
+              helperText="Optional"
             />
           </div>
         </Card>

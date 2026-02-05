@@ -16,6 +16,7 @@ A pet grooming salon management SaaS application called **Sit Pretty Club**, bui
 - **PDF Generation**: jsPDF v4
 - **Icons**: Lucide React
 - **Date Utilities**: date-fns v4
+- **Address Autocomplete**: use-places-autocomplete + @googlemaps/js-api-loader v2
 - **CSS Utilities**: clsx + tailwind-merge
 - **Unit Testing**: Vitest 4 + React Testing Library + jsdom
 - **E2E Testing**: Playwright
@@ -49,7 +50,7 @@ src/
 │       │   ├── booking/         # Booking flow components (16 files)
 │       │   ├── calendar/        # Calendar page components (10 files)
 │       │   ├── clients/         # (empty - inline in page)
-│       │   ├── common/          # Shared UI components (18 files)
+│       │   ├── common/          # Shared UI components (19 files)
 │       │   ├── dashboard/       # VaccinationAlertsWidget
 │       │   ├── groomers/        # GroomerCard, GroomerForm
 │       │   ├── layout/          # AppLayout, BookingLayout, Header, Sidebar
@@ -73,7 +74,7 @@ src/
 ├── config/                      # App constants and feature flags
 │   ├── constants.ts             # Status colors/labels, breeds, calendar hours, etc.
 │   └── flags.ts                 # Feature flags (FeatureFlags type)
-├── hooks/                       # Re-exports from modules (backwards compatibility)
+├── hooks/                       # Re-exports from modules + useGoogleMapsLoader
 ├── lib/
 │   ├── api/                     # Re-exports from modules (backwards compatibility)
 │   ├── stripe/                  # Mock Stripe integration (mockStripe.ts, placeholder.ts)
@@ -247,7 +248,7 @@ All types are defined in `src/modules/database/types/index.ts` and `src/modules/
 | `TimeOffRequest` | Staff time-off with approval status |
 | `RolePermissions` | Per-role permission flags (admin/groomer/receptionist) |
 | `PaymentMethod` | Card info (brand, last4, exp) |
-| `BookingState` | Full booking wizard state |
+| `BookingState` | Full booking wizard state (clientInfo includes optional address) |
 | `DeletedItem` | Soft-deleted entity for undo functionality |
 | `FeatureFlags` | Feature toggle config |
 | `InAppNotification` | In-app notification record |
@@ -281,6 +282,7 @@ All common components live in `src/modules/ui/components/common/`.
 | `Toggle` | `label`, `checked`, `onChange` | Boolean toggle switch |
 | `ImageUpload` | `value`, `onChange`, `label` | Image upload with base64 preview |
 | `DocumentUpload` | `value`, `onChange`, `label`, `accept` | File upload component |
+| `AddressAutocomplete` | `label`, `value`, `onChange`, `onSelect?`, `restrictToCountry?`, `error`, `helperText` | Google Maps Places address autocomplete with neo-brutalist dropdown. Falls back to plain input if API key missing. |
 | `MiniCalendar` | `selectedDate`, `onDateSelect` | Compact calendar for date picking (day/week views) |
 
 ### Layout & Feedback
@@ -683,7 +685,7 @@ Three roles: `admin` (full access), `groomer` (own appointments + clients), `rec
 ### ARIA / Accessibility Patterns
 
 - `role="dialog"` on modals with `aria-modal="true"`
-- ComboBox implements full ARIA combobox pattern (`role="combobox"`, `aria-expanded`, `aria-activedescendant`)
+- ComboBox and AddressAutocomplete implement full ARIA combobox pattern (`role="combobox"`, `aria-expanded`, `aria-activedescendant`)
 - `aria-label` on icon-only buttons
 - Focus management in modals and drawers
 
@@ -783,6 +785,17 @@ npm run test:e2e:ui   # Run Playwright with UI
 - **Images use base64 data URLs** for localStorage persistence
 - **Legacy directories exist** - `src/components/`, `src/hooks/`, `src/lib/api/`, `src/types/` are re-export shims for backwards compatibility with the modular architecture under `src/modules/`
 
+### Active Integrations
+
+- **Google Maps Places API** - Address autocomplete on client, organization, and booking forms
+  - Packages: `use-places-autocomplete`, `@googlemaps/js-api-loader` v2, `@types/google.maps`
+  - Loader hook: `src/hooks/useGoogleMapsLoader.ts` (uses v2 functional API: `setOptions()` + `importLibrary()`)
+  - Component: `src/modules/ui/components/common/AddressAutocomplete.tsx`
+  - Env var: `VITE_GOOGLE_MAPS_API_KEY` in `.env.local`
+  - Used in: `SettingsPage` (org address), `ClientsPage` (client form), `BookingStartPage` (new client)
+  - Falls back to plain `<input>` if API key is missing or Google Maps fails to load
+  - Restricted to US addresses by default (`restrictToCountry` prop)
+
 ### Planned Integrations
 
 - **Supabase** - Database, auth, and real-time subscriptions
@@ -790,5 +803,4 @@ npm run test:e2e:ui   # Run Playwright with UI
 - **Twilio** - SMS appointment reminders
 - **Resend** - Email notifications and reminders
 - **PostHog** - Product analytics and feature flags
-- **Google Maps** - Address autocomplete and salon location
 - **Vercel** - Hosting and deployment
