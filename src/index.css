@@ -259,6 +259,15 @@ body {
   max-height: 20px;
 }
 
+/* Month view status colors */
+.fc-daygrid-event.status-requested { background-color: #fef9c3 !important; }
+.fc-daygrid-event.status-confirmed { background-color: #d1fae5 !important; }
+.fc-daygrid-event.status-checked_in { background-color: #e9d5ff !important; }
+.fc-daygrid-event.status-in_progress { background-color: #ecfccb !important; }
+.fc-daygrid-event.status-completed { background-color: #6F8F72 !important; color: #ffffff !important; }
+.fc-daygrid-event.status-cancelled { background-color: #e5e7eb !important; }
+.fc-daygrid-event.status-no_show { background-color: #fce7f3 !important; }
+
 /* Event harness spacing */
 .fc-daygrid-event-harness {
   @apply py-0.5 px-0.5;
