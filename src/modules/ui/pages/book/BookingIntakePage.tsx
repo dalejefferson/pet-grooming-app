@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate, useParams } from 'react-router-dom'
 import { ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react'
 import { Card, Button } from '../../components/common'
 import { GroomerDisplayCard, ServiceCategorySection, PetProgressTabs } from '../../components/booking'
@@ -48,7 +48,13 @@ interface SelectedPet {
 
 export function BookingIntakePage() {
   const navigate = useNavigate()
+  const { orgSlug } = useParams()
   const { organization, bookingState, updateBookingState } = useBookingContext()
+
+  // Guard: redirect if no pets selected
+  if (!bookingState.selectedPets || bookingState.selectedPets.length === 0) {
+    return <Navigate to={`/book/${orgSlug}/start`} replace />
+  }
 
   const clientId = bookingState.clientId
   const groomerId = bookingState.selectedGroomerId

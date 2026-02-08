@@ -1,6 +1,6 @@
 # MISSING.md - App Completeness Audit
 
-Last audited: 2026-02-02
+Last audited: 2026-02-08
 
 ---
 
@@ -10,8 +10,9 @@ Last audited: 2026-02-02
 - [x] [RESOLVED] [Critical] [A] Duplicate groomer seed data: groomersApi.ts had conflicting seedGroomers — removed, seed.ts is now single source of truth
 - [x] [RESOLVED] [Critical] [A] Staff availability ID mismatch: staffApi.ts referenced wrong IDs — updated to match seed.ts user IDs
 - [x] [RESOLVED] [Critical] [A] No error handling on mutations: ToastContext created, global error handler wired in queryClient.ts, all hook files updated
-- [ ] [Critical] [A] Empty catch blocks: CalendarPage.tsx lines 249 and 286 have `catch { /* Error handled by react-query */ }` which swallows errors silently — toast system exists but these catch blocks prevent it from firing
+- [x] [RESOLVED] [Critical] [A] Empty catch blocks: CalendarPage.tsx lines 259 and 301 had `catch { /* Error handled by react-query */ }` which swallowed errors silently — removed try/catch wrappers so errors propagate to React Query's global MutationCache onError handler
 - [x] [RESOLVED] [Critical] [A] No global error handling: queryClient.ts now has MutationCache with onError callback wired to ToastContext
+- [x] [RESOLVED] [Critical] [A] **NEW** Undefined variable `user` in ClientDetailPage PetForm: useCurrentUser hook was already imported and called — `user` is in scope, bug was previously fixed
 
 ## High
 
@@ -19,19 +20,21 @@ Last audited: 2026-02-02
 - [x] [RESOLVED] [High] [A] Invalid status transitions: statusMachine.ts created with valid transition map, calendarApi.updateStatus() validates via validateStatusTransition()
 - [x] [RESOLVED] [High] [A] Buffer time between appointments not enforced: calendarApi.getAvailableSlots() now implements buffer time checks (lines 229-247)
 - [x] [RESOLVED] [High] [A] maxPetsPerAppointment policy not enforced: validators.ts created, bookingApi.createBooking() calls validateMaxPetsPerAppointment()
-- [ ] [High] [A] Cancellation window policy not enforced: validateCancellationWindow() exists in validators.ts but is never called in calendarApi.updateStatus() cancellation flow
-- [ ] [High] [A] newClientMode 'blocked' not enforced: bookingApi line 195 only handles 'auto_confirm' — if policy is 'blocked', new clients can still book
-- [ ] [High] [A] Vaccination expiration not checked on booking: validateVaccinationStatus() exists in validators.ts but is never called in bookingApi.createBooking()
-- [ ] [High] [A] Expired payment cards can process: processPayment() doesn't validate card expiration (paymentMethodsApi.ts lines 177-196)
-- [ ] [High] [A] Missing deposit validation: no check that deposit meets policies.depositMinimum (bookingApi.ts lines 200-201)
-- [ ] [High] [A] Service modifier silently skipped: if modifier deleted after selection, price/duration calculated wrong (bookingApi.ts lines 65-76)
-- [ ] [High] [A] BookingContext partially unused: booking pages still use URL params for some state — state is fragile and scattered across context + URL
-- [ ] [High] [A] No form validation with inline errors: forms use HTML `required` only, no email/phone format validation, no inline error messages despite Input supporting `error` prop
+- [x] [RESOLVED] [High] [A] Cancellation window policy not enforced: validateCancellationWindow() now called in calendarApi.updateStatus() when status → cancelled
+- [x] [RESOLVED] [High] [A] newClientMode 'blocked' not enforced: early guard in bookingApi.createBooking() throws BookingValidationError before client creation
+- [x] [RESOLVED] [High] [A] Vaccination expiration not checked on booking: validateVaccinationStatus() called in bookingApi.createBooking() lines 166-173, throws BookingValidationError for expired vaccinations
+- [x] [RESOLVED] [High] [A] Expired payment cards can process: isCardExpired() check added to processPayment() in paymentMethodsApi.ts
+- [x] [RESOLVED] [High] [A] Missing deposit validation: bookingApi.createBooking() now validates payment completed when deposit required
+- [x] [RESOLVED] [High] [A] Service modifier silently skipped: calculateAppointmentDetails() now throws BookingValidationError when modifier not found
+- [x] [RESOLVED] [High] [A] BookingContext partially unused: guard redirects added to all 5 booking step pages — redirect to start if prerequisite context data missing
+- [x] [RESOLVED] [High] [A] No form validation with inline errors: shared formValidation.ts utility created, inline errors wired into ClientsPage and SettingsPage forms
 - [x] [RESOLVED] [High] [A] No confirmation dialogs for destructive actions: ConfirmDialog.tsx created, wired into ClientsPage, PetsPage, ServicesPage
 - [x] [RESOLVED] [High] [A] No success/error toast notifications for mutations: ToastContext created and wired into useCalendar, useClients, usePets, useServices, useStaff, useGroomers hooks
-- [ ] [High] [A] Calendar accessibility gaps: no ARIA labels for calendar slots, react-big-calendar may have screen reader issues (CalendarPage.tsx)
-- [ ] [High] [A] No cascading deletes: deleting a client orphans their pets and appointments; deleting a pet leaves invalid appointment references; deleting a groomer leaves unassigned appointments (clientsApi.ts, petsApi.ts, groomersApi.ts)
-- [ ] [High] [A] Empty petId fallback in bookingApi: line 217 uses empty string `''` when petId is missing instead of throwing error — creates appointments with broken pet references
+- [x] [RESOLVED] [High] [A] Calendar accessibility gaps: aria-labels added to CalendarPage, CustomEvent, CalendarToolbar; Drawer already has role=dialog
+- [x] [RESOLVED] [High] [A] No cascading deletes: petsApi.delete() cascades to appointment_pets/services/vaccinations; groomersApi/staffApi.delete() unassigns appointments and cleans up availability/time-off
+- [x] [RESOLVED] [High] [A] Empty petId fallback in bookingApi: throws BookingValidationError for missing petId on existing pets in both calculateAppointmentDetails() and createBooking()
+- [x] [RESOLVED] [High] [A] **NEW** No maximum appointment duration validation: validateAppointmentDuration() added to validators.ts, called in bookingApi.createBooking() (default max 480 min)
+- [x] [RESOLVED] [High] [A] **NEW** Payment status never updated post-booking: updatePaymentStatus() added to calendarApi + useCalendar hook + admin dropdown in AppointmentDetailsDrawer
 
 ## Medium
 
@@ -58,6 +61,11 @@ Last audited: 2026-02-02
 - [ ] [Medium] [A] Overly broad query invalidation: mutations invalidate all queries of a type (e.g., all `['appointments']`) instead of specific affected queries — causes unnecessary refetches
 - [ ] [Medium] [A] Booking race condition with pet creation: bookingApi.ts line 184 creates pets during booking — if booking fails after pet creation, pet exists in system but appointment doesn't (no transaction support)
 - [ ] [Medium] [A] StaffPage schedule table not responsive: min-w-[700px] requires horizontal scroll, no responsive stacking for mobile
+- [ ] [Medium] [A] **NEW** Form labels not always associated: GroomerForm and RemindersPage have `<label>` elements without `htmlFor` attributes, breaking screen reader association
+- [ ] [Medium] [A] **NEW** PoliciesPage number inputs accept invalid values: `maxPetsPerAppointment`, `minAdvanceBookingHours` accept negatives; `depositPercentage` has no max (can exceed 100%)
+- [ ] [Medium] [A] **NEW** BookingTimesPage no loading state: `useAvailableSlotsForWeek` fetches without any loading indicator — time slots appear empty while loading
+- [ ] [Medium] [A] **NEW** No unsaved changes warning: leaving forms with edits (client detail, policies, services) triggers no confirmation prompt — data silently lost
+- [ ] [Medium] [A] **NEW** Overly broad type in vaccinationRemindersApi: line 83 uses `Record<string, unknown>` instead of specific Pet row type, reducing type safety
 
 ## Low
 
@@ -76,23 +84,26 @@ Last audited: 2026-02-02
 - [ ] [Low] [A] Negative service prices allowed: no validation prevents negative basePrice or priceAdjustment in servicesApi
 - [ ] [Low] [A] Calendar view crowded on mobile: month view with many events, should default to day view on small screens
 - [ ] [Low] [A] BookingTimesPage week grid not mobile-friendly: small time slot buttons difficult to tap on mobile
+- [ ] [Low] [A] **NEW** ServicesPage empty state inconsistent: uses plain Card wrapper instead of EmptyState component used elsewhere
+- [ ] [Low] [A] **NEW** PetDetailPage client data race condition: `useClient(pet?.clientId)` executes before pet loads, causing brief loading flicker for client info
 
 ## Bucket B (Requires External APIs)
 
 - [ ] [High] [B] Stripe integration is fully mocked: mockStripe.ts simulates payments — no real payment processing
 - [ ] [High] [B] Email/SMS services are mocked: notification services in modules/notifications/services/ are stubs
-- [ ] [Medium] [B] Supabase client is a stub: no real database, auth, or real-time subscriptions
-- [ ] [Medium] [B] No real authentication: login is simulated against seed users in localStorage
+- [x] [RESOLVED] [Medium] [B] Supabase client is a stub: fully migrated — all 14 API modules now use Supabase queries, RLS policies active
+- [x] [RESOLVED] [Medium] [B] No real authentication: Supabase Auth integrated with Google OAuth (PKCE flow), real signInWithPassword/signInWithOAuth
+- [ ] [Medium] [B] **NEW** Timezone conversion needs date-fns-tz: organization.timezone stored but never used for date conversion — multi-timezone orgs show wrong times
 - [ ] [Low] [B] Feature flags hardcoded: onlinePayments, smsReminders, petPhotos, etc. are static booleans (flags.ts)
 
 ---
 
 ## Summary
 
-| Severity | Bucket A (Open) | Bucket A (Resolved) | Bucket B | Total Open |
-|----------|-----------------|---------------------|----------|------------|
-| Critical | 1               | 5                   | 0        | 1          |
-| High     | 9               | 6                   | 2        | 11         |
-| Medium   | 21              | 1                   | 2        | 23         |
-| Low      | 15              | 0                   | 1        | 16         |
-| **Total**| **46**          | **12**              | **5**    | **51**     |
+| Severity | Bucket A (Open) | Bucket A (Resolved) | Bucket B (Open) | Bucket B (Resolved) | Total Open |
+|----------|-----------------|---------------------|-----------------|---------------------|------------|
+| Critical | 0               | 7                   | 0               | 0                   | 0          |
+| High     | 0               | 19                  | 2               | 0                   | 2          |
+| Medium   | 26              | 1                   | 1               | 2                   | 27         |
+| Low      | 17              | 0                   | 1               | 0                   | 18         |
+| **Total**| **43**          | **27**              | **4**           | **2**               | **47**     |

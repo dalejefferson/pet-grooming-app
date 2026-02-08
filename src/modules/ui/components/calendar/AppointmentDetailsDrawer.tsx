@@ -4,10 +4,24 @@ import { Drawer, Badge, Select, Button } from '../common'
 import { APPOINTMENT_STATUS_LABELS } from '@/config/constants'
 import { formatCurrency, formatDuration, cn } from '@/lib/utils'
 import { STATUS_BG_COLORS, STATUS_BORDER_COLORS } from './types'
-import type { AppointmentStatus, Pet } from '@/types'
+import type { AppointmentStatus, PaymentStatus, Pet } from '@/types'
 import type { AppointmentDetailsDrawerProps } from './types'
+import { usePermissions } from '@/modules/auth/hooks/usePermissions'
+import { useUpdatePaymentStatus } from '@/modules/database/hooks/useCalendar'
 
 const statusOptions = Object.entries(APPOINTMENT_STATUS_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}))
+
+const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+  pending: 'Pending',
+  processing: 'Processing',
+  completed: 'Completed',
+  failed: 'Failed',
+}
+
+const paymentStatusOptions = Object.entries(PAYMENT_STATUS_LABELS).map(([value, label]) => ({
   value,
   label,
 }))
@@ -27,6 +41,9 @@ export function AppointmentDetailsDrawer({
   onDelete,
   isDeleting,
 }: AppointmentDetailsDrawerProps) {
+  const { isAdmin } = usePermissions()
+  const updatePaymentStatus = useUpdatePaymentStatus()
+
   const selectedClient = appointment
     ? clients.find((c) => c.id === appointment.clientId)
     : null
@@ -216,6 +233,26 @@ export function AppointmentDetailsDrawer({
                 {formatCurrency(appointment.totalAmount)}
               </span>
             </div>
+
+            {/* Payment Status - Admin only */}
+            {isAdmin && (
+              <div className="mt-4">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Payment Status
+                </label>
+                <Select
+                  options={paymentStatusOptions}
+                  value={appointment.paymentStatus || 'pending'}
+                  onChange={(e) =>
+                    updatePaymentStatus.mutate({
+                      id: appointment.id,
+                      paymentStatus: e.target.value as PaymentStatus,
+                    })
+                  }
+                  disabled={updatePaymentStatus.isPending}
+                />
+              </div>
+            )}
           </div>
 
           {/* Delete Button */}

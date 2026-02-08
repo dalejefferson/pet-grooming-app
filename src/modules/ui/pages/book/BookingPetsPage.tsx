@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate, useParams } from 'react-router-dom'
 import { Plus, ArrowRight, ArrowLeft, Check, AlertTriangle } from 'lucide-react'
 import { Card, CardTitle, Button, Input, Select, ComboBox } from '../../components/common'
 import { VaccinationStatusBadge, ExpiredVaccinationWarning } from '../../components/booking'
@@ -20,7 +20,13 @@ interface SelectedPet {
 
 export function BookingPetsPage() {
   const navigate = useNavigate()
+  const { orgSlug } = useParams()
   const { organization, bookingState, updateBookingState } = useBookingContext()
+
+  // Guard: redirect if prerequisite data is missing
+  if (!bookingState.clientId && !bookingState.isNewClient) {
+    return <Navigate to={`/book/${orgSlug}/start`} replace />
+  }
 
   const isNewClient = bookingState.isNewClient
   const clientId = bookingState.clientId

@@ -256,16 +256,9 @@ export function CalendarPage() {
 
   const handleConfirmMove = useCallback(async () => {
     if (!pendingMove) return
-    try {
-      await updateAppointment.mutateAsync({ id: pendingMove.event.resource.id, data: { startTime: pendingMove.start.toISOString(), endTime: pendingMove.end.toISOString() } })
-      setPendingMove(null)
-      setShowMoveConfirmModal(false)
-    } catch {
-      // Revert the drag on failure; global MutationCache.onError shows the toast
-      pendingMove.revert()
-      setPendingMove(null)
-      setShowMoveConfirmModal(false)
-    }
+    await updateAppointment.mutateAsync({ id: pendingMove.event.resource.id, data: { startTime: pendingMove.start.toISOString(), endTime: pendingMove.end.toISOString() } })
+    setPendingMove(null)
+    setShowMoveConfirmModal(false)
   }, [pendingMove, updateAppointment])
 
   const handleCancelMove = useCallback(() => {
@@ -284,30 +277,26 @@ export function CalendarPage() {
   }, [])
 
   const handleCreateAppointment = useCallback(async (data: { clientId: string; petServices: PetServiceSelection[]; groomerId: string; notes: string; startTime: string; endTime: string }) => {
-    try {
-      await createAppointment.mutateAsync({
-        organizationId: currentUser?.organizationId || '',
-        clientId: data.clientId,
-        pets: data.petServices.filter((ps) => ps.serviceIds.length > 0).map((ps) => ({
-          petId: ps.petId,
-          services: ps.serviceIds.map((serviceId) => {
-            const service = services.find((s) => s.id === serviceId)
-            return { serviceId, appliedModifiers: [], finalDuration: service?.baseDurationMinutes || 60, finalPrice: service?.basePrice || 0 }
-          }),
-        })),
-        groomerId: data.groomerId || undefined,
-        startTime: new Date(data.startTime).toISOString(),
-        endTime: new Date(data.endTime).toISOString(),
-        status: 'confirmed' as AppointmentStatus,
-        internalNotes: data.notes || undefined,
-        depositPaid: false,
-        totalAmount: data.petServices.reduce((total, ps) => total + ps.serviceIds.reduce((sum, sid) => sum + (services.find((s) => s.id === sid)?.basePrice || 0), 0), 0),
-      })
-      setShowCreateModal(false)
-      setSelectedClientId('')
-    } catch {
-      // Keep modal open so user can retry; global MutationCache.onError shows the toast
-    }
+    await createAppointment.mutateAsync({
+      organizationId: currentUser?.organizationId || '',
+      clientId: data.clientId,
+      pets: data.petServices.filter((ps) => ps.serviceIds.length > 0).map((ps) => ({
+        petId: ps.petId,
+        services: ps.serviceIds.map((serviceId) => {
+          const service = services.find((s) => s.id === serviceId)
+          return { serviceId, appliedModifiers: [], finalDuration: service?.baseDurationMinutes || 60, finalPrice: service?.basePrice || 0 }
+        }),
+      })),
+      groomerId: data.groomerId || undefined,
+      startTime: new Date(data.startTime).toISOString(),
+      endTime: new Date(data.endTime).toISOString(),
+      status: 'confirmed' as AppointmentStatus,
+      internalNotes: data.notes || undefined,
+      depositPaid: false,
+      totalAmount: data.petServices.reduce((total, ps) => total + ps.serviceIds.reduce((sum, sid) => sum + (services.find((s) => s.id === sid)?.basePrice || 0), 0), 0),
+    })
+    setShowCreateModal(false)
+    setSelectedClientId('')
   }, [createAppointment, services, currentUser?.organizationId])
 
   const handleCloseCreateModal = useCallback(() => { setShowCreateModal(false); setSelectedClientId('') }, [])
@@ -398,7 +387,7 @@ export function CalendarPage() {
           )}
 
           <Card padding="none" className={cn('flex-1 min-h-0 bg-white/80 backdrop-blur-sm', isDragging && 'cursor-grabbing')}>
-            <div className="p-2 sm:p-4 h-full min-h-[500px] overflow-x-auto">
+            <div className="p-2 sm:p-4 h-full min-h-[650px] overflow-x-auto" aria-label="Appointment calendar">
               <div className="min-w-[600px] h-full">
                 <FullCalendar
                   ref={calendarRef}
@@ -418,7 +407,7 @@ export function CalendarPage() {
                   slotMaxTime={`${String(CALENDAR_BUSINESS_HOURS.end).padStart(2, '0')}:00:00`}
                   slotDuration="00:15:00"
                   slotLabelInterval="01:00:00"
-                  dayMaxEvents={true}
+                  dayMaxEvents={3}
                   height="100%"
                   expandRows={true}
                   nowIndicator={true}

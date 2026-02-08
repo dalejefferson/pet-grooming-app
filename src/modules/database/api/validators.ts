@@ -83,6 +83,17 @@ export function validateVaccinationStatus(pets: Pet[]): {
   }
 }
 
+export function validateAppointmentDuration(
+  totalDurationMinutes: number,
+  maxMinutes: number = 480
+): void {
+  if (totalDurationMinutes > maxMinutes) {
+    throw new BookingValidationError(
+      `Appointment duration (${totalDurationMinutes} minutes) exceeds the maximum allowed duration of ${maxMinutes} minutes`
+    )
+  }
+}
+
 export function validatePetOwnership(
   pets: Pet[],
   clientId: string

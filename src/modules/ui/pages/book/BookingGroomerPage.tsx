@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate, useParams } from 'react-router-dom'
 import { ArrowRight, ArrowLeft, Check, User, Users } from 'lucide-react'
 import { Card, CardTitle, Button } from '../../components/common'
 import { useGroomers } from '@/hooks'
@@ -90,8 +90,14 @@ function GroomerCard({
 
 export function BookingGroomerPage() {
   const navigate = useNavigate()
+  const { orgSlug } = useParams()
   const { organization, bookingState, updateBookingState } = useBookingContext()
   const { colors } = useTheme()
+
+  // Guard: redirect if no pets selected
+  if (!bookingState.selectedPets || bookingState.selectedPets.length === 0) {
+    return <Navigate to={`/book/${orgSlug}/start`} replace />
+  }
 
   const { data: allGroomers = [] } = useGroomers()
 

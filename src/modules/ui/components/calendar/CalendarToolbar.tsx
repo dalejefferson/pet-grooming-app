@@ -83,6 +83,7 @@ function NavButtons({ onPrevious, onNext, onToday, accentColor, accentColorDark 
         style={{ backgroundColor: accentColor, color: 'var(--text-on-primary)' }}
         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = accentColorDark)}
         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = accentColor)}
+        aria-label="Go to today"
       >
         Today
       </button>

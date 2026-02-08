@@ -4,6 +4,7 @@ import { useTheme, themeColors, type ThemeName } from '../../context'
 import { useState, useEffect } from 'react'
 import type { Organization } from '@/types'
 import { cn } from '@/lib/utils'
+import { validators, validateForm } from '@/lib/utils/formValidation'
 import { ChevronDown } from 'lucide-react'
 
 // Theme configuration for the picker
@@ -122,6 +123,7 @@ export function SettingsPage() {
   const [formData, setFormData] = useState<Partial<Organization>>({})
   const [hasChanges, setHasChanges] = useState(false)
   const [themeExpanded, setThemeExpanded] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (organization) {
@@ -136,6 +138,18 @@ export function SettingsPage() {
 
   const handleSave = async () => {
     if (!organization) return
+    const validationErrors = validateForm(
+      { email: formData.email || '', phone: formData.phone || '' },
+      {
+        email: [validators.email],
+        phone: [validators.phone],
+      }
+    )
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors)
+      return
+    }
+    setErrors({})
     await updateOrganization.mutateAsync({ id: organization.id, data: formData })
     setHasChanges(false)
   }
@@ -184,12 +198,14 @@ export function SettingsPage() {
               label="Phone"
               value={formData.phone || ''}
               onChange={(e) => handleChange('phone', e.target.value)}
+              error={errors.phone}
             />
             <Input
               label="Email"
               type="email"
               value={formData.email || ''}
               onChange={(e) => handleChange('email', e.target.value)}
+              error={errors.email}
             />
           </div>
         </div>

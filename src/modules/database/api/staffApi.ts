@@ -100,6 +100,28 @@ export const staffApi = {
   },
 
   async delete(id: string): Promise<void> {
+    // 1. Unassign this groomer from all appointments (set groomer_id to null)
+    const { error: unassignError } = await supabase
+      .from('appointments')
+      .update({ groomer_id: null })
+      .eq('groomer_id', id)
+    if (unassignError) throw unassignError
+
+    // 2. Delete staff_availability rows for this staff member
+    const { error: availError } = await supabase
+      .from('staff_availability')
+      .delete()
+      .eq('staff_id', id)
+    if (availError) throw availError
+
+    // 3. Delete time_off_requests rows for this staff member
+    const { error: timeOffError } = await supabase
+      .from('time_off_requests')
+      .delete()
+      .eq('staff_id', id)
+    if (timeOffError) throw timeOffError
+
+    // 4. Delete the groomer/staff record
     const { error } = await supabase.from('groomers').delete().eq('id', id)
     if (error) throw error
   },

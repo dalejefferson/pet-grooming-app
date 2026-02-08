@@ -1,8 +1,10 @@
-import type { Appointment, AppointmentPet, AppointmentStatus, TimeSlot, DayOfWeek, StaffAvailability } from '../types'
+import type { Appointment, AppointmentPet, AppointmentStatus, PaymentStatus, TimeSlot, DayOfWeek, StaffAvailability } from '../types'
 import { supabase } from '@/lib/supabase/client'
 import { mapAppointment, toDbAppointment } from '../types/supabase-mappers'
 import { staffApi } from './staffApi'
+import { policiesApi } from './policiesApi'
 import { validateStatusTransition } from './statusMachine'
+import { validateCancellationWindow } from './validators'
 import {
   startOfDay,
   endOfDay,
@@ -193,7 +195,27 @@ export const calendarApi = {
       throw new Error('Appointment not found')
     }
     validateStatusTransition(appointment.status, status)
+
+    // Enforce cancellation window when transitioning to cancelled
+    if (status === 'cancelled') {
+      const policies = await policiesApi.get(appointment.organizationId)
+      if (policies) {
+        const { canCancel, reason } = validateCancellationWindow(appointment, policies)
+        if (!canCancel) {
+          throw new Error(reason || 'Cancellation is not allowed')
+        }
+      }
+    }
+
     return this.update(id, { status, statusNotes })
+  },
+
+  async updatePaymentStatus(id: string, paymentStatus: PaymentStatus): Promise<Appointment> {
+    const appointment = await this.getById(id)
+    if (!appointment) {
+      throw new Error('Appointment not found')
+    }
+    return this.update(id, { paymentStatus })
   },
 
   async delete(id: string): Promise<void> {

@@ -120,6 +120,60 @@ export const petsApi = {
   },
 
   async delete(id: string): Promise<void> {
+    // 1. Find all appointment_pets rows referencing this pet
+    const { data: aptPets, error: aptPetsError } = await supabase
+      .from('appointment_pets')
+      .select('id, appointment_id')
+      .eq('pet_id', id)
+    if (aptPetsError) throw new Error(aptPetsError.message)
+
+    const aptPetRows = aptPets ?? []
+    const aptPetIds = aptPetRows.map((r) => r.id)
+
+    // 2. Delete appointment_services for those appointment_pet IDs
+    if (aptPetIds.length > 0) {
+      const { error: svcError } = await supabase
+        .from('appointment_services')
+        .delete()
+        .in('appointment_pet_id', aptPetIds)
+      if (svcError) throw new Error(svcError.message)
+    }
+
+    // 3. Delete the appointment_pets rows
+    if (aptPetIds.length > 0) {
+      const { error: delPetsError } = await supabase
+        .from('appointment_pets')
+        .delete()
+        .eq('pet_id', id)
+      if (delPetsError) throw new Error(delPetsError.message)
+    }
+
+    // 4. For any appointment that now has 0 remaining pets, delete that appointment
+    const affectedAppointmentIds = [...new Set(aptPetRows.map((r) => r.appointment_id))]
+    for (const appointmentId of affectedAppointmentIds) {
+      const { data: remaining, error: countError } = await supabase
+        .from('appointment_pets')
+        .select('id')
+        .eq('appointment_id', appointmentId)
+      if (countError) throw new Error(countError.message)
+
+      if (!remaining || remaining.length === 0) {
+        const { error: delAptError } = await supabase
+          .from('appointments')
+          .delete()
+          .eq('id', appointmentId)
+        if (delAptError) throw new Error(delAptError.message)
+      }
+    }
+
+    // 5. Delete vaccination_records for this pet
+    const { error: vaxError } = await supabase
+      .from('vaccination_records')
+      .delete()
+      .eq('pet_id', id)
+    if (vaxError) throw new Error(vaxError.message)
+
+    // 6. Delete the pet itself
     const { error } = await supabase
       .from('pets')
       .delete()

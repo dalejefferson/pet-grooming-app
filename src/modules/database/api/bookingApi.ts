@@ -10,6 +10,7 @@ import {
   validateAdvanceBooking,
   validatePetOwnership,
   validateVaccinationStatus,
+  validateAppointmentDuration,
   BookingValidationError,
 } from './validators'
 
@@ -69,13 +70,16 @@ export const bookingApi = {
         // Apply modifiers
         for (const modifierId of selectedService.modifierIds) {
           const modifier = service.modifiers.find((m) => m.id === modifierId)
-          if (modifier) {
-            duration += modifier.durationMinutes
-            if (modifier.isPercentage) {
-              price += (service.basePrice * modifier.priceAdjustment) / 100
-            } else {
-              price += modifier.priceAdjustment
-            }
+          if (!modifier) {
+            throw new BookingValidationError(
+              `Modifier "${modifierId}" not found on service "${service.name}". It may have been removed.`
+            )
+          }
+          duration += modifier.durationMinutes
+          if (modifier.isPercentage) {
+            price += (service.basePrice * modifier.priceAdjustment) / 100
+          } else {
+            price += modifier.priceAdjustment
           }
         }
 
@@ -88,6 +92,11 @@ export const bookingApi = {
 
         totalDuration += duration
         totalPrice += price
+      }
+
+      // Existing pets must have a petId; new pets may not have one yet (assigned after creation)
+      if (!selectedPet.isNewPet && !selectedPet.petId) {
+        throw new BookingValidationError('Existing pet is missing a pet ID.')
       }
 
       petDetails.push({
@@ -113,6 +122,13 @@ export const bookingApi = {
 
   async createBooking(booking: BookingState): Promise<BookingResult> {
     const policies = await policiesApi.get(booking.organizationId)
+
+    // Block new clients before creating any records to avoid orphaned data
+    if (booking.isNewClient && policies?.newClientMode === 'blocked') {
+      throw new BookingValidationError(
+        'This salon is not accepting new clients at this time. Please contact us directly.'
+      )
+    }
 
     // Validate max pets
     validateMaxPetsPerAppointment(booking.selectedPets.length, policies)
@@ -195,6 +211,18 @@ export const bookingApi = {
     // Calculate appointment details
     const details = await this.calculateAppointmentDetails(booking)
 
+    // Validate appointment duration does not exceed maximum
+    validateAppointmentDuration(details.totalDuration)
+
+    // Validate deposit payment if required
+    if (policies?.depositRequired && details.depositRequired > 0) {
+      if (booking.payment?.paymentStatus !== 'completed') {
+        throw new BookingValidationError(
+          `A deposit of $${details.depositRequired.toFixed(2)} is required to complete this booking.`
+        )
+      }
+    }
+
     // Determine status based on policies
     let status: Appointment['status']
     if (isNewClient) {
@@ -219,15 +247,21 @@ export const bookingApi = {
       organizationId: booking.organizationId,
       clientId: client.id,
       groomerId: booking.selectedGroomerId,
-      pets: details.pets.map((p, i) => ({
-        petId: p.petId || booking.selectedPets[i].petId || '',
-        services: p.services.map((s) => ({
-          serviceId: s.serviceId,
-          appliedModifiers: s.modifierIds,
-          finalDuration: s.duration,
-          finalPrice: s.price,
-        })),
-      })),
+      pets: details.pets.map((p, i) => {
+        const resolvedPetId = p.petId || booking.selectedPets[i].petId
+        if (!resolvedPetId) {
+          throw new BookingValidationError('Unable to resolve pet ID for appointment. Please try again.')
+        }
+        return {
+          petId: resolvedPetId,
+          services: p.services.map((s) => ({
+            serviceId: s.serviceId,
+            appliedModifiers: s.modifierIds,
+            finalDuration: s.duration,
+            finalPrice: s.price,
+          })),
+        }
+      }),
       startTime: startDate.toISOString(),
       endTime: endDate.toISOString(),
       status,

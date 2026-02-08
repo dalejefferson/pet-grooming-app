@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate, useParams } from 'react-router-dom'
 import { ArrowLeft, CreditCard } from 'lucide-react'
 import { Card, CardTitle, Button, Textarea, LoadingSpinner } from '../../components/common'
 import {
@@ -24,7 +24,13 @@ import type { BookingState, TipOption, PaymentStatus } from '@/types'
 
 export function BookingConfirmPage() {
   const navigate = useNavigate()
+  const { orgSlug } = useParams()
   const { organization, bookingState: ctxBookingState, updateBookingState } = useBookingContext()
+
+  // Guard: redirect if no time slot selected
+  if (!ctxBookingState.selectedTimeSlot) {
+    return <Navigate to={`/book/${orgSlug}/start`} replace />
+  }
 
   const isNewClient = ctxBookingState.isNewClient
   const clientId = ctxBookingState.clientId

@@ -5,6 +5,7 @@ import { Card, Button, Input, Badge, Modal, ImageUpload, HistorySection, Confirm
 import { useClients, useClientPets, useCreateClient, useDeleteClient, useDeletedHistory, useAddToHistory, useCurrentUser } from '@/hooks'
 import { formatPhone, cn } from '@/lib/utils'
 import { debounce } from '@/lib/utils/debounce'
+import { validators, validateForm } from '@/lib/utils/formValidation'
 import type { Client } from '@/types'
 import { useTheme, useUndo } from '../../context'
 
@@ -31,9 +32,24 @@ function ClientForm({
     notes: '',
     imageUrl: undefined as string | undefined,
   })
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    const validationErrors = validateForm(
+      { firstName: formData.firstName, lastName: formData.lastName, email: formData.email, phone: formData.phone },
+      {
+        firstName: [validators.required],
+        lastName: [validators.required],
+        email: [validators.required, validators.email],
+        phone: [validators.required, validators.phone],
+      }
+    )
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors)
+      return
+    }
+    setErrors({})
     onSubmit({
       ...formData,
       organizationId,
@@ -64,12 +80,14 @@ function ClientForm({
           label="First Name"
           value={formData.firstName}
           onChange={(e) => setFormData((p) => ({ ...p, firstName: e.target.value }))}
+          error={errors.firstName}
           required
         />
         <Input
           label="Last Name"
           value={formData.lastName}
           onChange={(e) => setFormData((p) => ({ ...p, lastName: e.target.value }))}
+          error={errors.lastName}
           required
         />
       </div>
@@ -78,6 +96,7 @@ function ClientForm({
         type="email"
         value={formData.email}
         onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
+        error={errors.email}
         required
       />
       <Input
@@ -85,6 +104,7 @@ function ClientForm({
         type="tel"
         value={formData.phone}
         onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
+        error={errors.phone}
         required
       />
       <AddressAutocomplete

@@ -224,14 +224,16 @@ export function ClientDetailPage() {
   }
 
   const handleAddPet = async (data: Omit<Pet, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!user?.organizationId) return
     await createPet.mutateAsync(data)
     setShowAddPetModal(false)
   }
 
   const handleCreateAppointment = async (data: { clientId: string; petServices: PetServiceSelection[]; groomerId: string; notes: string; startTime: string; endTime: string }) => {
+    if (!user?.organizationId) return
     try {
       await createAppointment.mutateAsync({
-        organizationId: user?.organizationId || '',
+        organizationId: user.organizationId,
         clientId: data.clientId,
         pets: data.petServices.filter((ps) => ps.serviceIds.length > 0).map((ps) => ({
           petId: ps.petId,

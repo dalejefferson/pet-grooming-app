@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate, useParams } from 'react-router-dom'
 import { ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, Clock, Users, AlertCircle, Calendar } from 'lucide-react'
 import { Card, Button } from '../../components/common'
 import { useAvailableSlotsForWeek, useActiveServices, useGroomers, useStaffAvailability, useTimeOffRequests } from '@/hooks'
@@ -10,7 +10,16 @@ import { cn } from '@/lib/utils'
 
 export function BookingTimesPage() {
   const navigate = useNavigate()
+  const { orgSlug } = useParams()
   const { organization, bookingState, updateBookingState } = useBookingContext()
+
+  // Guard: redirect if no pets with services selected
+  const hasServicesSelected = bookingState.selectedPets?.some(
+    (pet) => pet.services && pet.services.length > 0
+  )
+  if (!bookingState.selectedPets || bookingState.selectedPets.length === 0 || !hasServicesSelected) {
+    return <Navigate to={`/book/${orgSlug}/start`} replace />
+  }
 
   const groomerId = bookingState.selectedGroomerId
   const selectedPets = bookingState.selectedPets

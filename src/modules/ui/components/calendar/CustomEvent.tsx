@@ -20,16 +20,18 @@ export function CustomEvent({ event, view, onMouseEnter, onMouseLeave }: CustomE
     onMouseEnter?.(event, e)
   }
 
+  const ariaLabel = `${event.clientName}, ${event.petNames}, ${timeStr}, ${statusLabel}`
+
   return (
-    <div className="h-full" onMouseEnter={handleMouseEnter} onMouseLeave={onMouseLeave}>
+    <div className="h-full overflow-hidden" aria-label={ariaLabel} onMouseEnter={handleMouseEnter} onMouseLeave={onMouseLeave}>
       {isMonthView ? (
-        <div className="truncate text-[11px] font-medium leading-tight">
+        <div className="truncate text-[11px] font-medium leading-tight min-w-0">
           <span className="opacity-80">{timeStr}</span>
           <span className="mx-1 opacity-50">&bull;</span>
           <span>{event.clientName}</span>
         </div>
       ) : (
-        <div>
+        <div className="min-w-0 overflow-hidden">
           <div className="font-bold text-xs leading-tight truncate">{event.clientName}</div>
           <div className="text-xs opacity-80 truncate">{event.petNames}</div>
           <div className="text-[10px] opacity-70 truncate">{timeStr}</div>

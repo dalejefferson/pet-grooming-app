@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { calendarApi } from '../api'
 import { useToast } from '@/modules/ui/hooks/useToast'
-import type { Appointment, AppointmentStatus } from '../types'
+import type { Appointment, AppointmentStatus, PaymentStatus } from '../types'
 
 export function useAppointments(organizationId?: string) {
   return useQuery({
@@ -107,6 +107,24 @@ export function useUpdateAppointmentStatus() {
       calendarApi.updateStatus(id, status, statusNotes),
     onSuccess: (updatedAppointment) => {
       showSuccess('Status updated')
+      queryClient.setQueryData(
+        ['appointment', updatedAppointment.id],
+        updatedAppointment
+      )
+      queryClient.invalidateQueries({ queryKey: ['appointments'] })
+    },
+  })
+}
+
+export function useUpdatePaymentStatus() {
+  const queryClient = useQueryClient()
+  const { showSuccess } = useToast()
+
+  return useMutation({
+    mutationFn: ({ id, paymentStatus }: { id: string; paymentStatus: PaymentStatus }) =>
+      calendarApi.updatePaymentStatus(id, paymentStatus),
+    onSuccess: (updatedAppointment) => {
+      showSuccess('Payment status updated')
       queryClient.setQueryData(
         ['appointment', updatedAppointment.id],
         updatedAppointment

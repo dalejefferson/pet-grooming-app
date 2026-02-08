@@ -7,6 +7,7 @@ import {
   type CardDetails,
   type MockPaymentConfirmation,
 } from '@/lib/stripe/mockStripe'
+import { isCardExpired } from '@/lib/utils/cardUtils'
 
 export const paymentMethodsApi = {
   /**
@@ -150,6 +151,12 @@ export const paymentMethodsApi = {
 
     if (error) throw error
     if (!pmRow) throw new Error('Payment method not found')
+
+    // Check if the card is expired
+    const pm = mapPaymentMethod(pmRow)
+    if (isCardExpired(pm.card.expMonth, pm.card.expYear)) {
+      throw new Error('Payment method has expired. Please update your card or use a different payment method.')
+    }
 
     // Use mockStripe to process the payment
     return mockStripe.confirmPayment(amount, paymentMethodId, currency)

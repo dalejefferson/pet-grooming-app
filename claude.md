@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-A pet grooming salon management SaaS application called **Sit Pretty Club**, built with React 19, TypeScript, and TailwindCSS 4.1. Features a **pastel neo-brutalist** design aesthetic with navy borders (#1e293b), offset shadows, and rounded corners. All data currently persists in localStorage (no backend).
+A pet grooming salon management SaaS application called **Sit Pretty Club**, built with React 19, TypeScript, and TailwindCSS 4.1. Features a **pastel neo-brutalist** design aesthetic with navy borders (#1e293b), offset shadows, and rounded corners. Data persists in Supabase (PostgreSQL) with Row-Level Security. Auth via Supabase Auth with Google OAuth (PKCE flow).
 
 ## Tech Stack
 
@@ -20,6 +20,8 @@ A pet grooming salon management SaaS application called **Sit Pretty Club**, bui
 - **CSS Utilities**: clsx + tailwind-merge
 - **Unit Testing**: Vitest 4 + React Testing Library + jsdom
 - **E2E Testing**: Playwright
+- **Backend**: Supabase (PostgreSQL + Auth + Storage + RLS)
+- **Supabase Client**: @supabase/supabase-js v2
 - **Linting**: ESLint 9 + TypeScript ESLint + React Hooks plugin + React Refresh plugin
 
 ## Project Structure
@@ -28,18 +30,19 @@ A pet grooming salon management SaaS application called **Sit Pretty Club**, bui
 src/
 ├── modules/                     # Primary code organization (feature modules)
 │   ├── auth/                    # Authentication & authorization
-│   │   ├── api/                 # authApi.ts
-│   │   ├── components/          # PermissionGate.tsx
+│   │   ├── api/                 # authApi.ts (Supabase Auth: password + OAuth)
+│   │   ├── components/          # PermissionGate.tsx, ProtectedRoute.tsx
+│   │   ├── context/             # AuthContext.tsx (session management)
 │   │   ├── hooks/               # useAuth, usePermissions
-│   │   ├── pages/               # LoginPage.tsx
+│   │   ├── pages/               # LoginPage.tsx, AuthCallbackPage.tsx
 │   │   ├── types/               # User type
 │   │   └── utils/               # hasRole, isAdmin, isGroomer
-│   ├── database/                # Data layer (localStorage-backed)
+│   ├── database/                # Data layer (Supabase-backed)
 │   │   ├── api/                 # All domain API modules (14 files)
 │   │   ├── config/              # queryClient.ts (React Query config)
 │   │   ├── hooks/               # React Query hooks (14 files)
 │   │   ├── seed/                # seed.ts (mock data generation, 831 lines)
-│   │   ├── storage/             # localStorage abstraction
+│   │   ├── storage/             # Supabase storage helpers
 │   │   └── types/               # All domain types (database models)
 │   ├── notifications/           # Notification system
 │   │   ├── hooks/               # useNotifications
@@ -78,7 +81,7 @@ src/
 ├── lib/
 │   ├── api/                     # Re-exports from modules (backwards compatibility)
 │   ├── stripe/                  # Mock Stripe integration (mockStripe.ts, placeholder.ts)
-│   ├── supabase/                # Supabase client stub (client.ts)
+│   ├── supabase/                # Supabase client (client.ts, storage.ts)
 │   └── utils/                   # Utility functions
 │       ├── cardUtils.ts         # Payment card utilities
 │       ├── contrast.ts          # WCAG color contrast (hexToRgb, luminance)
@@ -113,7 +116,8 @@ tsconfig.app.json        # App TS config (ES2022, strict, @ path alias)
 
 | Path | Component | Description |
 |------|-----------|-------------|
-| `/login` | `LoginPage` | Login page |
+| `/login` | `LoginPage` | Login page (password + Google OAuth) |
+| `/auth/callback` | `AuthCallbackPage` | OAuth callback handler (PKCE code exchange) |
 | `/` | Redirect | Redirects to `/login` |
 | `*` | Redirect | Catch-all redirects to `/login` |
 
@@ -155,14 +159,16 @@ tsconfig.app.json        # App TS config (ES2022, strict, @ path alias)
 The app wraps everything in these providers (see `src/App.tsx`):
 
 ```
-QueryClientProvider > ThemeProvider > BrowserRouter > KeyboardProvider > UndoProvider > ShortcutTipsProvider
+ErrorBoundary > QueryClientProvider > AuthProvider > ThemeProvider > BrowserRouter > KeyboardProvider > UndoProvider > ToastProvider > ShortcutTipsProvider
 ```
 
 | Context | Hook | Purpose |
 |---------|------|---------|
+| `AuthProvider` | `useAuthContext()` | Supabase session management, auth state sync |
 | `ThemeProvider` | `useTheme()` | 21-palette color theme system, persists to localStorage |
 | `KeyboardProvider` | `useKeyboardShortcuts()` | Global keyboard shortcuts registration |
 | `UndoProvider` | `useUndo()` | Soft-delete undo toast (5s auto-dismiss) |
+| `ToastProvider` | `useToast()` | Toast notification system |
 | `ShortcutTipsProvider` | `useShortcutTips()` | Periodic shortcut tip toasts (60-90s interval) |
 | `BookingProvider` | `useBookingContext()` | Booking wizard state (used in booking flow) |
 
@@ -183,10 +189,12 @@ QueryClientProvider > ThemeProvider > BrowserRouter > KeyboardProvider > UndoPro
 
 ### Architecture
 
-All data persists in **localStorage**. The API layer (`src/modules/database/api/`) simulates a backend with CRUD operations.
+All data persists in **Supabase** (PostgreSQL). The API layer (`src/modules/database/api/`) provides typed CRUD operations using the Supabase client.
 
-- **Storage**: `src/modules/database/storage/localStorage.ts` - Generic get/set/delete wrappers
-- **Seed Data**: `src/modules/database/seed/seed.ts` - Generates mock data on first load (831 lines)
+- **Supabase Client**: `src/lib/supabase/client.ts` - Supabase client with PKCE auth config
+- **Supabase Storage**: `src/lib/supabase/storage.ts` - File upload/download helpers (avatars, pet images, vaccination docs)
+- **Type Mappers**: `src/modules/database/types/supabase-mappers.ts` - Map between Supabase row shapes and app domain types
+- **Seed Data**: `scripts/seed-supabase.ts` - Supabase seed script for development data
 - **Query Client**: `src/modules/database/config/queryClient.ts` - React Query configuration
 
 ### API Modules
@@ -778,14 +786,21 @@ npm run test:e2e:ui   # Run Playwright with UI
 
 ### Current Limitations
 
-- **No backend** - All data persists in localStorage only
 - **Stripe integration is mocked** - `src/lib/stripe/mockStripe.ts` simulates payment processing
-- **Supabase client exists but is not connected** - `src/lib/supabase/client.ts` is a stub
 - **Email/SMS services are mocked** - `src/modules/notifications/services/` has mock implementations
-- **Images use base64 data URLs** for localStorage persistence
 - **Legacy directories exist** - `src/components/`, `src/hooks/`, `src/lib/api/`, `src/types/` are re-export shims for backwards compatibility with the modular architecture under `src/modules/`
 
 ### Active Integrations
+
+- **Supabase** - Database, auth, and storage
+  - Client: `src/lib/supabase/client.ts` (PKCE flow, session persistence)
+  - Storage helpers: `src/lib/supabase/storage.ts` (file uploads to Supabase Storage buckets)
+  - Auth: `src/modules/auth/api/authApi.ts` (signInWithPassword, signInWithOAuth)
+  - Auth context: `src/modules/auth/context/AuthContext.tsx` (session init + auth state listener)
+  - OAuth callback: `src/modules/auth/pages/AuthCallbackPage.tsx`
+  - Migrations: `supabase/migrations/` (4 files: schema, RLS, storage, OAuth trigger)
+  - Type mappers: `src/modules/database/types/supabase-mappers.ts`
+  - Env vars: `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env.local`
 
 - **Google Maps Places API** - Address autocomplete on client, organization, and booking forms
   - Packages: `use-places-autocomplete`, `@googlemaps/js-api-loader` v2, `@types/google.maps`
@@ -798,7 +813,6 @@ npm run test:e2e:ui   # Run Playwright with UI
 
 ### Planned Integrations
 
-- **Supabase** - Database, auth, and real-time subscriptions
 - **Stripe** - Online payments, deposits, and invoicing
 - **Twilio** - SMS appointment reminders
 - **Resend** - Email notifications and reminders
