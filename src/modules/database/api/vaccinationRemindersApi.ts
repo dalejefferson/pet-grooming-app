@@ -420,7 +420,7 @@ export const vaccinationRemindersApi = {
       for (const vax of vaccinations) {
         // Determine reminder type based on days until expiration
         let reminderType: VaccinationReminder['reminderType']
-        if (vax.daysUntilExpiration < 0) {
+        if (vax.daysUntilExpiration <= 0) {
           reminderType = 'expired'
         } else if (vax.daysUntilExpiration <= 7) {
           reminderType = '7_day'

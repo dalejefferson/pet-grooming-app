@@ -8,7 +8,7 @@ import type { EventClickArg, EventDropArg, DateSelectArg, EventContentArg } from
 import type { EventResizeDoneArg } from '@fullcalendar/interaction'
 import { format, startOfWeek, endOfWeek, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from 'date-fns'
 
-import { Card, MiniCalendar, Modal, Button } from '../../components/common'
+import { Card, MiniCalendar, Modal, Button, LoadingSpinner } from '../../components/common'
 import { useAppointmentsByWeek, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useUpdateAppointment, useClientPets, useServices, useCreateAppointment, useDeleteAppointment, useCurrentUser, useOrganization } from '@/hooks'
 import { emailApi } from '@/modules/database/api'
 import { CALENDAR_BUSINESS_HOURS } from '@/config/constants'
@@ -73,11 +73,13 @@ export function CalendarPage() {
   const [statusNotes, setStatusNotes] = useState('')
   const [showCompletedConfirmModal, setShowCompletedConfirmModal] = useState(false)
 
-  const { data: appointments = [] } = useAppointmentsByWeek(currentDate)
-  const { data: clients = [] } = useClients()
-  const { data: pets = [] } = usePets()
+  const { data: appointments = [], isLoading: isLoadingAppointments } = useAppointmentsByWeek(currentDate)
+  const { data: clients = [], isLoading: isLoadingClients } = useClients()
+  const { data: pets = [], isLoading: isLoadingPets } = usePets()
   const { data: groomers = [] } = useGroomers()
   const { data: services = [] } = useServices()
+
+  const isInitialLoading = isLoadingAppointments || isLoadingClients || isLoadingPets
   const { data: clientPets = [] } = useClientPets(selectedClientId)
   const updateStatus = useUpdateAppointmentStatus()
   const updateAppointment = useUpdateAppointment()
@@ -233,7 +235,7 @@ export function CalendarPage() {
         businessName: organization?.name || 'Sit Pretty Club',
         replyTo: organization?.emailSettings?.replyToEmail || organization?.email,
         senderName: organization?.emailSettings?.senderDisplayName || organization?.name,
-      }).catch(() => {}) // fire-and-forget
+      }).catch((err) => console.warn('[Email] Pickup ready notification failed:', err)) // fire-and-forget
     }
   }
 
@@ -421,6 +423,11 @@ export function CalendarPage() {
           )}
 
           <Card padding="none" className={cn('flex-1 min-h-0 bg-white/80 backdrop-blur-sm', isDragging && 'cursor-grabbing')}>
+            {isInitialLoading ? (
+              <div className="flex items-center justify-center min-h-[650px]">
+                <LoadingSpinner size="lg" />
+              </div>
+            ) : (
             <div className="p-2 sm:p-4 h-full min-h-[650px] overflow-x-auto" aria-label="Appointment calendar">
               <div className="min-w-[600px] h-full">
                 <FullCalendar
@@ -450,6 +457,7 @@ export function CalendarPage() {
                 />
               </div>
             </div>
+            )}
           </Card>
         </div>
 

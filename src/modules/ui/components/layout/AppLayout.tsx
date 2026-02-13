@@ -32,7 +32,7 @@ const sidebarRoutes = [
   '/app/calendar',
   '/app/clients',
   '/app/pets',
-  '/app/groomers',
+  '/app/staff',
   '/app/services',
   '/app/policies',
   '/app/reminders',
@@ -160,6 +160,12 @@ export function AppLayout() {
 
   return (
     <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-white focus:border-2 focus:border-[#1e293b] focus:rounded-xl focus:shadow-[3px_3px_0px_0px_#1e293b] focus:text-[#1e293b] focus:font-semibold"
+      >
+        Skip to main content
+      </a>
       <div className="min-h-screen bg-[#FAFAF8]">
         {/* Mobile sidebar backdrop - overlay on content, not pushing it */}
         {sidebarOpen && isMobile && (
@@ -203,7 +209,7 @@ export function AppLayout() {
           )}
         >
           <Header onMenuClick={() => setSidebarOpen(true)} />
-          <main>
+          <main id="main-content" tabIndex={-1}>
             <Outlet />
           </main>
         </div>

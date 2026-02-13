@@ -229,7 +229,7 @@ export const ComboBox = forwardRef<HTMLInputElement, ComboBoxProps>(
                       isSelected(option)
                         ? 'bg-[var(--accent-color-light)] text-[#1e293b]'
                         : 'text-[#334155] hover:bg-[var(--accent-color-light)]/50',
-                      highlightedIndex === index && !isSelected(option) && 'bg-[var(--accent-color-light)]/50'
+                      highlightedIndex === index && !isSelected(option) && 'bg-[var(--accent-color-light)] font-medium'
                     )}
                   >
                     <span>{option.label}</span>

@@ -297,7 +297,10 @@ export function BookingTimesPage() {
                     <p className="text-xs text-gray-400">Not Working</p>
                   </div>
                 ) : availableSlots.length === 0 ? (
-                  <p className="py-4 text-center text-xs text-gray-500">No slots</p>
+                  <div className="py-8 text-center">
+                    <p className="text-sm font-medium text-[#334155] mb-1">No available time slots</p>
+                    <p className="text-xs text-[#64748b]">Try selecting a different date or groomer.</p>
+                  </div>
                 ) : (
                   availableSlots.slice(0, 8).map((slot) => {
                     const isSelected =

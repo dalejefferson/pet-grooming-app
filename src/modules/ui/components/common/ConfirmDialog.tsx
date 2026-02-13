@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Modal } from './Modal'
@@ -28,7 +28,16 @@ export function ConfirmDialog({
   isLoading: externalLoading,
 }: ConfirmDialogProps) {
   const [internalLoading, setInternalLoading] = useState(false)
+  const [isReady, setIsReady] = useState(false)
   const isLoading = externalLoading || internalLoading
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsReady(false)
+      const timer = setTimeout(() => setIsReady(true), 300)
+      return () => clearTimeout(timer)
+    }
+  }, [isOpen])
 
   const handleConfirm = async () => {
     try {
@@ -65,7 +74,7 @@ export function ConfirmDialog({
           <Button variant="outline" onClick={onClose} disabled={isLoading}>
             {cancelLabel}
           </Button>
-          <Button variant={buttonVariant} onClick={handleConfirm} loading={isLoading}>
+          <Button variant={buttonVariant} onClick={handleConfirm} loading={isLoading} disabled={!isReady || isLoading}>
             {confirmLabel}
           </Button>
         </div>

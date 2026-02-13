@@ -17,7 +17,7 @@ export function DashboardPage() {
   const { registerDashboardCycle } = useKeyboardShortcuts()
   const { showUndo } = useUndo()
   const today = useMemo(() => startOfDay(new Date()), [])
-  const { data: todayAppointments = [] } = useAppointmentsByDay(today, undefined, { refetchInterval: 10_000 })
+  const { data: todayAppointments = [], isLoading: isLoadingAppointments } = useAppointmentsByDay(today, undefined, { refetchInterval: 10_000 })
   const { data: clients = [] } = useClients()
   const { data: pets = [] } = usePets()
   const { data: groomers = [] } = useGroomers()
@@ -235,7 +235,13 @@ export function DashboardPage() {
           ))}
         </div>
 
-        {upcomingAppointments.length === 0 ? (
+        {isLoadingAppointments ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-16 rounded-xl bg-gray-100 animate-pulse" />
+            ))}
+          </div>
+        ) : upcomingAppointments.length === 0 ? (
           <div className="py-8 text-center">
             <Clock className="mx-auto h-12 w-12 text-gray-400" />
             <p className="mt-2 text-gray-600">No upcoming appointments today</p>

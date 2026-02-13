@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useNavigate, Navigate, useParams } from 'react-router-dom'
 import { ArrowLeft, CreditCard } from 'lucide-react'
 import { Card, CardTitle, Button, Textarea, LoadingSpinner } from '../../components/common'
@@ -50,8 +50,11 @@ export function BookingConfirmPage() {
     return allGroomers.find((g) => g.id === groomerId) || null
   }, [groomerId, allGroomers])
 
+  const isSubmittingRef = useRef(false)
+
   const [notes, setNotes] = useState('')
   const [agreedToPolicy, setAgreedToPolicy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Tip and payment state
   const [selectedTip, setSelectedTip] = useState<TipOption>('none')
@@ -171,62 +174,78 @@ export function BookingConfirmPage() {
   }
 
   const handlePayment = async () => {
-    // Start payment processing
-    setPaymentStatus('processing')
+    // Prevent double-click race condition
+    if (isSubmittingRef.current) return
+    isSubmittingRef.current = true
+    setError(null)
 
-    // Simulate payment processing delay (2 seconds)
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    // If adding a new card and "save for future" is checked, save the card
-    if (newCardValue && saveNewCard && clientId) {
-      try {
-        await addPaymentMethod.mutateAsync({
-          clientId,
-          cardDetails: {
-            number: newCardValue.number,
-            expiry: newCardValue.expiry,
-            cvc: newCardValue.cvc,
-          },
-        })
-      } catch {
-        // Card save failed, but we can still process the payment
-        console.warn('Failed to save card for future use')
-      }
-    }
-
-    // Payment successful
-    setPaymentStatus('completed')
-
-    // Create booking with payment info
-    const bookingState: BookingState = {
-      organizationId: organization.id,
-      clientId: clientId || undefined,
-      isNewClient,
-      clientInfo,
-      selectedPets: selectedPets.map((pet) => ({
-        petId: pet.petId,
-        isNewPet: pet.isNewPet,
-        petInfo: pet.petInfo as BookingState['selectedPets'][0]['petInfo'],
-        services: pet.services,
-      })),
-      selectedTimeSlot: {
-        date,
-        startTime: time,
-        endTime: format(endTime, 'h:mm a'),
-      },
-      selectedGroomerId: groomerId,
-      notes,
-      payment: {
-        tipAmount,
-        tipOption: selectedTip,
-        paymentStatus: 'completed',
-        paymentMethod: 'card',
-        paidAt: new Date().toISOString(),
-        transactionId: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      },
+    // Validate every pet has at least 1 service selected
+    const petWithNoServices = selectedPets.find((pet) => pet.services.length === 0)
+    if (petWithNoServices) {
+      const petName = petWithNoServices.isNewPet
+        ? petWithNoServices.petInfo?.name || 'New Pet'
+        : clientPets.find((p) => p.id === petWithNoServices.petId)?.name || 'A pet'
+      setError(`${petName} has no services selected. Please go back and add at least one service per pet.`)
+      isSubmittingRef.current = false
+      return
     }
 
     try {
+      // Start payment processing
+      setPaymentStatus('processing')
+
+      // Simulate payment processing delay (2 seconds)
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      // If adding a new card and "save for future" is checked, save the card
+      if (newCardValue && saveNewCard && clientId) {
+        try {
+          await addPaymentMethod.mutateAsync({
+            clientId,
+            cardDetails: {
+              number: newCardValue.number,
+              expiry: newCardValue.expiry,
+              cvc: newCardValue.cvc,
+            },
+          })
+        } catch {
+          // Card save failed, but we can still process the payment
+          console.warn('Failed to save card for future use')
+        }
+      }
+
+      // Payment successful
+      setPaymentStatus('completed')
+
+      // Create booking with payment info
+      const bookingState: BookingState = {
+        organizationId: organization.id,
+        clientId: clientId || undefined,
+        isNewClient,
+        clientInfo,
+        selectedPets: selectedPets.map((pet) => ({
+          petId: pet.petId,
+          isNewPet: pet.isNewPet,
+          petInfo: pet.petInfo as BookingState['selectedPets'][0]['petInfo'],
+          services: pet.services,
+        })),
+        selectedTimeSlot: {
+          date,
+          startTime: time,
+          endTime: format(endTime, 'h:mm a'),
+        },
+        selectedGroomerId: groomerId,
+        notes,
+        payment: {
+          tipAmount,
+          tipOption: selectedTip,
+          paymentStatus: 'completed',
+          paymentMethod: 'card',
+          paidAt: new Date().toISOString(),
+          transactionId: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        },
+      }
+
       const result = await createBooking.mutateAsync(bookingState)
       updateBookingState({ notes })
 
@@ -253,7 +272,7 @@ export function BookingConfirmPage() {
         businessName: organization.name,
         isRequested: result.requiresConfirmation,
         senderName: organization.name,
-      }).catch(() => {})
+      }).catch((err) => console.warn('[Email] Booking confirmation failed:', err))
 
       // Send new booking alert to the assigned groomer
       if (selectedGroomer) {
@@ -267,13 +286,21 @@ export function BookingConfirmPage() {
           isNewClient: result.isNewClient,
           businessName: organization.name,
           senderName: organization.name,
-        }).catch(() => {})
+        }).catch((err) => console.warn('[Email] Staff alert failed:', err))
       }
 
       navigate(`/book/${organization.slug}/success?appointmentId=${result.appointment.id}`)
     } catch {
       setPaymentStatus('failed')
+      setError('Payment failed. Please check your payment details and try again.')
+    } finally {
+      isSubmittingRef.current = false
     }
+  }
+
+  const handleRetryPayment = () => {
+    setPaymentStatus('pending')
+    setError(null)
   }
 
   const handleBack = () => {
@@ -359,8 +386,15 @@ export function BookingConfirmPage() {
       {/* New Client Notice */}
       {isNewClient && policies?.newClientMode === 'request_only' && <NewClientNotice />}
 
+      {/* Error Message */}
+      {error && (
+        <div className="rounded-xl border-2 border-red-300 bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       {/* Navigation */}
-      <div className="flex justify-between">
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
         <Button
           variant="outline"
           onClick={handleBack}
@@ -369,7 +403,15 @@ export function BookingConfirmPage() {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
-        {paymentStatus !== 'completed' && (
+        {paymentStatus === 'failed' ? (
+          <Button
+            onClick={handleRetryPayment}
+            className="bg-[#fcd9bd] text-[#1e293b] hover:bg-[#fbc4a0] border-[#1e293b]"
+          >
+            <CreditCard className="mr-2 h-4 w-4" />
+            Retry Payment
+          </Button>
+        ) : paymentStatus !== 'completed' ? (
           <Button
             onClick={handlePayment}
             disabled={!agreedToPolicy || paymentStatus === 'processing'}
@@ -387,7 +429,7 @@ export function BookingConfirmPage() {
               </>
             )}
           </Button>
-        )}
+        ) : null}
       </div>
     </div>
   )

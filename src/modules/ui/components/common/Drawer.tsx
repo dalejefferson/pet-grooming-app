@@ -80,7 +80,7 @@ export function Drawer({
         aria-modal="true"
         aria-label={title || 'Drawer'}
         className={cn(
-          'fixed inset-y-0 z-50 flex flex-col bg-white transition-transform duration-200',
+          'fixed inset-y-0 z-50 flex flex-col bg-white transition-transform duration-200 max-h-dvh',
           sizes[size],
           positions[position],
           transforms[position]

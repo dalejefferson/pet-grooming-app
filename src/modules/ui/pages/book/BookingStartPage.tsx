@@ -22,7 +22,7 @@ export function BookingStartPage() {
     phone: '',
     address: '',
   })
-  const [validationErrors, setValidationErrors] = useState<{ email?: string; phone?: string }>({})
+  const [validationErrors, setValidationErrors] = useState<{ firstName?: string; lastName?: string; email?: string; phone?: string }>({})
 
   const { data: searchResults = [] } = useSearchClients(searchQuery, organization.id)
   const { data: prefilledClient, isLoading: isLoadingPrefilledClient } = useClient(prefilledClientId || '')
@@ -59,10 +59,16 @@ export function BookingStartPage() {
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  const phoneRegex = /^[+]?[\d\s()-]{7,}$/
+  const phoneRegex = /^[+]?(?:[\d\s()-]*\d){7,}[\d\s()-]*$/
 
   const validateFields = () => {
-    const errors: { email?: string; phone?: string } = {}
+    const errors: { firstName?: string; lastName?: string; email?: string; phone?: string } = {}
+    if (!newClientInfo.firstName.trim()) {
+      errors.firstName = 'First name is required'
+    }
+    if (!newClientInfo.lastName.trim()) {
+      errors.lastName = 'Last name is required'
+    }
     if (newClientInfo.email && !emailRegex.test(newClientInfo.email)) {
       errors.email = 'Please enter a valid email address'
     }
@@ -227,17 +233,21 @@ export function BookingStartPage() {
               <Input
                 label="First Name"
                 value={newClientInfo.firstName}
-                onChange={(e) =>
+                onChange={(e) => {
                   setNewClientInfo((p) => ({ ...p, firstName: e.target.value }))
-                }
+                  if (validationErrors.firstName) setValidationErrors((p) => ({ ...p, firstName: undefined }))
+                }}
+                error={validationErrors.firstName}
                 required
               />
               <Input
                 label="Last Name"
                 value={newClientInfo.lastName}
-                onChange={(e) =>
+                onChange={(e) => {
                   setNewClientInfo((p) => ({ ...p, lastName: e.target.value }))
-                }
+                  if (validationErrors.lastName) setValidationErrors((p) => ({ ...p, lastName: undefined }))
+                }}
+                error={validationErrors.lastName}
                 required
               />
             </div>

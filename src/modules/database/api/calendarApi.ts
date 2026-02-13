@@ -152,6 +152,22 @@ export const calendarApi = {
   async create(
     data: Omit<Appointment, 'id' | 'createdAt' | 'updatedAt'>
   ): Promise<Appointment> {
+    // Validate groomer exists and is active before creating appointment
+    if (data.groomerId) {
+      const { data: groomer, error: groomerError } = await supabase
+        .from('groomers')
+        .select('id, is_active')
+        .eq('id', data.groomerId)
+        .single()
+
+      if (groomerError || !groomer) {
+        throw new Error('Groomer not found')
+      }
+      if (groomer.is_active === false) {
+        throw new Error('Groomer is not active')
+      }
+    }
+
     // 1. Insert the appointment row (without pets)
     const aptRow = toDbAppointment(data)
     const { data: inserted, error: aptError } = await supabase
