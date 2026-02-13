@@ -1,7 +1,58 @@
 // ============================================
+// Subscription & Billing Types
+// ============================================
+export type SubscriptionPlanTier = 'solo' | 'studio'
+export type SubscriptionBillingInterval = 'monthly' | 'yearly'
+export type SubscriptionStatus =
+  | 'trialing'
+  | 'active'
+  | 'past_due'
+  | 'canceled'
+  | 'unpaid'
+  | 'incomplete'
+  | 'incomplete_expired'
+  | 'paused'
+
+export interface Subscription {
+  id: string
+  organizationId: string
+  stripeCustomerId: string
+  stripeSubscriptionId: string | null
+  planTier: SubscriptionPlanTier
+  billingInterval: SubscriptionBillingInterval
+  status: SubscriptionStatus
+  trialStart: string | null
+  trialEnd: string | null
+  currentPeriodStart: string | null
+  currentPeriodEnd: string | null
+  cancelAtPeriodEnd: boolean
+  canceledAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface BillingEvent {
+  id: string
+  stripeEventId: string
+  eventType: string
+  organizationId: string | null
+  payload: Record<string, unknown>
+  processedAt: string
+}
+
+export type GatedFeature =
+  | 'multipleStaff'
+  | 'rolePermissions'
+  | 'serviceModifiers'
+  | 'advancedReports'
+  | 'staffScheduling'
+  | 'performanceTracking'
+  | 'prioritySupport'
+
+// ============================================
 // Vaccination Reminder Types
 // ============================================
-export type NotificationChannel = 'in_app' | 'email' | 'sms'
+export type NotificationChannel = 'in_app' | 'email'
 export type VaccinationStatus = 'valid' | 'expiring_30' | 'expiring_7' | 'expired'
 
 export interface VaccinationReminderSettings {
@@ -9,7 +60,7 @@ export interface VaccinationReminderSettings {
   organizationId: string
   enabled: boolean
   reminderDays: number[] // [30, 7]
-  channels: { inApp: boolean; email: boolean; sms: boolean }
+  channels: { inApp: boolean; email: boolean }
   blockBookingOnExpired: boolean
   updatedAt: string
 }
@@ -188,6 +239,8 @@ export interface Organization {
   phone: string
   email: string
   timezone: string
+  stripeCustomerId?: string
+  emailSettings?: { replyToEmail?: string; senderDisplayName?: string }
   createdAt: string
   updatedAt: string
 }
@@ -214,7 +267,7 @@ export interface Client {
   address?: string
   notes?: string
   imageUrl?: string
-  preferredContactMethod: 'email' | 'phone' | 'text'
+  preferredContactMethod: 'email' | 'phone'
   isNewClient: boolean
   notificationPreferences?: ClientNotificationPreferences
   paymentMethods?: PaymentMethod[]
@@ -452,11 +505,11 @@ export interface Groomer {
 export interface FeatureFlags {
   multiStaffScheduling: boolean
   onlinePayments: boolean
-  smsReminders: boolean
   emailReminders: boolean
   clientPortal: boolean
   petPhotos: boolean
   inventoryManagement: boolean
+  devBypassSubscription: boolean
 }
 
 // Deleted item history types

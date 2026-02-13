@@ -114,7 +114,7 @@ export const remindersApi = {
   }> {
     return {
       template48h:
-        "Hi {{clientName}}! This is a reminder that {{petName}}'s grooming appointment is in 2 days on {{date}} at {{time}}. Reply CONFIRM to confirm or call us to reschedule.",
+        "Hi {{clientName}}! This is a reminder that {{petName}}'s grooming appointment is in 2 days on {{date}} at {{time}}. Please reply to this email or call us if you need to reschedule.",
       template24h:
         "Reminder: {{petName}}'s grooming appointment is tomorrow at {{time}}. Please arrive 5 minutes early. See you soon!",
       template2h:

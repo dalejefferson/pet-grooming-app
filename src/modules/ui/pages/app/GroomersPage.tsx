@@ -67,7 +67,7 @@ export function GroomersPage() {
       label: `${groomerToDelete.firstName} ${groomerToDelete.lastName}`,
       data: groomerToDelete,
       onUndo: async () => {
-        const { id, createdAt, updatedAt, ...groomerData } = groomerToDelete
+        const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...groomerData } = groomerToDelete
         await createGroomer.mutateAsync(groomerData)
       }
     })

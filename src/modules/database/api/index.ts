@@ -12,6 +12,8 @@ export { paymentMethodsApi } from './paymentMethodsApi'
 export { vaccinationRemindersApi } from './vaccinationRemindersApi'
 export { staffApi } from './staffApi'
 export { performanceApi } from './performanceApi'
+export { billingApi } from './billingApi'
+export { emailApi } from './emailApi'
 
 // Re-export types from bookingApi
 export type { BookingResult } from './bookingApi'

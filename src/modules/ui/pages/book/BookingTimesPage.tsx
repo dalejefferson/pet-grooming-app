@@ -13,16 +13,9 @@ export function BookingTimesPage() {
   const { orgSlug } = useParams()
   const { organization, bookingState, updateBookingState } = useBookingContext()
 
-  // Guard: redirect if no pets with services selected
-  const hasServicesSelected = bookingState.selectedPets?.some(
-    (pet) => pet.services && pet.services.length > 0
-  )
-  if (!bookingState.selectedPets || bookingState.selectedPets.length === 0 || !hasServicesSelected) {
-    return <Navigate to={`/book/${orgSlug}/start`} replace />
-  }
-
+  // Extract values with fallbacks for hooks (hooks must be called before any early return)
   const groomerId = bookingState.selectedGroomerId
-  const selectedPets = bookingState.selectedPets
+  const selectedPets = useMemo(() => bookingState.selectedPets || [], [bookingState.selectedPets])
 
   const { data: services = [] } = useActiveServices(organization.id)
   const { data: allGroomers = [] } = useGroomers()
@@ -82,6 +75,14 @@ export function BookingTimesPage() {
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   }, [weekStart])
+
+  // Guard: redirect if no pets with services selected (AFTER all hooks)
+  const hasServicesSelected = bookingState.selectedPets?.some(
+    (pet) => pet.services && pet.services.length > 0
+  )
+  if (!bookingState.selectedPets || bookingState.selectedPets.length === 0 || !hasServicesSelected) {
+    return <Navigate to={`/book/${orgSlug}/start`} replace />
+  }
 
   const handlePrevWeek = () => {
     setWeekStart((prev) => addWeeks(prev, -1))

@@ -70,6 +70,7 @@ export function BookingProvider({
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useBookingContext() {
   const context = useContext(BookingContext)
   if (!context) {

@@ -77,6 +77,7 @@ export function AddressAutocomplete({
 
   // Reset highlighted index when suggestions change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting derived UI state when external suggestions data changes
     setHighlightedIndex(-1)
   }, [data])
 

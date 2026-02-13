@@ -442,7 +442,6 @@ export const vaccinationRemindersApi = {
           const channels: VaccinationReminder['channels'] = []
           if (settings.channels.inApp) channels.push('in_app')
           if (settings.channels.email) channels.push('email')
-          if (settings.channels.sms) channels.push('sms')
 
           const reminderData: Omit<VaccinationReminder, 'id' | 'createdAt'> = {
             petId: pet.id,

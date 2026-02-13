@@ -215,11 +215,11 @@ async function seedClients(orgId: string) {
       phone: '(555) 234-5678',
       address: '456 Oak Avenue, Dogtown, CA 90210',
       notes: 'Prefers morning appointments. Always tips well.',
-      preferred_contact_method: 'text',
+      preferred_contact_method: 'email',
       is_new_client: false,
       notification_preferences: {
-        vaccinationReminders: { enabled: true, channels: ['email', 'sms'] },
-        appointmentReminders: { enabled: true, channels: ['sms'] },
+        vaccinationReminders: { enabled: true, channels: ['email'] },
+        appointmentReminders: { enabled: true, channels: ['email'] },
       },
       created_at: '2024-02-01T00:00:00Z',
     },
@@ -267,11 +267,11 @@ async function seedClients(orgId: string) {
       email: 'robert.kim@email.com',
       phone: '(555) 567-8901',
       address: '321 Pine Street, Dogtown, CA 90210',
-      preferred_contact_method: 'text',
+      preferred_contact_method: 'email',
       is_new_client: false,
       notification_preferences: {
-        vaccinationReminders: { enabled: true, channels: ['sms', 'email'] },
-        appointmentReminders: { enabled: true, channels: ['sms'] },
+        vaccinationReminders: { enabled: true, channels: ['email'] },
+        appointmentReminders: { enabled: true, channels: ['email'] },
       },
       created_at: '2024-04-05T00:00:00Z',
     },
@@ -284,7 +284,7 @@ async function seedClients(orgId: string) {
   }
 
   // Remove the temporary "key" before inserting
-  const rows = clients.map(({ key: _key, ...rest }) => rest)
+  const rows = clients.map(({ key: _, ...rest }) => rest)
   const { error } = await supabase.from('clients').upsert(rows, { onConflict: 'id' })
   if (error) logError(`clients: ${error.message}`)
   else logSuccess(`clients (${rows.length})`)
@@ -456,7 +456,8 @@ async function seedPets(
     petIdMap.set(p.key, p.id)
   }
 
-  const rows = pets.map(({ key: _key, ...rest }) => rest)
+
+  const rows = pets.map(({ key: _, ...rest }) => rest)
   const { error } = await supabase.from('pets').upsert(rows, { onConflict: 'id' })
   if (error) logError(`pets: ${error.message}`)
   else logSuccess(`pets (${rows.length})`)
@@ -526,7 +527,8 @@ async function seedVaccinationRecords(petIdMap: Map<string, string>) {
     vaxIdMap.set(v.key, v.id)
   }
 
-  const insertRows = rows.map(({ key: _key, ...rest }) => rest)
+
+  const insertRows = rows.map(({ key: _, ...rest }) => rest)
   const { error } = await supabase.from('vaccination_records').upsert(insertRows, { onConflict: 'id' })
   if (error) logError(`vaccination_records: ${error.message}`)
   else logSuccess(`vaccination_records (${insertRows.length})`)
@@ -555,7 +557,8 @@ async function seedServices(orgId: string) {
     serviceIdMap.set(s.key, s.id)
   }
 
-  const rows = services.map(({ key: _key, ...rest }) => rest)
+
+  const rows = services.map(({ key: _, ...rest }) => rest)
   const { error } = await supabase.from('services').upsert(rows, { onConflict: 'id' })
   if (error) logError(`services: ${error.message}`)
   else logSuccess(`services (${rows.length})`)
@@ -592,7 +595,8 @@ async function seedServiceModifiers(serviceIdMap: Map<string, string>) {
     modIdMap.set(m.key, m.id)
   }
 
-  const rows = modifiers.map(({ key: _key, ...rest }) => rest)
+
+  const rows = modifiers.map(({ key: _, ...rest }) => rest)
   const { error } = await supabase.from('service_modifiers').upsert(rows, { onConflict: 'id' })
   if (error) logError(`service_modifiers: ${error.message}`)
   else logSuccess(`service_modifiers (${rows.length})`)
@@ -877,7 +881,8 @@ async function seedAppointments(
     }
   }
 
-  const aptPetInsertRows = aptPetRows.map(({ aptKey: _a, petKey: _p, ...rest }) => rest)
+
+  const aptPetInsertRows = aptPetRows.map(({ aptKey: _, petKey: __, ...rest }) => rest)
   const { error: aptPetError } = await supabase.from('appointment_pets').upsert(aptPetInsertRows, { onConflict: 'id' })
   if (aptPetError) logError(`appointment_pets: ${aptPetError.message}`)
   else logSuccess(`appointment_pets (${aptPetInsertRows.length})`)
@@ -951,7 +956,7 @@ async function seedReminderSchedules(orgId: string) {
         enabled48h: true,
         enabled24h: true,
         enabled2h: false,
-        template48h: "Hi {{clientName}}! This is a reminder that {{petName}}'s grooming appointment is in 2 days on {{date}} at {{time}}. Reply CONFIRM to confirm or call us to reschedule.",
+        template48h: "Hi {{clientName}}! This is a reminder that {{petName}}'s grooming appointment is in 2 days on {{date}} at {{time}}. Please reply to this email or call us if you need to reschedule.",
         template24h: "Reminder: {{petName}}'s grooming appointment is tomorrow at {{time}}. Please arrive 5 minutes early. See you soon!",
         template2h: "{{petName}}'s appointment starts in 2 hours at {{time}}. We're looking forward to seeing you!",
       },
@@ -979,7 +984,7 @@ async function seedVaccinationReminderSettings(orgId: string) {
       organization_id: orgId,
       enabled: true,
       reminder_days: [30, 7],
-      channels: { inApp: true, email: true, sms: false },
+      channels: { inApp: true, email: true },
       block_booking_on_expired: true,
     },
     { onConflict: 'organization_id' },

@@ -33,6 +33,11 @@ import type {
   InAppNotification,
   DeletedItem,
   DeletedEntityType,
+  Subscription,
+  SubscriptionPlanTier,
+  SubscriptionBillingInterval,
+  SubscriptionStatus,
+  BillingEvent,
 } from './index'
 
 // ============================================
@@ -55,6 +60,8 @@ export function mapOrganization(row: DbRow): Organization {
     phone: row.phone ?? '',
     email: row.email ?? '',
     timezone: row.timezone ?? 'America/Los_Angeles',
+    stripeCustomerId: row.stripe_customer_id ?? undefined,
+    emailSettings: row.email_settings ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -68,7 +75,48 @@ export function toDbOrganization(org: Partial<Organization>): DbRow {
   if (org.phone !== undefined) row.phone = org.phone
   if (org.email !== undefined) row.email = org.email
   if (org.timezone !== undefined) row.timezone = org.timezone
+  if (org.stripeCustomerId !== undefined) row.stripe_customer_id = org.stripeCustomerId
+  if (org.emailSettings !== undefined) row.email_settings = org.emailSettings
   return row
+}
+
+// ============================================
+// Subscription
+// ============================================
+
+export function mapSubscription(row: DbRow): Subscription {
+  return {
+    id: row.id,
+    organizationId: row.organization_id,
+    stripeCustomerId: row.stripe_customer_id,
+    stripeSubscriptionId: row.stripe_subscription_id ?? null,
+    planTier: row.plan_tier as SubscriptionPlanTier,
+    billingInterval: row.billing_interval as SubscriptionBillingInterval,
+    status: row.status as SubscriptionStatus,
+    trialStart: row.trial_start ?? null,
+    trialEnd: row.trial_end ?? null,
+    currentPeriodStart: row.current_period_start ?? null,
+    currentPeriodEnd: row.current_period_end ?? null,
+    cancelAtPeriodEnd: row.cancel_at_period_end ?? false,
+    canceledAt: row.canceled_at ?? null,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
+}
+
+// ============================================
+// Billing Event
+// ============================================
+
+export function mapBillingEvent(row: DbRow): BillingEvent {
+  return {
+    id: row.id,
+    stripeEventId: row.stripe_event_id,
+    eventType: row.event_type,
+    organizationId: row.organization_id ?? null,
+    payload: row.payload,
+    processedAt: row.processed_at,
+  }
 }
 
 // ============================================
@@ -86,7 +134,7 @@ export function mapClient(row: DbRow, paymentMethods?: PaymentMethod[]): Client 
     address: row.address ?? undefined,
     notes: row.notes ?? undefined,
     imageUrl: row.image_url ?? undefined,
-    preferredContactMethod: row.preferred_contact_method ?? 'email',
+    preferredContactMethod: (row.preferred_contact_method === 'text' ? 'phone' : row.preferred_contact_method) ?? 'email',
     isNewClient: row.is_new_client ?? true,
     notificationPreferences: row.notification_preferences as ClientNotificationPreferences | undefined,
     paymentMethods: paymentMethods ?? [],
@@ -496,7 +544,7 @@ export function mapVaccinationReminderSettings(row: DbRow): VaccinationReminderS
     organizationId: row.organization_id,
     enabled: row.enabled ?? true,
     reminderDays: row.reminder_days ?? [30, 7],
-    channels: row.channels ?? { inApp: true, email: false, sms: false },
+    channels: row.channels ?? { inApp: true, email: true },
     blockBookingOnExpired: row.block_booking_on_expired ?? false,
     updatedAt: row.updated_at,
   }

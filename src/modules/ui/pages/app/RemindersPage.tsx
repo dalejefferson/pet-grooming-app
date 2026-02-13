@@ -21,6 +21,7 @@ export function RemindersPage() {
 
   useEffect(() => {
     if (reminders) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync form state from server data on load
       setFormData(reminders)
     }
   }, [reminders])

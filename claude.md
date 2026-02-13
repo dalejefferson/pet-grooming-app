@@ -17,6 +17,7 @@ A pet grooming salon management SaaS application called **Sit Pretty Club**, bui
 - **Icons**: Lucide React
 - **Date Utilities**: date-fns v4
 - **Address Autocomplete**: use-places-autocomplete + @googlemaps/js-api-loader v2
+- **Payments**: @stripe/stripe-js (Stripe Checkout + Customer Portal)
 - **CSS Utilities**: clsx + tailwind-merge
 - **Unit Testing**: Vitest 4 + React Testing Library + jsdom
 - **E2E Testing**: Playwright
@@ -46,7 +47,7 @@ src/
 │   │   └── types/               # All domain types (database models)
 │   ├── notifications/           # Notification system
 │   │   ├── hooks/               # useNotifications
-│   │   └── services/            # inAppNotificationService, mockEmailService, mockSmsService
+│   │   └── services/            # inAppNotificationService, mockEmailService
 │   └── ui/                      # All UI code
 │       ├── assets/              # Static assets (react.svg)
 │       ├── components/          # Reusable components by feature
@@ -271,7 +272,7 @@ All types are defined in `src/modules/database/types/index.ts` and `src/modules/
 - `BehaviorLevel`: 1-5 (calm to difficult)
 - `PaymentStatus`: pending | processing | completed | failed
 - `CardBrand`: visa | mastercard | amex | discover | unknown
-- `NotificationChannel`: in_app | email | sms
+- `NotificationChannel`: in_app | email
 - Staff roles: admin | groomer | receptionist
 
 ## Component Library
@@ -705,7 +706,6 @@ Feature flags are defined in `src/config/flags.ts`:
 featureFlags: {
   multiStaffScheduling: false,
   onlinePayments: false,
-  smsReminders: false,
   emailReminders: true,
   clientPortal: true,
   petPhotos: false,
@@ -787,7 +787,7 @@ npm run test:e2e:ui   # Run Playwright with UI
 ### Current Limitations
 
 - **Stripe integration is mocked** - `src/lib/stripe/mockStripe.ts` simulates payment processing
-- **Email/SMS services are mocked** - `src/modules/notifications/services/` has mock implementations
+- **Email notifications are mocked** - `src/modules/notifications/services/` has mock implementations (email-first strategy: all notifications route to email via Resend)
 - **Legacy directories exist** - `src/components/`, `src/hooks/`, `src/lib/api/`, `src/types/` are re-export shims for backwards compatibility with the modular architecture under `src/modules/`
 
 ### Active Integrations
@@ -811,10 +811,22 @@ npm run test:e2e:ui   # Run Playwright with UI
   - Falls back to plain `<input>` if API key is missing or Google Maps fails to load
   - Restricted to US addresses by default (`restrictToCountry` prop)
 
+### Stripe Subscription Billing (Active)
+
+- **Plans**: Solo ($45/mo, $432/yr) and Studio ($95/mo, $912/yr) with 14-day free trial
+- **Checkout**: Stripe Checkout redirect (not embedded)
+- **Billing management**: Stripe Customer Portal (self-service upgrade/downgrade/cancel)
+- **Edge Functions**: `create-checkout-session`, `create-portal-session`, `stripe-webhook` in `supabase/functions/`
+- **Database**: `subscriptions` table (one per org), `billing_events` audit log, `stripe_customer_id` on organizations
+- **Feature gating**: `SubscriptionGate` component + `SubscriptionContext` provider
+  - Studio-only features: multipleStaff, rolePermissions, serviceModifiers, advancedReports, staffScheduling, performanceTracking
+  - Config in `src/config/subscriptionGates.ts`
+- **Dev bypass**: Set `VITE_DEV_BYPASS_SUBSCRIPTION=true` in `.env.local` to unlock all features without a real subscription
+- **Reference**: See `stripeintegration.md` for full setup details (product IDs, webhook events, test cards, CLI commands)
+- **Env vars needed**: `VITE_STRIPE_PUBLISHABLE_KEY` (frontend), Stripe secrets in Supabase Edge Function secrets
+
 ### Planned Integrations
 
-- **Stripe** - Online payments, deposits, and invoicing
-- **Twilio** - SMS appointment reminders
-- **Resend** - Email notifications and reminders
+- **Resend** - Email notifications and reminders (all notification types: appointment confirmations, reminders, cancellations, vaccination alerts). Email is the sole external notification channel.
 - **PostHog** - Product analytics and feature flags
 - **Vercel** - Hosting and deployment

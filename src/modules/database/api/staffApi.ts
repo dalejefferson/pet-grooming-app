@@ -9,6 +9,7 @@ import {
   toDbTimeOffRequest,
 } from '../types/supabase-mappers'
 import { parseISO, isWithinInterval, parse } from 'date-fns'
+import { TIER_STAFF_LIMITS } from '@/config/subscriptionGates'
 
 // Default weekly schedule (Mon-Fri 9-5, weekends off)
 function createDefaultWeeklySchedule(): DaySchedule[] {
@@ -77,6 +78,27 @@ export const staffApi = {
   },
 
   async create(data: Omit<Groomer, 'id' | 'createdAt' | 'updatedAt'>): Promise<Groomer> {
+    // Enforce staff limit per subscription tier
+    const { count, error: countError } = await supabase
+      .from('groomers')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', data.organizationId)
+    if (countError) throw countError
+
+    const { data: sub, error: subError } = await supabase
+      .from('subscriptions')
+      .select('plan_tier, status')
+      .eq('organization_id', data.organizationId)
+      .in('status', ['trialing', 'active', 'past_due'])
+      .maybeSingle()
+    if (subError) throw subError
+
+    const tier = sub?.plan_tier as 'solo' | 'studio' | null ?? null
+    const limit = tier ? TIER_STAFF_LIMITS[tier] : 1
+    if ((count ?? 0) >= limit) {
+      throw new Error('Staff limit reached for your plan. Upgrade to Studio for unlimited staff.')
+    }
+
     const row = toDbGroomer(data)
     const { data: inserted, error } = await supabase
       .from('groomers')

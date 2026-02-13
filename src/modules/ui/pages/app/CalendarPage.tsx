@@ -165,12 +165,13 @@ export function CalendarPage() {
   }, [registerCalendarViewCycle, cycleView])
 
   // Handle book query param from keyboard shortcut
-  useEffect(() => {
-    if (searchParams.get('book') === 'true') {
+  const bookParam = searchParams.get('book')
+  if (bookParam === 'true') {
+    setSearchParams({}, { replace: true })
+    if (!showCreateModal) {
       setShowCreateModal(true)
-      setSearchParams({}, { replace: true })
     }
-  }, [searchParams, setSearchParams])
+  }
 
   // Status change handlers
   const handleStatusChange = async (status: AppointmentStatus) => {

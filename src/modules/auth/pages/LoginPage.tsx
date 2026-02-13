@@ -20,8 +20,9 @@ export function LoginPage() {
 
     try {
       await login.mutateAsync({ email, password })
-      navigate('/app/calendar')
-    } catch (err) {
+      const pendingCheckout = localStorage.getItem('pendingCheckout')
+      navigate(pendingCheckout ? '/app/settings' : '/app/calendar')
+    } catch (_err) {
       setError('Invalid email or password')
     }
   }
@@ -47,7 +48,7 @@ export function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <Dog className="mx-auto h-12 w-12 text-primary-600" />
+          <Dog className="mx-auto h-12 w-12 text-[#1e293b]" />
           <h1 className="mt-4 text-2xl font-bold text-gray-900">{APP_NAME}</h1>
           <p className="mt-2 text-gray-600">Sign in to your account</p>
         </div>
@@ -77,6 +78,7 @@ export function LoginPage() {
 
             <Button
               type="submit"
+              variant="themed"
               className="w-full"
               loading={login.isPending}
             >

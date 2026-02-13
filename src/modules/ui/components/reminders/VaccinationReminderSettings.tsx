@@ -19,6 +19,7 @@ export function VaccinationReminderSettings() {
 
   useEffect(() => {
     if (settings) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync form state from server data on load
       setFormData(settings)
     }
   }, [settings])
@@ -40,7 +41,7 @@ export function VaccinationReminderSettings() {
   }
 
   const handleChannelChange = (
-    channel: 'inApp' | 'email' | 'sms',
+    channel: 'inApp' | 'email',
     checked: boolean
   ) => {
     setFormData((prev) => ({
@@ -76,7 +77,7 @@ export function VaccinationReminderSettings() {
   }
 
   const reminderDays = formData.reminderDays || [30, 7]
-  const channels = formData.channels || { inApp: true, email: false, sms: false }
+  const channels = formData.channels || { inApp: true, email: true }
 
   return (
     <Card>
@@ -188,21 +189,6 @@ export function VaccinationReminderSettings() {
                     }}
                   />
                   <span className="text-sm text-[#334155]">Email</span>
-                </label>
-                <label className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={channels.sms}
-                    onChange={(e) => handleChannelChange('sms', e.target.checked)}
-                    className={cn(
-                      'h-5 w-5 rounded border-2 border-[#1e293b]',
-                      'focus:ring-2 focus:ring-[#1e293b] focus:ring-offset-2'
-                    )}
-                    style={{
-                      accentColor: colors.accentColorDark,
-                    }}
-                  />
-                  <span className="text-sm text-[#334155]">SMS</span>
                 </label>
               </div>
             </div>

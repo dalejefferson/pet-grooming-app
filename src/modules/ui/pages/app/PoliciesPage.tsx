@@ -16,6 +16,7 @@ export function PoliciesPage() {
 
   useEffect(() => {
     if (policies) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync form state from server data on load
       setFormData(policies)
     }
   }, [policies])

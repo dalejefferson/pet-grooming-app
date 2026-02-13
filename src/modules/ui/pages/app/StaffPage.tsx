@@ -16,6 +16,7 @@ import { PermissionGate } from '@/modules/auth'
 import { cn } from '@/lib/utils'
 import type { Groomer, TimeOffRequest, DaySchedule } from '@/types'
 import { useTheme } from '../../context'
+import { useSubscriptionContext } from '../../context/SubscriptionContext'
 
 type TabValue = 'all' | 'schedule' | 'timeoff'
 type RoleFilter = 'all' | 'owner' | 'admin' | 'groomer' | 'receptionist'
@@ -38,6 +39,7 @@ const STATUS_BADGES: Record<TimeOffRequest['status'], { variant: 'warning' | 'su
 
 export function StaffPage() {
   const { colors } = useTheme()
+  const { canAddStaff } = useSubscriptionContext()
   const [activeTab, setActiveTab] = useState<TabValue>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all')
@@ -125,14 +127,29 @@ export function StaffPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold text-gray-900">Staff</h1>
           <PermissionGate permission="canManageStaff">
-            <Button
-              onClick={() => setShowCreateModal(true)}
-              style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
-              className="hover:opacity-90"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Add Staff
-            </Button>
+            {canAddStaff ? (
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
+                className="hover:opacity-90"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Staff
+              </Button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button variant="outline" disabled>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Staff
+                </Button>
+                <span className="text-sm text-[#64748b]">
+                  Solo plan includes 1 staff member.{' '}
+                  <a href="/app/settings" className="font-semibold text-[#5a7a5d] underline hover:text-[#6F8F72]">
+                    Upgrade to add more
+                  </a>
+                </span>
+              </div>
+            )}
           </PermissionGate>
         </div>
 

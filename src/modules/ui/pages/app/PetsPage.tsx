@@ -123,7 +123,7 @@ export function PetsPage() {
       label: petToDelete.name,
       data: petToDelete,
       onUndo: async () => {
-        const { id, createdAt, updatedAt, ...petData } = petToDelete
+        const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...petData } = petToDelete
         await createPet.mutateAsync(petData)
       }
     })

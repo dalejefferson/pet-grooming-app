@@ -56,6 +56,7 @@ export function VaccinationFormModal({
     if (isOpen) {
       if (editingVaccination) {
         const matchingOption = COMMON_VACCINATIONS.find(opt => opt.value === editingVaccination.name)
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync form state from props when modal opens
         setVaxForm({
           name: matchingOption ? editingVaccination.name : 'custom',
           customName: matchingOption ? '' : editingVaccination.name,

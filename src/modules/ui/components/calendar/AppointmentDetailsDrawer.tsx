@@ -8,11 +8,16 @@ import type { AppointmentStatus, PaymentStatus, Pet } from '@/types'
 import type { AppointmentDetailsDrawerProps } from './types'
 import { usePermissions } from '@/modules/auth/hooks/usePermissions'
 import { useUpdatePaymentStatus } from '@/modules/database/hooks/useCalendar'
+import { VALID_TRANSITIONS } from '@/modules/database/api/statusMachine'
 
-const statusOptions = Object.entries(APPOINTMENT_STATUS_LABELS).map(([value, label]) => ({
-  value,
-  label,
-}))
+function getStatusOptions(currentStatus: AppointmentStatus) {
+  const validNext = VALID_TRANSITIONS[currentStatus]
+  const options = [
+    { value: currentStatus, label: APPOINTMENT_STATUS_LABELS[currentStatus] },
+    ...validNext.map((status) => ({ value: status, label: APPOINTMENT_STATUS_LABELS[status] })),
+  ]
+  return options
+}
 
 const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   pending: 'Pending',
@@ -79,10 +84,11 @@ export function AppointmentDetailsDrawer({
                 }}
               />
               <Select
-                options={statusOptions}
+                options={getStatusOptions(appointment.status)}
                 value={appointment.status}
                 onChange={(e) => onStatusChange(e.target.value as AppointmentStatus)}
                 className="flex-1"
+                disabled={VALID_TRANSITIONS[appointment.status].length === 0}
               />
             </div>
 

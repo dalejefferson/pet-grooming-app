@@ -78,11 +78,11 @@ export const seedClients: Client[] = [
     phone: '(555) 234-5678',
     address: '456 Oak Avenue, Dogtown, CA 90210',
     notes: 'Prefers morning appointments. Always tips well.',
-    preferredContactMethod: 'text',
+    preferredContactMethod: 'email',
     isNewClient: false,
     notificationPreferences: {
-      vaccinationReminders: { enabled: true, channels: ['email', 'sms'] },
-      appointmentReminders: { enabled: true, channels: ['sms'] },
+      vaccinationReminders: { enabled: true, channels: ['email'] },
+      appointmentReminders: { enabled: true, channels: ['email'] },
     },
     paymentMethods: [
       {
@@ -158,11 +158,11 @@ export const seedClients: Client[] = [
     email: 'robert.kim@email.com',
     phone: '(555) 567-8901',
     address: '321 Pine Street, Dogtown, CA 90210',
-    preferredContactMethod: 'text',
+    preferredContactMethod: 'email',
     isNewClient: false,
     notificationPreferences: {
-      vaccinationReminders: { enabled: true, channels: ['sms', 'email'] },
-      appointmentReminders: { enabled: true, channels: ['sms'] },
+      vaccinationReminders: { enabled: true, channels: ['email'] },
+      appointmentReminders: { enabled: true, channels: ['email'] },
     },
     paymentMethods: [
       {
@@ -717,7 +717,7 @@ export const seedReminders: ReminderSchedule = {
     enabled24h: true,
     enabled2h: false,
     template48h:
-      "Hi {{clientName}}! This is a reminder that {{petName}}'s grooming appointment is in 2 days on {{date}} at {{time}}. Reply CONFIRM to confirm or call us to reschedule.",
+      "Hi {{clientName}}! This is a reminder that {{petName}}'s grooming appointment is in 2 days on {{date}} at {{time}}. Please reply to this email or call us if you need to reschedule.",
     template24h:
       "Reminder: {{petName}}'s grooming appointment is tomorrow at {{time}}. Please arrive 5 minutes early. See you soon!",
     template2h:
@@ -738,7 +738,7 @@ export const seedVaccinationReminderSettings: VaccinationReminderSettings = {
   organizationId: ORG_ID,
   enabled: true,
   reminderDays: [30, 7],
-  channels: { inApp: true, email: true, sms: false },
+  channels: { inApp: true, email: true },
   blockBookingOnExpired: true,
   updatedAt: '2024-01-01T00:00:00Z',
 }

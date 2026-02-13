@@ -133,6 +133,7 @@ export function KeyboardProvider({ children }: { children: ReactNode }) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useKeyboardShortcuts() {
   const context = useContext(KeyboardContext)
   if (!context) {

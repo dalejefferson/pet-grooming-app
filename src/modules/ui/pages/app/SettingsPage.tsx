@@ -1,11 +1,13 @@
 import { Card, CardTitle, Button, Input, AddressAutocomplete } from '../../components/common'
+import { BillingSection } from '../../components/billing'
 import { useOrganization, useUpdateOrganization } from '@/hooks'
-import { useTheme, themeColors, type ThemeName } from '../../context'
+import { useTheme, themeColors, type ThemeName, useToast } from '../../context'
 import { useState, useEffect } from 'react'
 import type { Organization } from '@/types'
 import { cn } from '@/lib/utils'
 import { validators, validateForm } from '@/lib/utils/formValidation'
-import { ChevronDown } from 'lucide-react'
+import { emailApi } from '@/modules/database/api'
+import { ChevronDown, Mail, Send } from 'lucide-react'
 
 // Theme configuration for the picker
 const themeOptions: { name: ThemeName; label: string; swatches: string[] }[] = [
@@ -120,19 +122,33 @@ export function SettingsPage() {
   const { data: organization, isLoading } = useOrganization()
   const updateOrganization = useUpdateOrganization()
   const { currentTheme, setTheme, colors } = useTheme()
+  const { showSuccess, showError } = useToast()
   const [formData, setFormData] = useState<Partial<Organization>>({})
   const [hasChanges, setHasChanges] = useState(false)
   const [themeExpanded, setThemeExpanded] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isSendingTest, setIsSendingTest] = useState(false)
 
   useEffect(() => {
     if (organization) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync form state from server data on load
       setFormData(organization)
     }
   }, [organization])
 
   const handleChange = <K extends keyof Organization>(key: K, value: Organization[K]) => {
     setFormData((prev) => ({ ...prev, [key]: value }))
+    setHasChanges(true)
+  }
+
+  const handleEmailSettingsChange = (field: 'senderDisplayName' | 'replyToEmail', value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      emailSettings: {
+        ...prev.emailSettings,
+        [field]: value,
+      },
+    }))
     setHasChanges(true)
   }
 
@@ -174,6 +190,8 @@ export function SettingsPage() {
         </Button>
       </div>
 
+      <BillingSection />
+
       <Card>
         <CardTitle>Business Information</CardTitle>
         <div className="mt-4 space-y-4">
@@ -208,6 +226,54 @@ export function SettingsPage() {
               error={errors.email}
             />
           </div>
+        </div>
+      </Card>
+
+      <Card>
+        <div className="flex items-center gap-2">
+          <Mail className="h-5 w-5" style={{ color: colors.accentColorDark }} />
+          <CardTitle>Email Settings</CardTitle>
+        </div>
+        <p className="mt-2 text-sm text-gray-600">
+          Configure how reminder emails appear to your clients.
+        </p>
+        <div className="mt-4 space-y-4">
+          <Input
+            label="Sender Display Name"
+            value={formData.emailSettings?.senderDisplayName || ''}
+            onChange={(e) => handleEmailSettingsChange('senderDisplayName', e.target.value)}
+            helperText="The name that appears in the 'From' field of reminder emails"
+          />
+          <Input
+            label="Reply-To Email"
+            type="email"
+            value={formData.emailSettings?.replyToEmail || ''}
+            onChange={(e) => handleEmailSettingsChange('replyToEmail', e.target.value)}
+            helperText="Where client replies are sent (defaults to your business email)"
+          />
+          <Button
+            variant="primary"
+            size="sm"
+            loading={isSendingTest}
+            onClick={async () => {
+              setIsSendingTest(true)
+              try {
+                await emailApi.sendTestEmail({
+                  to: 'dalejefferson00@gmail.com',
+                  replyTo: formData.emailSettings?.replyToEmail || formData.email,
+                  senderName: formData.emailSettings?.senderDisplayName || formData.name,
+                })
+                showSuccess('Test email sent! Check dalejefferson00@gmail.com')
+              } catch (err) {
+                showError(err instanceof Error ? err.message : 'Failed to send test email')
+              } finally {
+                setIsSendingTest(false)
+              }
+            }}
+          >
+            <Send className="h-4 w-4" />
+            Send Test Email
+          </Button>
         </div>
       </Card>
 

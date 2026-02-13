@@ -5,7 +5,6 @@ describe('featureFlags', () => {
   it('should have expected default flags', () => {
     expect(featureFlags).toHaveProperty('multiStaffScheduling')
     expect(featureFlags).toHaveProperty('onlinePayments')
-    expect(featureFlags).toHaveProperty('smsReminders')
     expect(featureFlags).toHaveProperty('emailReminders')
     expect(featureFlags).toHaveProperty('clientPortal')
     expect(featureFlags).toHaveProperty('petPhotos')

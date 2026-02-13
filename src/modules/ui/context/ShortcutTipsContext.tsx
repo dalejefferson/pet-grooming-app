@@ -51,23 +51,23 @@ export function ShortcutTipsProvider({ children }: { children: ReactNode }) {
     }, 5000)
   }, [getRandomTip, dismissTip])
 
-  const scheduleNextTip = useCallback(() => {
-    // Random interval between 60-90 seconds
-    const delay = Math.floor(Math.random() * 30000) + 60000
-    intervalRef.current = setTimeout(() => {
-      showTip()
-      scheduleNextTip()
-    }, delay)
-  }, [showTip])
-
   useEffect(() => {
+    const scheduleNextTip = () => {
+      // Random interval between 60-90 seconds
+      const delay = Math.floor(Math.random() * 30000) + 60000
+      intervalRef.current = setTimeout(() => {
+        showTip()
+        scheduleNextTip()
+      }, delay)
+    }
+
     scheduleNextTip()
 
     return () => {
       if (intervalRef.current) clearTimeout(intervalRef.current)
       if (dismissTimeoutRef.current) clearTimeout(dismissTimeoutRef.current)
     }
-  }, [scheduleNextTip])
+  }, [showTip])
 
   return (
     <ShortcutTipsContext.Provider value={{ dismissTip }}>
@@ -116,6 +116,7 @@ export function ShortcutTipsProvider({ children }: { children: ReactNode }) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useShortcutTips() {
   const context = useContext(ShortcutTipsContext)
   if (!context) {

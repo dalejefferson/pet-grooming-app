@@ -6,7 +6,7 @@ import { AppointmentDetailsDrawer, StatusChangeModal } from '../../components/ca
 import { VaccinationAlertsWidget } from '../../components/dashboard'
 import { useAppointmentsByDay, useAppointmentsByDateRange, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useDeleteAppointment, useCreateAppointment } from '@/hooks'
 import { useUndo } from '@/modules/ui/context'
-import { format, subDays, startOfDay } from 'date-fns'
+import { format, subDays, addDays, startOfDay, endOfDay } from 'date-fns'
 import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_STATUS_COLORS } from '@/config/constants'
 import { cn } from '@/lib/utils'
 import { useTheme, useKeyboardShortcuts } from '../../context'
@@ -52,13 +52,13 @@ export function DashboardPage() {
   }, [registerDashboardCycle, cycleDashboardRange])
 
   const issuesDateRange = useMemo(() => {
-    const endDate = new Date()
-    if (issuesRange === 'today') return { start: startOfDay(endDate), end: endDate }
-    if (issuesRange === '7days') return { start: subDays(endDate, 7), end: endDate }
-    return { start: subDays(endDate, 30), end: endDate }
+    const now = new Date()
+    if (issuesRange === 'today') return { start: startOfDay(now), end: endOfDay(now) }
+    if (issuesRange === '7days') return { start: startOfDay(subDays(now, 7)), end: endOfDay(addDays(now, 7)) }
+    return { start: startOfDay(subDays(now, 30)), end: endOfDay(addDays(now, 30)) }
   }, [issuesRange])
 
-  const { data: issuesAppointments = [] } = useAppointmentsByDateRange(issuesDateRange.start, issuesDateRange.end)
+  const { data: issuesAppointments = [] } = useAppointmentsByDateRange(issuesDateRange.start, issuesDateRange.end, undefined, { refetchInterval: 10_000 })
 
   const noShowAppointments = useMemo(
     () => issuesAppointments.filter(a => a.status === 'no_show'),

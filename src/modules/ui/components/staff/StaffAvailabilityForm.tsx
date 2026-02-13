@@ -37,10 +37,12 @@ export function StaffAvailabilityForm({ staffId }: StaffAvailabilityFormProps) {
   // Load data from availability
   useEffect(() => {
     if (availability) {
+      /* eslint-disable react-hooks/set-state-in-effect -- Sync form state from server data on load */
       setWeeklySchedule(availability.weeklySchedule || DEFAULT_SCHEDULE)
       setMaxAppointmentsPerDay(availability.maxAppointmentsPerDay)
       setBufferMinutes(availability.bufferMinutesBetweenAppointments)
       setHasChanges(false)
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [availability])
 

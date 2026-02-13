@@ -27,11 +27,6 @@ export function BookingConfirmPage() {
   const { orgSlug } = useParams()
   const { organization, bookingState: ctxBookingState, updateBookingState } = useBookingContext()
 
-  // Guard: redirect if no time slot selected
-  if (!ctxBookingState.selectedTimeSlot) {
-    return <Navigate to={`/book/${orgSlug}/start`} replace />
-  }
-
   const isNewClient = ctxBookingState.isNewClient
   const clientId = ctxBookingState.clientId
   const date = ctxBookingState.selectedTimeSlot?.date || ''
@@ -144,6 +139,11 @@ export function BookingConfirmPage() {
         return 0
     }
   }, [selectedTip, customTipAmount, totalPrice])
+
+  // Guard: redirect if no time slot selected (must be after all hooks)
+  if (!ctxBookingState.selectedTimeSlot) {
+    return <Navigate to={`/book/${orgSlug}/start`} replace />
+  }
 
   const grandTotal = totalPrice + tipAmount
 

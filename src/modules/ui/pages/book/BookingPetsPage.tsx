@@ -23,11 +23,6 @@ export function BookingPetsPage() {
   const { orgSlug } = useParams()
   const { organization, bookingState, updateBookingState } = useBookingContext()
 
-  // Guard: redirect if prerequisite data is missing
-  if (!bookingState.clientId && !bookingState.isNewClient) {
-    return <Navigate to={`/book/${orgSlug}/start`} replace />
-  }
-
   const isNewClient = bookingState.isNewClient
   const clientId = bookingState.clientId
 
@@ -112,6 +107,11 @@ export function BookingPetsPage() {
       (pet) => getPetVaccinationStatus(pet) === 'expired'
     )
   }, [existingPets])
+
+  // Guard: redirect if prerequisite data is missing (must be after all hooks)
+  if (!bookingState.clientId && !bookingState.isNewClient) {
+    return <Navigate to={`/book/${orgSlug}/start`} replace />
+  }
 
   return (
     <div className="space-y-6">

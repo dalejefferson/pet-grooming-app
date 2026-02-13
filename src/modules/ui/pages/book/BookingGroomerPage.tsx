@@ -94,11 +94,6 @@ export function BookingGroomerPage() {
   const { organization, bookingState, updateBookingState } = useBookingContext()
   const { colors } = useTheme()
 
-  // Guard: redirect if no pets selected
-  if (!bookingState.selectedPets || bookingState.selectedPets.length === 0) {
-    return <Navigate to={`/book/${orgSlug}/start`} replace />
-  }
-
   const { data: allGroomers = [] } = useGroomers()
 
   // Filter to only active groomers
@@ -106,6 +101,11 @@ export function BookingGroomerPage() {
 
   // Get selected groomer from context (if returning from later step)
   const [selectedGroomerId, setSelectedGroomerId] = useState<string | undefined>(bookingState.selectedGroomerId)
+
+  // Guard: redirect if no pets selected (must be after all hooks)
+  if (!bookingState.selectedPets || bookingState.selectedPets.length === 0) {
+    return <Navigate to={`/book/${orgSlug}/start`} replace />
+  }
 
   const handleSelectGroomer = (groomerId: string | undefined) => {
     setSelectedGroomerId(groomerId)

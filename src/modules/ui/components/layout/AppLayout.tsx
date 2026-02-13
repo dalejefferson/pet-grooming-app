@@ -26,6 +26,20 @@ function useIsMobile() {
   return isMobile
 }
 
+// Sidebar routes for keyboard navigation (static, defined outside component to avoid dependency issues)
+const sidebarRoutes = [
+  '/app/dashboard',
+  '/app/calendar',
+  '/app/clients',
+  '/app/pets',
+  '/app/groomers',
+  '/app/services',
+  '/app/policies',
+  '/app/reminders',
+  '/app/reports',
+  '/app/settings'
+]
+
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -37,20 +51,6 @@ export function AppLayout() {
   const { currentTheme, setTheme } = useTheme()
   const navigate = useNavigate()
   const { data: currentUser } = useCurrentUser()
-
-  // Sidebar routes for keyboard navigation
-  const sidebarRoutes = [
-    '/app/dashboard',
-    '/app/calendar',
-    '/app/clients',
-    '/app/pets',
-    '/app/groomers',
-    '/app/services',
-    '/app/policies',
-    '/app/reminders',
-    '/app/reports',
-    '/app/settings'
-  ]
 
   const navigateSidebar = useCallback((direction: 'up' | 'down') => {
     const currentIndex = sidebarRoutes.indexOf(location.pathname)
@@ -137,6 +137,7 @@ export function AppLayout() {
   // Close mobile sidebar when route changes (desktop sidebar state is user-controlled)
   useEffect(() => {
     if (isMobile) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Legitimate: sync sidebar UI on mobile route change
       setSidebarOpen(false)
     }
   }, [location.pathname, isMobile])

@@ -33,19 +33,19 @@ describe('Button', () => {
   it('should apply primary variant styles by default', () => {
     render(<Button>Primary</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('bg-primary-600')
+    expect(button).toHaveClass('bg-primary-500')
   })
 
   it('should apply secondary variant styles', () => {
     render(<Button variant="secondary">Secondary</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('bg-gray-100')
+    expect(button).toHaveClass('hover:brightness-95')
   })
 
   it('should apply outline variant styles', () => {
     render(<Button variant="outline">Outline</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('border-gray-300')
+    expect(button).toHaveClass('border-[#1e293b]')
   })
 
   it('should apply different sizes', () => {

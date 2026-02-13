@@ -525,6 +525,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 }
 
 // Custom hook to use theme context
+// eslint-disable-next-line react-refresh/only-export-components
 export function useTheme(): ThemeContextValue {
   const context = useContext(ThemeContext)
 
@@ -536,4 +537,5 @@ export function useTheme(): ThemeContextValue {
 }
 
 // Export theme colors and valid themes for direct access if needed
+// eslint-disable-next-line react-refresh/only-export-components
 export { themeColors, validThemes }

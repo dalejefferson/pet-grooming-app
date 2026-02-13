@@ -20,6 +20,7 @@ function StatusTooltip({ visible, label, left, top }: TooltipState) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- mount-only effect needed to trigger re-render for portal target availability
     setMounted(true)
   }, [])
 

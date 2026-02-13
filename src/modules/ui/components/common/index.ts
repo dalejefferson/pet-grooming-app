@@ -57,3 +57,6 @@ export type { ErrorBoundaryProps } from './ErrorBoundary'
 
 export { AddressAutocomplete } from './AddressAutocomplete'
 export type { AddressAutocompleteProps } from './AddressAutocomplete'
+
+export { SubscriptionGate } from './SubscriptionGate'
+export type { SubscriptionGateProps } from './SubscriptionGate'

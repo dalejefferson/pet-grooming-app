@@ -73,7 +73,7 @@ export function ServicesPage() {
       label: serviceToDelete.name,
       data: serviceToDelete,
       onUndo: async () => {
-        const { id: _id, createdAt, updatedAt, ...serviceData } = serviceToDelete
+        const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...serviceData } = serviceToDelete
         await createService.mutateAsync(serviceData as Omit<Service, 'id' | 'createdAt' | 'updatedAt' | 'modifiers'>)
       }
     })

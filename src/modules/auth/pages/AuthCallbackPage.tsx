@@ -60,7 +60,8 @@ export function AuthCallbackPage() {
         // Profile fetch failed — still navigate, just skip the toast
       }
 
-      navigate('/app/dashboard', { replace: true })
+      const pendingCheckout = localStorage.getItem('pendingCheckout')
+      navigate(pendingCheckout ? '/app/settings' : '/app/dashboard', { replace: true })
     }
 
     // Listen for auth state changes (catches the event if exchange hasn't completed yet)

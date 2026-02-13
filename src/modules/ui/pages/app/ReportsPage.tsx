@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { Download, FileText, BarChart3 } from 'lucide-react'
-import { Button, EmptyState } from '../../components/common'
+import { Button, EmptyState, SubscriptionGate } from '../../components/common'
 import { useAppointments, useClients, useServices, useGroomers, usePets } from '@/hooks'
 import { format, subDays, parseISO, isWithinInterval, startOfDay, getDay, getHours } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -343,23 +343,25 @@ export function ReportsPage() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <DateRangeSelector dateRange={dateRange} onDateRangeChange={setDateRange} colors={colors} />
-            <Button
-              onClick={handleExportPDF}
-              className="gap-2 hover:opacity-90"
-              style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
-            >
-              <FileText className="h-4 w-4" />
-              Download PDF
-            </Button>
-            <Button
-              onClick={handleExportCSV}
-              variant="secondary"
-              className="gap-2"
-              style={{ backgroundColor: colors.secondaryAccent }}
-            >
-              <Download className="h-4 w-4" />
-              Download CSV
-            </Button>
+            <SubscriptionGate feature="advancedReports" silent>
+              <Button
+                onClick={handleExportPDF}
+                className="gap-2 hover:opacity-90"
+                style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
+              >
+                <FileText className="h-4 w-4" />
+                Download PDF
+              </Button>
+              <Button
+                onClick={handleExportCSV}
+                variant="secondary"
+                className="gap-2"
+                style={{ backgroundColor: colors.secondaryAccent }}
+              >
+                <Download className="h-4 w-4" />
+                Download CSV
+              </Button>
+            </SubscriptionGate>
           </div>
         </div>
 

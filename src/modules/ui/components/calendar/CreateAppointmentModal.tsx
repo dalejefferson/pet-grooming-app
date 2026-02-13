@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { AlertTriangle, Plus, Clock, User, Scissors, AlertCircle, Calendar } from 'lucide-react'
 import { Modal, Button, Input, Textarea, Select } from '../common'
 import { formatCurrency, formatDuration, cn } from '@/lib/utils'
@@ -38,13 +38,15 @@ export function CreateAppointmentModal({
   const { data: groomerTimeOff = [] } = useTimeOffRequests(selectedGroomerId || undefined)
 
   // Reset form when modal opens with new times
-  useMemo(() => {
+  useEffect(() => {
     if (isOpen) {
+      /* eslint-disable react-hooks/set-state-in-effect -- Sync form state when modal opens with new initial values */
       setCreateStartTime(initialStartTime)
       setCreateEndTime(initialEndTime)
       setSelectedPetServices([])
       setSelectedGroomerId('')
       setAppointmentNotes('')
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [isOpen, initialStartTime, initialEndTime])
 

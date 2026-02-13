@@ -100,6 +100,25 @@ export const calendarApi = {
     return Promise.all((data ?? []).map(hydrateAppointment))
   },
 
+  async getIssues(
+    startDate: Date,
+    endDate: Date,
+    organizationId?: string
+  ): Promise<Appointment[]> {
+    let query = supabase
+      .from('appointments')
+      .select('*')
+      .in('status', ['cancelled', 'no_show'])
+      .gte('updated_at', startDate.toISOString())
+      .lte('updated_at', endDate.toISOString())
+    if (organizationId) {
+      query = query.eq('organization_id', organizationId)
+    }
+    const { data, error } = await query
+    if (error) throw error
+    return Promise.all((data ?? []).map(hydrateAppointment))
+  },
+
   async getByDay(date: Date, organizationId?: string): Promise<Appointment[]> {
     return this.getByDateRange(startOfDay(date), endOfDay(date), organizationId)
   },

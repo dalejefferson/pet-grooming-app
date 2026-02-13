@@ -36,7 +36,8 @@ export function useAppointmentsByWeek(date: Date, organizationId?: string) {
 export function useAppointmentsByDateRange(
   startDate: Date,
   endDate: Date,
-  organizationId?: string
+  organizationId?: string,
+  options?: { refetchInterval?: number }
 ) {
   return useQuery({
     queryKey: [
@@ -47,6 +48,26 @@ export function useAppointmentsByDateRange(
       organizationId,
     ],
     queryFn: () => calendarApi.getByDateRange(startDate, endDate, organizationId),
+    ...(options?.refetchInterval ? { refetchInterval: options.refetchInterval } : {}),
+  })
+}
+
+export function useIssuesAppointments(
+  startDate: Date,
+  endDate: Date,
+  organizationId?: string,
+  options?: { refetchInterval?: number }
+) {
+  return useQuery({
+    queryKey: [
+      'appointments',
+      'issues',
+      startDate.toISOString(),
+      endDate.toISOString(),
+      organizationId,
+    ],
+    queryFn: () => calendarApi.getIssues(startDate, endDate, organizationId),
+    ...(options?.refetchInterval ? { refetchInterval: options.refetchInterval } : {}),
   })
 }
 
@@ -76,6 +97,8 @@ export function useCreateAppointment() {
     onSuccess: () => {
       showSuccess('Appointment created')
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
+      queryClient.invalidateQueries({ queryKey: ['availableSlots'] })
+      queryClient.invalidateQueries({ queryKey: ['groomerAvailableSlots'] })
     },
   })
 }
@@ -94,6 +117,8 @@ export function useUpdateAppointment() {
         updatedAppointment
       )
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
+      queryClient.invalidateQueries({ queryKey: ['availableSlots'] })
+      queryClient.invalidateQueries({ queryKey: ['groomerAvailableSlots'] })
     },
   })
 }
@@ -112,6 +137,8 @@ export function useUpdateAppointmentStatus() {
         updatedAppointment
       )
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
+      queryClient.invalidateQueries({ queryKey: ['availableSlots'] })
+      queryClient.invalidateQueries({ queryKey: ['groomerAvailableSlots'] })
     },
   })
 }
@@ -130,6 +157,8 @@ export function useUpdatePaymentStatus() {
         updatedAppointment
       )
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
+      queryClient.invalidateQueries({ queryKey: ['availableSlots'] })
+      queryClient.invalidateQueries({ queryKey: ['groomerAvailableSlots'] })
     },
   })
 }
@@ -143,6 +172,8 @@ export function useDeleteAppointment() {
     onSuccess: () => {
       showSuccess('Appointment deleted')
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
+      queryClient.invalidateQueries({ queryKey: ['availableSlots'] })
+      queryClient.invalidateQueries({ queryKey: ['groomerAvailableSlots'] })
     },
   })
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
-import { Button } from '../common'
+import { Button, SubscriptionGate } from '../common'
 import { useAddModifier, useRemoveModifier } from '@/hooks'
 import { formatCurrency, formatDuration } from '@/lib/utils'
 import { ServiceForm } from './ServiceForm'
@@ -46,64 +46,66 @@ export function EditServiceModal({
       />
 
       {/* Modifiers Section */}
-      <div className="border-t pt-4">
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="flex w-full items-center justify-between text-sm font-medium text-gray-700"
-        >
-          <span>Modifiers ({service.modifiers.length})</span>
-          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </button>
+      <SubscriptionGate feature="serviceModifiers">
+        <div className="border-t pt-4">
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="flex w-full items-center justify-between text-sm font-medium text-gray-700"
+          >
+            <span>Modifiers ({service.modifiers.length})</span>
+            {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
 
-        {expanded && (
-          <div className="mt-3 space-y-2">
-            {service.modifiers.map((modifier) => (
-              <div
-                key={modifier.id}
-                className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2"
-              >
-                <div>
-                  <span className="font-medium text-gray-900">{modifier.name}</span>
-                  <span className="ml-2 text-sm text-gray-600">
-                    +{formatDuration(modifier.durationMinutes)}, +
-                    {modifier.isPercentage
-                      ? `${modifier.priceAdjustment}%`
-                      : formatCurrency(modifier.priceAdjustment)}
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemoveModifier(modifier.id)}
-                  aria-label={`Remove ${modifier.name} modifier`}
+          {expanded && (
+            <div className="mt-3 space-y-2">
+              {service.modifiers.map((modifier) => (
+                <div
+                  key={modifier.id}
+                  className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2"
                 >
-                  <Trash2 className="h-4 w-4 text-gray-500 hover:text-danger-500" />
-                </Button>
-              </div>
-            ))}
+                  <div>
+                    <span className="font-medium text-gray-900">{modifier.name}</span>
+                    <span className="ml-2 text-sm text-gray-600">
+                      +{formatDuration(modifier.durationMinutes)}, +
+                      {modifier.isPercentage
+                        ? `${modifier.priceAdjustment}%`
+                        : formatCurrency(modifier.priceAdjustment)}
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveModifier(modifier.id)}
+                    aria-label={`Remove ${modifier.name} modifier`}
+                  >
+                    <Trash2 className="h-4 w-4 text-gray-500 hover:text-danger-500" />
+                  </Button>
+                </div>
+              ))}
 
-            {showModifierForm ? (
-              <div className="mt-4 rounded-xl border-2 border-[#1e293b] p-4">
-                <ModifierForm
-                  onSubmit={handleAddModifier}
-                  onCancel={() => setShowModifierForm(false)}
-                  isLoading={addModifier.isPending}
-                />
-              </div>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowModifierForm(true)}
-                className="mt-2"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add Modifier
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
+              {showModifierForm ? (
+                <div className="mt-4 rounded-xl border-2 border-[#1e293b] p-4">
+                  <ModifierForm
+                    onSubmit={handleAddModifier}
+                    onCancel={() => setShowModifierForm(false)}
+                    isLoading={addModifier.isPending}
+                  />
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowModifierForm(true)}
+                  className="mt-2"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Modifier
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      </SubscriptionGate>
 
       {/* Delete Service button */}
       <div className="border-t pt-4">

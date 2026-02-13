@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Phone, Mail, Edit2, User, Calendar, BarChart3, Clock, Shield } from 'lucide-react'
-import { Card, CardTitle, Button, Badge, Modal, Input, Select, Toggle, ImageUpload } from '../../components/common'
+import { Card, CardTitle, Button, Badge, Modal, Input, Select, Toggle, ImageUpload, SubscriptionGate } from '../../components/common'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import {
   StaffAvailabilityForm,
@@ -473,18 +473,32 @@ export function StaffDetailPage() {
         )}
 
         {/* Availability Tab */}
-        {activeTab === 'availability' && <StaffAvailabilityForm staffId={staff.id} />}
+        {activeTab === 'availability' && (
+          <SubscriptionGate feature="staffScheduling">
+            <StaffAvailabilityForm staffId={staff.id} />
+          </SubscriptionGate>
+        )}
 
         {/* Performance Tab */}
-        {activeTab === 'performance' && <StaffPerformanceDashboard staffId={staff.id} />}
+        {activeTab === 'performance' && (
+          <SubscriptionGate feature="performanceTracking">
+            <StaffPerformanceDashboard staffId={staff.id} />
+          </SubscriptionGate>
+        )}
 
         {/* Time Off Tab */}
-        {activeTab === 'timeoff' && <TimeOffManager staffId={staff.id} isAdmin={isAdmin} />}
+        {activeTab === 'timeoff' && (
+          <SubscriptionGate feature="staffScheduling">
+            <TimeOffManager staffId={staff.id} isAdmin={isAdmin} />
+          </SubscriptionGate>
+        )}
 
         {/* Permissions Tab */}
         {activeTab === 'permissions' && (
           <PermissionGate permission="canManageStaff">
-            <StaffPermissionsPanel staffUserId={staff.userId} staffRole={staff.role} />
+            <SubscriptionGate feature="rolePermissions">
+              <StaffPermissionsPanel staffUserId={staff.userId} staffRole={staff.role} />
+            </SubscriptionGate>
           </PermissionGate>
         )}
 

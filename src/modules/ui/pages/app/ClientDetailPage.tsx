@@ -174,7 +174,7 @@ export function ClientDetailPage() {
     email: '',
     phone: '',
     address: '',
-    preferredContactMethod: '' as 'email' | 'phone' | 'text',
+    preferredContactMethod: '' as 'email' | 'phone',
   })
   const [contactErrors, setContactErrors] = useState<{ email?: string; phone?: string }>({})
 
@@ -356,10 +356,9 @@ export function ClientDetailPage() {
                 options={[
                   { value: 'email', label: 'Email' },
                   { value: 'phone', label: 'Phone' },
-                  { value: 'text', label: 'Text' },
                 ]}
                 value={contactForm.preferredContactMethod}
-                onChange={(e) => setContactForm((p) => ({ ...p, preferredContactMethod: e.target.value as 'email' | 'phone' | 'text' }))}
+                onChange={(e) => setContactForm((p) => ({ ...p, preferredContactMethod: e.target.value as 'email' | 'phone' }))}
               />
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => setIsEditingContact(false)}>

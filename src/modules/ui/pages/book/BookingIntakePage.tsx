@@ -51,16 +51,11 @@ export function BookingIntakePage() {
   const { orgSlug } = useParams()
   const { organization, bookingState, updateBookingState } = useBookingContext()
 
-  // Guard: redirect if no pets selected
-  if (!bookingState.selectedPets || bookingState.selectedPets.length === 0) {
-    return <Navigate to={`/book/${orgSlug}/start`} replace />
-  }
-
   const clientId = bookingState.clientId
   const groomerId = bookingState.selectedGroomerId
 
-  // Get pets from context
-  const initialPets: SelectedPet[] = bookingState.selectedPets.map((p) => ({
+  // Get pets from context (with fallback for hooks - hooks must be called before any early return)
+  const initialPets: SelectedPet[] = (bookingState.selectedPets || []).map((p) => ({
     ...p,
     services: p.services || [],
   }))
@@ -95,6 +90,11 @@ export function BookingIntakePage() {
       return acc
     }, {} as Record<string, Service[]>)
   }, [services, allowedCategories])
+
+  // Guard: redirect if no pets selected (AFTER all hooks)
+  if (!bookingState.selectedPets || bookingState.selectedPets.length === 0) {
+    return <Navigate to={`/book/${orgSlug}/start`} replace />
+  }
 
   const hasAvailableServices = Object.keys(servicesByCategory).length > 0
 
