@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { AlertTriangle, Plus, Clock, User, Scissors, AlertCircle, Calendar } from 'lucide-react'
 import { Modal, Button, Input, Textarea, Select } from '../common'
-import { formatCurrency, formatDuration, cn } from '@/lib/utils'
+import { formatCurrency, formatDuration, formatTime12h, cn } from '@/lib/utils'
 import type { CreateAppointmentModalProps, PetServiceSelection } from './types'
 import { useTheme } from '../../context'
 import { useStaffAvailability, useTimeOffRequests } from '@/hooks'
@@ -150,7 +150,7 @@ export function CreateAppointmentModal({
       if (appointmentTime < daySchedule.startTime || appointmentTime >= daySchedule.endTime) {
         return {
           type: 'warning' as const,
-          message: `This groomer's working hours are ${daySchedule.startTime} - ${daySchedule.endTime}`,
+          message: `This groomer's working hours are ${formatTime12h(daySchedule.startTime)} - ${formatTime12h(daySchedule.endTime)}`,
         }
       }
 
@@ -159,7 +159,7 @@ export function CreateAppointmentModal({
         if (appointmentTime >= daySchedule.breakStart && appointmentTime < daySchedule.breakEnd) {
           return {
             type: 'warning' as const,
-            message: `This time overlaps with the groomer's break (${daySchedule.breakStart} - ${daySchedule.breakEnd})`,
+            message: `This time overlaps with the groomer's break (${formatTime12h(daySchedule.breakStart!)} - ${formatTime12h(daySchedule.breakEnd!)})`,
           }
         }
       }
@@ -187,7 +187,7 @@ export function CreateAppointmentModal({
       const dayOfWeek = appointmentDate.getDay() as DayOfWeek
       const daySchedule = groomerAvailability.weeklySchedule.find((d) => d.dayOfWeek === dayOfWeek)
       if (!daySchedule || !daySchedule.isWorkingDay) return null
-      return `${daySchedule.startTime} - ${daySchedule.endTime}`
+      return `${formatTime12h(daySchedule.startTime)} - ${formatTime12h(daySchedule.endTime)}`
     } catch {
       return null
     }

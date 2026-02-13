@@ -13,7 +13,7 @@ import {
   useUpdateTimeOffRequest,
 } from '@/hooks'
 import { PermissionGate } from '@/modules/auth'
-import { cn } from '@/lib/utils'
+import { cn, formatTime12h } from '@/lib/utils'
 import type { Groomer, TimeOffRequest, DaySchedule } from '@/types'
 import { useTheme } from '../../context'
 import { useSubscriptionContext } from '../../context/SubscriptionContext'
@@ -117,7 +117,7 @@ export function StaffPage() {
 
   const formatScheduleTime = (schedule: DaySchedule | undefined) => {
     if (!schedule || !schedule.isWorkingDay) return 'Off'
-    return `${schedule.startTime} - ${schedule.endTime}`
+    return `${formatTime12h(schedule.startTime)} - ${formatTime12h(schedule.endTime)}`
   }
 
   return (

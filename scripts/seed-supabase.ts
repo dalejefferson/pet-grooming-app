@@ -357,7 +357,7 @@ async function seedPaymentMethods(clientIdMap: Map<string, string>) {
 async function seedPets(
   orgId: string,
   clientIdMap: Map<string, string>,
-  userIdMap: Map<string, string>,
+  groomerIdMap: Map<string, string>,
 ) {
   log('Seeding pets...')
 
@@ -377,7 +377,7 @@ async function seedPets(
       behavior_level: 2,
       grooming_notes: 'Loves water. Extra brushing needed during shedding season.',
       last_grooming_date: format(addDays(today, -30), 'yyyy-MM-dd'),
-      preferred_groomer_id: userIdMap.get('mike@pawsclaws.com') ?? 'user-2',
+      preferred_groomer_id: groomerIdMap.get('mike@pawsclaws.com'),
       created_at: '2024-02-01T00:00:00Z',
     },
     {
@@ -446,7 +446,7 @@ async function seedPets(
       behavior_level: 1,
       grooming_notes: 'Standard poodle cut. Very well-behaved.',
       last_grooming_date: format(addDays(today, -14), 'yyyy-MM-dd'),
-      preferred_groomer_id: userIdMap.get('lisa@pawsclaws.com') ?? 'user-3',
+      preferred_groomer_id: groomerIdMap.get('lisa@pawsclaws.com'),
       created_at: '2024-04-05T00:00:00Z',
     },
   ]
@@ -608,7 +608,7 @@ async function seedServiceModifiers(serviceIdMap: Map<string, string>) {
 // Step 10: Seed groomers
 // ---------------------------------------------------------------------------
 
-async function seedGroomers(orgId: string, userIdMap: Map<string, string>) {
+async function seedGroomers(orgId: string, userIdMap: Map<string, string>): Promise<Map<string, string>> {
   log('Seeding groomers...')
 
   const rows = [
@@ -653,9 +653,17 @@ async function seedGroomers(orgId: string, userIdMap: Map<string, string>) {
     },
   ]
 
+  // Build email -> groomer ID map for foreign key references
+  const groomerIdMap = new Map<string, string>()
+  for (const r of rows) {
+    groomerIdMap.set(r.email, r.id)
+  }
+
   const { error } = await supabase.from('groomers').upsert(rows, { onConflict: 'id' })
   if (error) logError(`groomers: ${error.message}`)
   else logSuccess(`groomers (${rows.length})`)
+
+  return groomerIdMap
 }
 
 // ---------------------------------------------------------------------------
@@ -679,20 +687,20 @@ function createDefaultWeeklySchedule(
   }))
 }
 
-async function seedStaffAvailability(userIdMap: Map<string, string>) {
+async function seedStaffAvailability(groomerIdMap: Map<string, string>) {
   log('Seeding staff_availability...')
 
   const rows = [
     {
       id: crypto.randomUUID(),
-      staff_id: userIdMap.get('mike@pawsclaws.com') ?? 'user-2',
+      staff_id: groomerIdMap.get('mike@pawsclaws.com')!,
       weekly_schedule: createDefaultWeeklySchedule([1, 2, 3, 4, 5], '08:00', '16:00', '12:00', '12:30'),
       max_appointments_per_day: 8,
       buffer_minutes_between_appointments: 15,
     },
     {
       id: crypto.randomUUID(),
-      staff_id: userIdMap.get('lisa@pawsclaws.com') ?? 'user-3',
+      staff_id: groomerIdMap.get('lisa@pawsclaws.com')!,
       weekly_schedule: createDefaultWeeklySchedule([1, 2, 3, 4, 6], '10:00', '18:00', '13:00', '13:30'),
       max_appointments_per_day: 6,
       buffer_minutes_between_appointments: 20,
@@ -708,13 +716,13 @@ async function seedStaffAvailability(userIdMap: Map<string, string>) {
 // Step 12: Seed time off requests
 // ---------------------------------------------------------------------------
 
-async function seedTimeOffRequests(userIdMap: Map<string, string>) {
+async function seedTimeOffRequests(groomerIdMap: Map<string, string>) {
   log('Seeding time_off_requests...')
 
   const rows = [
     {
       id: crypto.randomUUID(),
-      staff_id: userIdMap.get('mike@pawsclaws.com') ?? 'user-2',
+      staff_id: groomerIdMap.get('mike@pawsclaws.com')!,
       start_date: format(addDays(today, 14), 'yyyy-MM-dd'),
       end_date: format(addDays(today, 16), 'yyyy-MM-dd'),
       reason: 'Personal time',
@@ -835,7 +843,7 @@ async function seedAppointments(
   petIdMap: Map<string, string>,
   serviceIdMap: Map<string, string>,
   modIdMap: Map<string, string>,
-  userIdMap: Map<string, string>,
+  groomerIdMap: Map<string, string>,
 ) {
   log('Seeding appointments...')
 
@@ -849,7 +857,7 @@ async function seedAppointments(
       id,
       organization_id: orgId,
       client_id: clientIdMap.get(def.clientKey)!,
-      groomer_id: userIdMap.get(def.groomerEmail) ?? def.groomerEmail,
+      groomer_id: groomerIdMap.get(def.groomerEmail)!,
       start_time: startTime.toISOString(),
       end_time: addHours(startTime, def.durationHours).toISOString(),
       status: def.status,
@@ -1020,29 +1028,29 @@ async function main() {
     // 5. Payment methods
     await seedPaymentMethods(clientIdMap)
 
-    // 6. Pets
-    const petIdMap = await seedPets(orgId, clientIdMap, emailToId)
-
-    // 7. Vaccination records
-    await seedVaccinationRecords(petIdMap)
-
-    // 8. Services
+    // 6. Services
     const serviceIdMap = await seedServices(orgId)
 
-    // 9. Service modifiers
+    // 7. Service modifiers
     const modIdMap = await seedServiceModifiers(serviceIdMap)
 
-    // 10. Groomers
-    await seedGroomers(orgId, emailToId)
+    // 8. Groomers (must come before pets and appointments so we have groomer IDs)
+    const groomerIdMap = await seedGroomers(orgId, emailToId)
 
-    // 11. Staff availability
-    await seedStaffAvailability(emailToId)
+    // 9. Pets (uses groomer IDs for preferred_groomer_id)
+    const petIdMap = await seedPets(orgId, clientIdMap, groomerIdMap)
 
-    // 12. Time off requests
-    await seedTimeOffRequests(emailToId)
+    // 10. Vaccination records
+    await seedVaccinationRecords(petIdMap)
 
-    // 13. Appointments + appointment_pets + appointment_services
-    await seedAppointments(orgId, clientIdMap, petIdMap, serviceIdMap, modIdMap, emailToId)
+    // 11. Staff availability (uses groomer IDs, not auth user IDs)
+    await seedStaffAvailability(groomerIdMap)
+
+    // 12. Time off requests (uses groomer IDs, not auth user IDs)
+    await seedTimeOffRequests(groomerIdMap)
+
+    // 13. Appointments + appointment_pets + appointment_services (uses groomer IDs)
+    await seedAppointments(orgId, clientIdMap, petIdMap, serviceIdMap, modIdMap, groomerIdMap)
 
     // 14. Booking policies
     await seedBookingPolicies(orgId)

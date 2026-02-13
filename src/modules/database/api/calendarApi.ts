@@ -308,8 +308,8 @@ export const calendarApi = {
 
     while (addMinutes(currentSlotStart, durationMinutes) <= dayEnd) {
       const slotEnd = addMinutes(currentSlotStart, durationMinutes)
-      const slotStartTime = format(currentSlotStart, 'HH:mm')
-      const slotEndTime = format(slotEnd, 'HH:mm')
+      const slotStartTime = format(currentSlotStart, 'h:mm a')
+      const slotEndTime = format(slotEnd, 'h:mm a')
 
       // Check if this slot conflicts with any existing appointments
       const hasConflict = dayAppointments.some((apt) => {

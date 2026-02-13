@@ -645,6 +645,16 @@ text-white      - on colored backgrounds
 
 ## Code Conventions
 
+### Time Formatting
+
+- **All user-facing times MUST use 12-hour AM/PM format** (e.g., "9:00 AM", "5:00 PM"), never 24-hour/military time
+- **Internal storage stays 24-hour "HH:mm"** (e.g., "09:00", "17:00") — only the display changes
+- For date-fns `format()` calls on Date objects, use `'h:mm a'` (NOT `'HH:mm'`)
+- For stored "HH:mm" strings, use `formatTime12h()` from `@/lib/utils/timeFormat`
+- Do NOT change `parse()` calls — those read stored 24-hour values
+- Do NOT change `<input type="time">` fields — browsers handle display
+- Do NOT change default constant values like `startTime: '09:00'` — those are internal storage
+
 ### File Organization
 
 - **Max 200-300 lines per file** - Extract components when exceeding

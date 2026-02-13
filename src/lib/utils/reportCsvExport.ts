@@ -41,8 +41,8 @@ export function exportReportCsv(
     const clientEmail = client?.email || ''
     const clientPhone = client?.phone || ''
     const date = format(parseISO(apt.startTime), 'yyyy-MM-dd')
-    const startTime = format(parseISO(apt.startTime), 'HH:mm')
-    const endTime = format(parseISO(apt.endTime), 'HH:mm')
+    const startTime = format(parseISO(apt.startTime), 'h:mm a')
+    const endTime = format(parseISO(apt.endTime), 'h:mm a')
     const groomer = apt.groomerId ? groomers.find((g) => g.id === apt.groomerId) : null
     const groomerName = groomer ? `${groomer.firstName} ${groomer.lastName}` : ''
     const notes = [apt.internalNotes, apt.clientNotes].filter(Boolean).join(' | ')

@@ -128,6 +128,7 @@ export function SettingsPage() {
   const [themeExpanded, setThemeExpanded] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSendingTest, setIsSendingTest] = useState(false)
+  const [testEmailAddress, setTestEmailAddress] = useState('')
 
   useEffect(() => {
     if (organization) {
@@ -166,8 +167,13 @@ export function SettingsPage() {
       return
     }
     setErrors({})
-    await updateOrganization.mutateAsync({ id: organization.id, data: formData })
-    setHasChanges(false)
+    try {
+      await updateOrganization.mutateAsync({ id: organization.id, data: formData })
+      setHasChanges(false)
+      showSuccess('Settings saved successfully!')
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'Failed to save settings')
+    }
   }
 
   if (isLoading) {
@@ -251,19 +257,29 @@ export function SettingsPage() {
             onChange={(e) => handleEmailSettingsChange('replyToEmail', e.target.value)}
             helperText="Where client replies are sent (defaults to your business email)"
           />
+          <Input
+            label="Test Email Address"
+            type="email"
+            placeholder="Enter an email address to test"
+            value={testEmailAddress}
+            onChange={(e) => setTestEmailAddress(e.target.value)}
+          />
           <Button
             variant="primary"
             size="sm"
             loading={isSendingTest}
+            disabled={!testEmailAddress || isSendingTest}
             onClick={async () => {
               setIsSendingTest(true)
+              const recipient = testEmailAddress
               try {
                 await emailApi.sendTestEmail({
-                  to: 'dalejefferson00@gmail.com',
+                  to: recipient,
                   replyTo: formData.emailSettings?.replyToEmail || formData.email,
                   senderName: formData.emailSettings?.senderDisplayName || formData.name,
                 })
-                showSuccess('Test email sent! Check dalejefferson00@gmail.com')
+                setTestEmailAddress('')
+                showSuccess(`Test email sent! Check ${recipient}`)
               } catch (err) {
                 showError(err instanceof Error ? err.message : 'Failed to send test email')
               } finally {

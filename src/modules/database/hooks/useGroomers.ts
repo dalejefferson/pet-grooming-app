@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { groomersApi } from '../api'
+import { staffApi } from '../api/staffApi'
 import { useOrganization } from './useOrganization'
 import { useToast } from '@/modules/ui/hooks/useToast'
 import type { Groomer } from '../types'
@@ -10,7 +10,7 @@ export function useGroomers() {
 
   return useQuery({
     queryKey: ['groomers', organizationId],
-    queryFn: () => groomersApi.getAll(organizationId),
+    queryFn: () => staffApi.getAll(organizationId),
     enabled: !!organizationId,
   })
 }
@@ -18,7 +18,7 @@ export function useGroomers() {
 export function useGroomer(id: string) {
   return useQuery({
     queryKey: ['groomer', id],
-    queryFn: () => groomersApi.getById(id),
+    queryFn: () => staffApi.getById(id),
     enabled: !!id,
   })
 }
@@ -29,10 +29,11 @@ export function useCreateGroomer() {
 
   return useMutation({
     mutationFn: (data: Omit<Groomer, 'id' | 'createdAt' | 'updatedAt'>) =>
-      groomersApi.create(data),
+      staffApi.create(data),
     onSuccess: () => {
       showSuccess('Staff member added')
       queryClient.invalidateQueries({ queryKey: ['groomers'] })
+      queryClient.invalidateQueries({ queryKey: ['allStaffWithAvailability'] })
     },
   })
 }
@@ -43,11 +44,12 @@ export function useUpdateGroomer() {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Groomer> }) =>
-      groomersApi.update(id, data),
+      staffApi.update(id, data),
     onSuccess: (updatedGroomer) => {
       showSuccess('Staff updated')
       queryClient.setQueryData(['groomer', updatedGroomer.id], updatedGroomer)
       queryClient.invalidateQueries({ queryKey: ['groomers'] })
+      queryClient.invalidateQueries({ queryKey: ['allStaffWithAvailability'] })
     },
   })
 }
@@ -57,10 +59,11 @@ export function useDeleteGroomer() {
   const { showSuccess } = useToast()
 
   return useMutation({
-    mutationFn: (id: string) => groomersApi.delete(id),
+    mutationFn: (id: string) => staffApi.delete(id),
     onSuccess: () => {
       showSuccess('Staff member removed')
       queryClient.invalidateQueries({ queryKey: ['groomers'] })
+      queryClient.invalidateQueries({ queryKey: ['allStaffWithAvailability'] })
     },
   })
 }

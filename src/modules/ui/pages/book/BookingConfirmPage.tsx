@@ -18,6 +18,7 @@ import type { CardInputValue } from '../../components/payment'
 import { useActiveServices, usePolicies, useCreateBooking, useClientPets, useGroomers } from '@/hooks'
 import { useAddPaymentMethod } from '@/modules/database/hooks'
 import { useBookingContext } from '../../context/BookingContext'
+import { emailApi } from '@/modules/database/api/emailApi'
 import { formatCurrency } from '@/lib/utils'
 import { format, parseISO, addMinutes } from 'date-fns'
 import type { BookingState, TipOption, PaymentStatus } from '@/types'
@@ -211,7 +212,7 @@ export function BookingConfirmPage() {
       selectedTimeSlot: {
         date,
         startTime: time,
-        endTime: format(endTime, 'HH:mm'),
+        endTime: format(endTime, 'h:mm a'),
       },
       selectedGroomerId: groomerId,
       notes,
@@ -228,6 +229,47 @@ export function BookingConfirmPage() {
     try {
       const result = await createBooking.mutateAsync(bookingState)
       updateBookingState({ notes })
+
+      // Send booking confirmation email to client (fire-and-forget)
+      const clientName = isNewClient
+        ? `${clientInfo?.firstName || ''} ${clientInfo?.lastName || ''}`.trim()
+        : result.client?.firstName
+          ? `${result.client.firstName} ${result.client.lastName}`
+          : 'Client'
+
+      const petNamesList = petSummaries.map((p) => p.name).join(', ')
+
+      // Send booking confirmation email to client
+      emailApi.sendBookingConfirmationEmail({
+        bookingId: result.appointment.id,
+        clientName,
+        petNames: petNamesList,
+        date: format(startTime, 'EEEE, MMMM d, yyyy'),
+        time: format(startTime, 'h:mm a'),
+        groomerName: selectedGroomer
+          ? `${selectedGroomer.firstName} ${selectedGroomer.lastName}`
+          : undefined,
+        totalAmount: formatCurrency(grandTotal),
+        businessName: organization.name,
+        isRequested: result.requiresConfirmation,
+        senderName: organization.name,
+      }).catch(() => {})
+
+      // Send new booking alert to the assigned groomer
+      if (selectedGroomer) {
+        emailApi.sendNewBookingAlertEmail({
+          bookingId: result.appointment.id,
+          groomerName: `${selectedGroomer.firstName} ${selectedGroomer.lastName}`,
+          clientName,
+          petNames: petNamesList,
+          date: format(startTime, 'EEEE, MMMM d, yyyy'),
+          time: format(startTime, 'h:mm a'),
+          isNewClient: result.isNewClient,
+          businessName: organization.name,
+          senderName: organization.name,
+        }).catch(() => {})
+      }
+
       navigate(`/book/${organization.slug}/success?appointmentId=${result.appointment.id}`)
     } catch {
       setPaymentStatus('failed')

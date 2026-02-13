@@ -20,7 +20,9 @@ export function SubscriptionGate({
   fallback,
   silent = false,
 }: SubscriptionGateProps) {
-  const { hasFeature, isLoading } = useSubscriptionContext()
+  const { hasFeature, isLoading, devBypass } = useSubscriptionContext()
+
+  if (devBypass) return <>{children}</>
 
   if (isLoading) return null
 

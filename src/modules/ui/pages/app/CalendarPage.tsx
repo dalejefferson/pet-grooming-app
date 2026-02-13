@@ -8,8 +8,9 @@ import type { EventClickArg, EventDropArg, DateSelectArg, EventContentArg } from
 import type { EventResizeDoneArg } from '@fullcalendar/interaction'
 import { format, startOfWeek, endOfWeek, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from 'date-fns'
 
-import { Card, MiniCalendar } from '../../components/common'
-import { useAppointmentsByWeek, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useUpdateAppointment, useClientPets, useServices, useCreateAppointment, useDeleteAppointment, useCurrentUser } from '@/hooks'
+import { Card, MiniCalendar, Modal, Button } from '../../components/common'
+import { useAppointmentsByWeek, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useUpdateAppointment, useClientPets, useServices, useCreateAppointment, useDeleteAppointment, useCurrentUser, useOrganization } from '@/hooks'
+import { emailApi } from '@/modules/database/api'
 import { CALENDAR_BUSINESS_HOURS } from '@/config/constants'
 import { cn } from '@/lib/utils'
 import type { Appointment, AppointmentStatus } from '@/types'
@@ -37,6 +38,7 @@ const FC_VIEW_MAP = { day: 'timeGridDay', week: 'timeGridWeek', month: 'dayGridM
 export function CalendarPage() {
   const { colors } = useTheme()
   const { data: currentUser } = useCurrentUser()
+  const { data: organization } = useOrganization()
   const { registerCalendarViewCycle } = useKeyboardShortcuts()
   const { showUndo } = useUndo()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -69,6 +71,7 @@ export function CalendarPage() {
   const [showStatusNotesModal, setShowStatusNotesModal] = useState(false)
   const [pendingStatusChange, setPendingStatusChange] = useState<AppointmentStatus | null>(null)
   const [statusNotes, setStatusNotes] = useState('')
+  const [showCompletedConfirmModal, setShowCompletedConfirmModal] = useState(false)
 
   const { data: appointments = [] } = useAppointmentsByWeek(currentDate)
   const { data: clients = [] } = useClients()
@@ -180,6 +183,9 @@ export function CalendarPage() {
       setPendingStatusChange(status)
       setStatusNotes(selectedAppointment.statusNotes || '')
       setShowStatusNotesModal(true)
+    } else if (status === 'completed') {
+      setPendingStatusChange(status)
+      setShowCompletedConfirmModal(true)
     } else {
       await updateStatus.mutateAsync({ id: selectedAppointment.id, status, statusNotes: undefined })
       setSelectedAppointment((prev) => (prev ? { ...prev, status, statusNotes: undefined } : null))
@@ -203,6 +209,33 @@ export function CalendarPage() {
   }
 
   const handleCancelStatusNotes = () => { setShowStatusNotesModal(false); setPendingStatusChange(null); setStatusNotes('') }
+
+  const handleConfirmCompleted = async () => {
+    if (!selectedAppointment) return
+
+    await updateStatus.mutateAsync({ id: selectedAppointment.id, status: 'completed', statusNotes: undefined })
+    setSelectedAppointment((prev) => (prev ? { ...prev, status: 'completed' as AppointmentStatus, statusNotes: undefined } : null))
+    setShowCompletedConfirmModal(false)
+    setPendingStatusChange(null)
+
+    // Fire-and-forget pickup email
+    const client = clients.find(c => c.id === selectedAppointment.clientId)
+    if (client?.email) {
+      const petNames = selectedAppointment.pets
+        .map(p => pets.find(pet => pet.id === p.petId)?.name)
+        .filter(Boolean)
+        .join(', ')
+
+      emailApi.sendReadyForPickupEmail({
+        to: client.email,
+        clientName: client.firstName,
+        petNames: petNames || 'your pet',
+        businessName: organization?.name || 'Sit Pretty Club',
+        replyTo: organization?.emailSettings?.replyToEmail || organization?.email,
+        senderName: organization?.emailSettings?.senderDisplayName || organization?.name,
+      }).catch(() => {}) // fire-and-forget
+    }
+  }
 
   // Navigation handlers
   const goToPrev = useCallback(() => {
@@ -424,13 +457,46 @@ export function CalendarPage() {
 
         {hoveredAppointment && hoverPosition && <HoverPopup appointment={hoveredAppointment} position={hoverPosition} clients={clients} pets={pets} groomers={groomers} />}
 
-        <AppointmentDetailsDrawer appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} clients={clients} pets={pets} groomers={groomers} onStatusChange={handleStatusChange} onQuickStatusChange={handleQuickStatusChange} onDelete={handleDeleteAppointment} isDeleting={deleteAppointment.isPending} />
+        <AppointmentDetailsDrawer appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} clients={clients} pets={pets} groomers={groomers} onStatusChange={handleStatusChange} onQuickStatusChange={handleQuickStatusChange} onDelete={handleDeleteAppointment} isDeleting={deleteAppointment.isPending} organization={organization} />
 
         <CreateAppointmentModal isOpen={showCreateModal} onClose={handleCloseCreateModal} clients={clients} clientPets={clientPets} services={services} groomers={groomers} initialStartTime={createStartTime} initialEndTime={createEndTime} onClientChange={setSelectedClientId} selectedClientId={selectedClientId} onCreateAppointment={handleCreateAppointment} isCreating={createAppointment.isPending} />
 
         <RescheduleConfirmModal isOpen={showMoveConfirmModal} onClose={handleCancelMove} pendingMove={pendingMove} onConfirm={handleConfirmMove} isUpdating={updateAppointment.isPending} />
 
         <StatusChangeModal isOpen={showStatusNotesModal} onClose={handleCancelStatusNotes} pendingStatus={pendingStatusChange} notes={statusNotes} onNotesChange={setStatusNotes} onConfirm={handleConfirmStatusWithNotes} isUpdating={updateStatus.isPending} />
+
+        {/* Completed Confirmation Modal */}
+        <Modal
+          isOpen={showCompletedConfirmModal}
+          onClose={() => { setShowCompletedConfirmModal(false); setPendingStatusChange(null) }}
+          title="Mark as Completed"
+          size="sm"
+        >
+          {(() => {
+            const client = selectedAppointment ? clients.find(c => c.id === selectedAppointment.clientId) : null
+            const petNames = selectedAppointment?.pets.map(p => pets.find(pet => pet.id === p.petId)?.name).filter(Boolean).join(', ')
+            return (
+              <div className="space-y-4">
+                <p className="text-sm text-[#334155]">
+                  {client?.email
+                    ? `Mark as completed? This will send a pickup notification to ${client.firstName} at ${client.email}.`
+                    : 'Mark as completed? (No email on file for this client)'}
+                </p>
+                {petNames && (
+                  <p className="text-sm text-[#64748b]">Pet(s): {petNames}</p>
+                )}
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" size="sm" onClick={() => { setShowCompletedConfirmModal(false); setPendingStatusChange(null) }}>
+                    Cancel
+                  </Button>
+                  <Button variant="primary" size="sm" onClick={handleConfirmCompleted} loading={updateStatus.isPending}>
+                    Confirm
+                  </Button>
+                </div>
+              </div>
+            )
+          })()}
+        </Modal>
       </div>
     </div>
   )

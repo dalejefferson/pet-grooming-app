@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import { format } from 'date-fns'
-import { AlertTriangle, UserX, XCircle, Trash2 } from 'lucide-react'
+import { AlertTriangle, UserX, XCircle, Trash2, Mail } from 'lucide-react'
 import { Drawer, Badge, Select, Button } from '../common'
+import { emailApi } from '@/modules/database/api'
+import { useToast } from '@/modules/ui/context'
 import { APPOINTMENT_STATUS_LABELS } from '@/config/constants'
 import { formatCurrency, formatDuration, cn } from '@/lib/utils'
 import { STATUS_BG_COLORS, STATUS_BORDER_COLORS } from './types'
@@ -45,9 +48,12 @@ export function AppointmentDetailsDrawer({
   onQuickStatusChange,
   onDelete,
   isDeleting,
+  organization,
 }: AppointmentDetailsDrawerProps) {
   const { isAdmin } = usePermissions()
+  const { showSuccess, showError } = useToast()
   const updatePaymentStatus = useUpdatePaymentStatus()
+  const [isSendingReminder, setIsSendingReminder] = useState(false)
 
   const selectedClient = appointment
     ? clients.find((c) => c.id === appointment.clientId)
@@ -60,6 +66,29 @@ export function AppointmentDetailsDrawer({
   const selectedGroomer = appointment?.groomerId
     ? groomers.find((g) => g.id === appointment.groomerId)
     : null
+
+  const handleSendReminder = async () => {
+    if (!appointment || !selectedClient?.email) return
+    setIsSendingReminder(true)
+    try {
+      const petNames = selectedPets.map(p => p.name).join(', ')
+      await emailApi.sendAppointmentReminderEmail({
+        to: selectedClient.email,
+        clientName: selectedClient.firstName,
+        petName: petNames || 'your pet',
+        date: format(new Date(appointment.startTime), 'EEEE, MMMM d'),
+        time: format(new Date(appointment.startTime), 'h:mm a'),
+        businessName: organization?.name || 'Sit Pretty Club',
+        replyTo: organization?.emailSettings?.replyToEmail || organization?.email,
+        senderName: organization?.emailSettings?.senderDisplayName || organization?.name,
+      })
+      showSuccess(`Reminder sent to ${selectedClient.email}`)
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'Failed to send reminder')
+    } finally {
+      setIsSendingReminder(false)
+    }
+  }
 
   return (
     <Drawer
@@ -218,6 +247,22 @@ export function AppointmentDetailsDrawer({
                   </p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Send Reminder */}
+          {appointment && (appointment.status === 'confirmed' || appointment.status === 'checked_in') && selectedClient?.email && (
+            <div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSendReminder}
+                loading={isSendingReminder}
+                className="w-full"
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Send Reminder to {selectedClient.firstName}
+              </Button>
             </div>
           )}
 

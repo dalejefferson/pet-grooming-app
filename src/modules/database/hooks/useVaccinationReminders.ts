@@ -4,6 +4,7 @@ import {
   type PetWithExpiringVaccinations,
   type BookingEligibility,
 } from '../api/vaccinationRemindersApi'
+import { emailApi } from '../api/emailApi'
 import type { VaccinationReminderSettings, VaccinationReminder } from '../types'
 
 // ============================================
@@ -277,6 +278,44 @@ export function useVaccinationReminderStats(organizationId?: string) {
     queryFn: () => vaccinationRemindersApi.getStats(organizationId),
     // Refresh every 5 minutes
     refetchInterval: 5 * 60 * 1000,
+  })
+}
+
+/**
+ * Hook to send vaccination reminder email and mark reminder as sent
+ */
+export function useSendVaccinationReminderEmail() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (params: {
+      reminderId: string
+      to: string
+      clientName: string
+      petName: string
+      vaccinationName: string
+      expirationDate: string
+      urgency: '30_day' | '7_day' | 'expired'
+      businessName: string
+      replyTo?: string
+      senderName?: string
+    }) => {
+      await emailApi.sendVaccinationReminderEmail({
+        to: params.to,
+        clientName: params.clientName,
+        petName: params.petName,
+        vaccinationName: params.vaccinationName,
+        expirationDate: params.expirationDate,
+        urgency: params.urgency,
+        businessName: params.businessName,
+        replyTo: params.replyTo,
+        senderName: params.senderName,
+      })
+      await vaccinationRemindersApi.markReminderSent(params.reminderId)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: vaccinationReminderKeys.all })
+    },
   })
 }
 

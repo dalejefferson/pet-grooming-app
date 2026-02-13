@@ -8,24 +8,75 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const body = await req.json()
+    const { to, subject, html, replyTo, senderName } = body
+
+    // Auth path 1: Standard JWT auth (for authenticated staff actions)
     const authHeader = req.headers.get('Authorization')
-    if (!authHeader) throw new Error('Missing authorization header')
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '')
+      const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+      if (authError || !user) throw new Error('Unauthorized')
+    }
+    // Auth path 2: Booking mode — verify appointment exists, resolve recipient from DB
+    else if (body.bookingId) {
+      const { data: appointment, error: aptError } = await supabaseAdmin
+        .from('appointments')
+        .select('id, client_id, groomer_id')
+        .eq('id', body.bookingId)
+        .single()
 
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
-    if (authError || !user) throw new Error('Unauthorized')
+      if (aptError || !appointment) {
+        throw new Error('Invalid booking ID')
+      }
 
-    const { to, subject, body, replyTo, senderName } = await req.json()
+      if (body.staffAlert && appointment.groomer_id) {
+        // Staff alert mode: send to the groomer's email
+        const { data: groomer, error: groomerError } = await supabaseAdmin
+          .from('groomers')
+          .select('email')
+          .eq('id', appointment.groomer_id)
+          .single()
 
-    if (!to || !subject || !body) {
-      throw new Error('Missing required fields: to, subject, body')
+        if (groomerError || !groomer?.email) {
+          throw new Error('Groomer email not found')
+        }
+
+        body.to = groomer.email
+      } else {
+        // Client confirmation mode: send to the client's email
+        const { data: client, error: clientError } = await supabaseAdmin
+          .from('clients')
+          .select('email')
+          .eq('id', appointment.client_id)
+          .single()
+
+        if (clientError || !client?.email) {
+          throw new Error('Client email not found')
+        }
+
+        body.to = client.email
+      }
+    } else {
+      throw new Error('Missing authorization header')
     }
 
+    const emailTo = body.to || to
+    const emailSubject = body.subject || subject
+
+    if (!emailTo || !emailSubject || (!body.body && !html)) {
+      throw new Error('Missing required fields: to, subject, and either body or html')
+    }
+
+    const emailHtml = html || `<p>${body.body}</p>`
+
+    const fromEmail = Deno.env.get('RESEND_FROM_EMAIL') || 'onboarding@resend.dev'
+
     const { data, error } = await resend.emails.send({
-      from: `${senderName || 'Sit Pretty Club'} <onboarding@resend.dev>`,
-      to,
-      subject,
-      html: `<p>${body}</p>`,
+      from: `${senderName || 'Sit Pretty Club'} <${fromEmail}>`,
+      to: emailTo,
+      subject: emailSubject,
+      html: emailHtml,
       ...(replyTo ? { reply_to: replyTo } : {}),
     })
 

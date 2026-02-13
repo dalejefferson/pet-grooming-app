@@ -7,6 +7,7 @@ import { useBookingContext } from '../../context/BookingContext'
 import { format, addWeeks, startOfWeek, addDays, parseISO, isBefore, startOfDay, isWithinInterval } from 'date-fns'
 import type { Groomer, DayOfWeek } from '@/types'
 import { cn } from '@/lib/utils'
+import { formatTime12h } from '@/lib/utils/timeFormat'
 
 export function BookingTimesPage() {
   const navigate = useNavigate()
@@ -279,7 +280,7 @@ export function BookingTimesPage() {
                 <div className="text-lg font-semibold">{format(day, 'd')}</div>
                 {workingHours && !groomerHasTimeOff && !isPast && (
                   <div className="text-[10px] text-gray-500">
-                    {workingHours.start}-{workingHours.end}
+                    {formatTime12h(workingHours.start)}-{formatTime12h(workingHours.end)}
                   </div>
                 )}
               </div>
@@ -319,7 +320,7 @@ export function BookingTimesPage() {
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         )}
                       >
-                        <div>{slot.startTime}</div>
+                        <div>{formatTime12h(slot.startTime)}</div>
                         {!groomerId && slotGroomer && (
                           <div
                             className={cn(
@@ -351,7 +352,7 @@ export function BookingTimesPage() {
           <div className="text-center">
             <p className="font-medium text-success-900">Selected Appointment</p>
             <p className="text-lg text-success-700">
-              {format(parseISO(selectedSlot.date), 'EEEE, MMMM d, yyyy')} at {selectedSlot.startTime}
+              {format(parseISO(selectedSlot.date), 'EEEE, MMMM d, yyyy')} at {formatTime12h(selectedSlot.startTime)}
             </p>
             <p className="mt-1 text-sm text-success-600">
               {groomerId && selectedGroomer

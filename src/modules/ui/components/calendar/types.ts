@@ -1,4 +1,4 @@
-import type { Appointment, AppointmentStatus, Pet, Groomer, Client, Service } from '@/types'
+import type { Appointment, AppointmentStatus, Pet, Groomer, Client, Service, Organization } from '@/types'
 import type { EventInput, EventApi } from '@fullcalendar/core'
 
 // Hover popup position type
@@ -78,6 +78,7 @@ export interface AppointmentDetailsDrawerProps {
   onQuickStatusChange: (status: 'no_show' | 'cancelled') => void
   onDelete?: (appointmentId: string) => Promise<void>
   isDeleting?: boolean
+  organization?: Organization
 }
 
 // Create appointment modal props

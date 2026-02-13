@@ -1,6 +1,6 @@
 # MISSING.md - App Completeness Audit
 
-Last audited: 2026-02-12
+Last audited: 2026-02-12 (re-audited 2026-02-12, run #2)
 
 ---
 
@@ -14,6 +14,9 @@ Last audited: 2026-02-12
 - [x] [RESOLVED] [Critical] [A] No global error handling: queryClient.ts now has MutationCache with onError callback wired to ToastContext
 - [x] [RESOLVED] [Critical] [A] Undefined variable `user` in ClientDetailPage PetForm: useCurrentUser hook was already imported and called — `user` is in scope, bug was previously fixed
 - [ ] [Critical] [A] **NEW** Race condition in appointment slot booking: `getAvailableSlots()` checks conflicts at query time but no DB-level unique constraint or transaction locking when creating — two users can book the same slot simultaneously (calendarApi.ts lines 246-365)
+- [ ] [Critical] [A] **NEW-R2** Double-click booking race condition: `handlePayment()` in BookingConfirmPage has no idempotency protection — user can click "Confirm Booking" multiple times during the 2-second payment simulation, creating duplicate appointments (BookingConfirmPage.tsx lines 173-230). Upgrade from Medium line 70.
+- [ ] [Critical] [A] **NEW-R2** Booking intake allows 0 services per pet: no validation that at least 1 service is selected per pet before proceeding to payment — user can complete entire booking with empty services (BookingConfirmPage.tsx)
+- [ ] [Critical] [A] **NEW-R2** No empty state for "no services available" in booking intake: when selected groomer has no compatible services, page shows nothing helpful — user sees blank screen (BookingIntakePage.tsx line 99)
 
 ## High
 
@@ -90,6 +93,13 @@ Last audited: 2026-02-12
 - [ ] [Medium] [A] **NEW** Organization missing create/delete operations: orgApi.ts only has getBySlug, getById, update, getCurrent — cannot create new orgs or delete existing via the app
 - [ ] [Medium] [A] **NEW** Cascading deletes lack atomic transactions: clientsApi and petsApi cascade deletions in sequential steps without transactions — partial failure leaves inconsistent state
 - [ ] [Medium] [A] **NEW** PetForm in ClientDetailPage has no validation: required fields (name, breed) not validated before submission
+- [ ] [Medium] [A] **NEW-R2** No empty state for "no appointment slots available" in booking: BookingTimesPage shows generic "No slots" text without explaining why (groomer time-off, past date, fully booked) — user is confused (BookingTimesPage.tsx lines 298-300)
+- [ ] [Medium] [A] **NEW-R2** Vaccination reminder type boundary: `daysUntilExpiration === 0` treated as "7_day" warning instead of "expired" — user gets "7-day warning" on expiration day (vaccinationRemindersApi.ts lines 422-430)
+- [ ] [Medium] [A] **NEW-R2** Form submission errors don't clear validation state: if form submission fails, previous inline errors remain visible on retry — stale error messages confuse users (multiple forms)
+- [ ] [Medium] [A] **NEW-R2** Drawer doesn't work well on landscape mobile: fixed height drawer with `overflow-y-auto` may not fit on landscape iPhone — needs `max-height: 90vh` or bottom-sheet pattern (Drawer.tsx)
+- [ ] [Medium] [A] **NEW-R2** Client/Pet card grids need xl/2xl breakpoints: `grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5` has no xl breakpoint — cards may be too large or too squeezed on tablets (ClientsPage.tsx, PetsPage.tsx)
+- [ ] [Medium] [A] **NEW-R2** Booking page buttons not full-width on mobile: `flex justify-between` leaves buttons crowded on narrow screens — should stack vertically on mobile (BookingConfirmPage.tsx lines 363-391)
+- [ ] [Medium] [A] **NEW-R2** BookingConfirmPage payment failure has no retry: `setPaymentStatus('failed')` shown but no way to retry without page reload — `.catch()` swallows error silently (BookingConfirmPage.tsx line 275)
 - [ ] [Medium] [B] **NEW** Timezone conversion needs date-fns-tz: organization.timezone stored but never used for date conversion — multi-timezone orgs show wrong times
 
 ## Low
@@ -118,12 +128,22 @@ Last audited: 2026-02-12
 - [ ] [Low] [A] **NEW** Dashboard stats cards stack vertically on mobile: `sm:grid-cols-2 lg:grid-cols-4` means single column below 640px — `grid-cols-2` would be better
 - [ ] [Low] [A] **NEW** Missing aria-labels on icon-only edit buttons: ClientDetailPage, PetDetailPage have ghost buttons with only icon and no aria-label
 - [ ] [Low] [A] **NEW** New pets bypass vaccination checks during booking: existing pets checked for expired vaccinations but new pets created without any vaccination validation (bookingApi.ts lines 192-209)
+- [ ] [Low] [A] **NEW-R2** Time-off date range boundary semantics ambiguous: `endDate` treated as inclusive (setHours 23:59:59) but typical semantics are exclusive — document or standardize (calendarApi.ts lines 287-296)
+- [ ] [Low] [A] **NEW-R2** Sidebar routes array references deprecated `/app/groomers` path: keyboard navigation (Shift+Up/Down) hits redirect before landing on `/app/staff` — should use `/app/staff` directly (AppLayout.tsx line 35)
+- [ ] [Low] [A] **NEW-R2** Confirm dialog has no delay before enabling confirm button: user can accidentally double-click and confirm destructive action immediately (ConfirmDialog.tsx)
+- [ ] [Low] [A] **NEW-R2** Dropdown options lack visible focus state: keyboard navigation in Select/ComboBox components doesn't clearly highlight focused option (Select.tsx, ComboBox.tsx)
 - [ ] [Low] [B] Feature flags hardcoded: onlinePayments, smsReminders, petPhotos, etc. are static booleans (flags.ts)
 
 ## Bucket B (Requires External APIs) - Summary
 
 - [ ] [High] [B] Stripe integration is fully mocked: mockStripe.ts simulates payments — no real payment processing for bookings
 - [ ] [High] [B] Email notifications are mocked: needs Resend integration for all notification types (email-first strategy; SMS deferred)
+- [ ] [High] [A] **NEW-R2** DashboardPage "Today's Schedule" has no loading state: appointment list loads asynchronously with no skeleton or spinner — content pops in (DashboardPage.tsx lines 238-294)
+- [ ] [High] [A] **NEW-R2** BookingStartPage missing firstName/lastName inline validation: only email/phone show errors, required name fields have no error messages — guard prevents submission but user doesn't know why (BookingStartPage.tsx lines 64-74)
+- [ ] [High] [A] **NEW-R2** No skip-to-main-content link: keyboard users must tab through entire sidebar navigation before reaching main content area — WCAG 2.4.1 failure (AppLayout.tsx)
+- [ ] [High] [A] **NEW-R2** Groomer ID not validated before appointment creation: `calendarApi.create()` inserts `groomer_id` without checking groomer exists or is active — can assign to deleted/inactive staff (calendarApi.ts lines 152-197)
+- [ ] [High] [A] **NEW-R2** Phone validation regex too permissive: `/^[+]?[\d\s()-]{7,}$/` accepts invalid formats like "1 2 3 4 5 6 7" — needs stricter pattern or libphonenumber-js (BookingStartPage.tsx line 62)
+- [ ] [High] [A] **NEW-R2** Required form fields not visually marked: Input components have HTML `required` attribute but no asterisk or visual indicator — WCAG recommendation for sighted users (all forms)
 - [ ] [High] [B] **NEW** RLS policies allow anonymous client creation: needs rate limiting, CAPTCHA, or tighter scoping
 - [x] [RESOLVED] [Medium] [B] Supabase client is a stub: fully migrated — all 14 API modules now use Supabase queries, RLS policies active
 - [x] [RESOLVED] [Medium] [B] No real authentication: Supabase Auth integrated with Google OAuth (PKCE flow), real signInWithPassword/signInWithOAuth
@@ -136,8 +156,8 @@ Last audited: 2026-02-12
 
 | Severity | Bucket A (Open) | Bucket A (Resolved) | Bucket B (Open) | Bucket B (Resolved) | Total Open |
 |----------|-----------------|---------------------|-----------------|---------------------|------------|
-| Critical | 1               | 7                   | 0               | 0                   | 1          |
-| High     | 6               | 19                  | 3               | 0                   | 9          |
-| Medium   | 39              | 1                   | 1               | 2                   | 40         |
-| Low      | 24              | 0                   | 1               | 0                   | 25         |
-| **Total**| **70**          | **27**              | **5**           | **2**               | **75**     |
+| Critical | 4               | 7                   | 0               | 0                   | 4          |
+| High     | 12              | 19                  | 3               | 0                   | 15         |
+| Medium   | 46              | 1                   | 1               | 2                   | 47         |
+| Low      | 28              | 0                   | 1               | 0                   | 29         |
+| **Total**| **90**          | **27**              | **5**           | **2**               | **95**     |

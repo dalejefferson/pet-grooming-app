@@ -1,7 +1,11 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertTriangle, AlertCircle, CheckCircle, Shield } from 'lucide-react'
+import { AlertTriangle, AlertCircle, CheckCircle, Shield, Mail } from 'lucide-react'
 import { Card, CardTitle, Badge } from '../common'
-import { useExpiringVaccinations } from '@/modules/database/hooks'
+import { useExpiringVaccinations, useOrganization } from '@/hooks'
+import { useToast } from '@/modules/ui/context'
+import { useSendVaccinationReminderEmail, usePendingReminders } from '@/modules/database/hooks'
+import { emailApi } from '@/modules/database/api'
 import { formatDaysUntilExpiration } from '@/lib/utils/vaccinationUtils'
 import { cn } from '@/lib/utils'
 import type { VaccinationStatus } from '@/types'
@@ -14,7 +18,9 @@ import type { PetWithExpiringVaccinations } from '@/modules/database/hooks'
 interface VaccinationAlert {
   petId: string
   petName: string
+  clientId: string
   clientName: string
+  clientEmail?: string
   vaccinationName: string
   expirationDate: string
   status: VaccinationStatus
@@ -57,7 +63,9 @@ function flattenAlerts(data: PetWithExpiringVaccinations[]): VaccinationAlert[] 
         alerts.push({
           petId: item.pet.id,
           petName: item.pet.name,
+          clientId: item.client?.id || '',
           clientName,
+          clientEmail: item.client?.email,
           vaccinationName: vax.name,
           expirationDate: vax.expirationDate,
           status: vax.status,
@@ -84,9 +92,12 @@ function groupAlertsBySeverity(alerts: VaccinationAlert[]): GroupedAlerts {
 
 interface AlertRowProps {
   alert: VaccinationAlert
+  clientEmail?: string
+  onSendEmail?: (alert: VaccinationAlert) => void
+  isSending?: boolean
 }
 
-function AlertRow({ alert }: AlertRowProps) {
+function AlertRow({ alert, clientEmail, onSendEmail, isSending }: AlertRowProps) {
   return (
     <div className="flex items-center justify-between rounded-xl border-2 border-[#1e293b] bg-white p-3 shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b]">
       <div className="flex items-center gap-3">
@@ -101,11 +112,23 @@ function AlertRow({ alert }: AlertRowProps) {
           <p className="text-xs text-[#64748b]">{alert.clientName}</p>
         </div>
       </div>
-      <div className="text-right">
-        <p className="text-sm font-medium text-[#334155]">{alert.vaccinationName}</p>
-        <p className="text-xs text-[#64748b]">
-          {formatDaysUntilExpiration(alert.expirationDate)}
-        </p>
+      <div className="flex items-center gap-2">
+        <div className="text-right">
+          <p className="text-sm font-medium text-[#334155]">{alert.vaccinationName}</p>
+          <p className="text-xs text-[#64748b]">
+            {formatDaysUntilExpiration(alert.expirationDate)}
+          </p>
+        </div>
+        {clientEmail && onSendEmail && (
+          <button
+            onClick={(e) => { e.preventDefault(); onSendEmail(alert) }}
+            disabled={isSending}
+            className="rounded-lg border-2 border-[#1e293b] bg-white px-2 py-1 text-xs font-medium shadow-[1px_1px_0px_0px_#1e293b] hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_0px_#1e293b] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+          >
+            <Mail className="h-3 w-3" />
+            Email
+          </button>
+        )}
       </div>
     </div>
   )
@@ -115,9 +138,12 @@ interface AlertGroupProps {
   title: string
   alerts: VaccinationAlert[]
   badgeClass: string
+  clientEmails: Record<string, string>
+  onSendEmail?: (alert: VaccinationAlert) => void
+  sendingAlertId?: string | null
 }
 
-function AlertGroup({ title, alerts, badgeClass }: AlertGroupProps) {
+function AlertGroup({ title, alerts, badgeClass, clientEmails, onSendEmail, sendingAlertId }: AlertGroupProps) {
   if (alerts.length === 0) return null
 
   return (
@@ -138,6 +164,9 @@ function AlertGroup({ title, alerts, badgeClass }: AlertGroupProps) {
           <AlertRow
             key={`${alert.petId}-${alert.vaccinationName}-${idx}`}
             alert={alert}
+            clientEmail={clientEmails[alert.petId]}
+            onSendEmail={onSendEmail}
+            isSending={sendingAlertId === `${alert.petId}-${alert.vaccinationName}`}
           />
         ))}
       </div>
@@ -155,10 +184,66 @@ export interface VaccinationAlertsWidgetProps {
 
 export function VaccinationAlertsWidget({ className }: VaccinationAlertsWidgetProps) {
   const { data: expiringVaccinations = [], isLoading } = useExpiringVaccinations(30)
+  const { data: organization } = useOrganization()
+  const { showSuccess, showError } = useToast()
+  const sendVaccinationEmail = useSendVaccinationReminderEmail()
+  const { data: pendingReminders = [] } = usePendingReminders()
+  const [sendingAlertId, setSendingAlertId] = useState<string | null>(null)
 
   const alerts = flattenAlerts(expiringVaccinations)
   const grouped = groupAlertsBySeverity(alerts)
   const totalAlerts = alerts.length
+
+  // Build client email lookup
+  const clientEmails: Record<string, string> = {}
+  for (const alert of alerts) {
+    if (alert.clientEmail) {
+      clientEmails[alert.petId] = alert.clientEmail
+    }
+  }
+
+  const handleSendEmail = async (alert: VaccinationAlert) => {
+    if (!alert.clientEmail) return
+    const alertId = `${alert.petId}-${alert.vaccinationName}`
+    setSendingAlertId(alertId)
+
+    // Find or create a reminder for this alert
+    const existingReminder = pendingReminders.find(
+      (r) => r.petId === alert.petId && r.vaccinationName === alert.vaccinationName
+    )
+
+    try {
+      const urgency = alert.status === 'expired' ? 'expired' : alert.status === 'expiring_7' ? '7_day' : '30_day'
+      const emailParams = {
+        to: alert.clientEmail,
+        clientName: alert.clientName.split(' ')[0],
+        petName: alert.petName,
+        vaccinationName: alert.vaccinationName,
+        expirationDate: alert.expirationDate,
+        urgency,
+        businessName: organization?.name || 'Sit Pretty Club',
+        replyTo: organization?.emailSettings?.replyToEmail || organization?.email,
+        senderName: organization?.emailSettings?.senderDisplayName || organization?.name,
+      } as const
+
+      if (existingReminder) {
+        // Send email and mark reminder as sent
+        await sendVaccinationEmail.mutateAsync({
+          reminderId: existingReminder.id,
+          ...emailParams,
+        })
+      } else {
+        // No pending reminder — send email directly without tracking
+        await emailApi.sendVaccinationReminderEmail(emailParams)
+      }
+
+      showSuccess(`Vaccination alert sent to ${alert.clientEmail}`)
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'Failed to send vaccination alert')
+    } finally {
+      setSendingAlertId(null)
+    }
+  }
 
   return (
     <Card className={className}>
@@ -192,16 +277,25 @@ export function VaccinationAlertsWidget({ className }: VaccinationAlertsWidgetPr
             title="Expired"
             alerts={grouped.expired}
             badgeClass="bg-red-100 text-red-800"
+            clientEmails={clientEmails}
+            onSendEmail={handleSendEmail}
+            sendingAlertId={sendingAlertId}
           />
           <AlertGroup
             title="Expiring in 7 days"
             alerts={grouped.expiring_7}
             badgeClass="bg-orange-100 text-orange-800"
+            clientEmails={clientEmails}
+            onSendEmail={handleSendEmail}
+            sendingAlertId={sendingAlertId}
           />
           <AlertGroup
             title="Expiring in 30 days"
             alerts={grouped.expiring_30}
             badgeClass="bg-yellow-100 text-yellow-800"
+            clientEmails={clientEmails}
+            onSendEmail={handleSendEmail}
+            sendingAlertId={sendingAlertId}
           />
         </div>
       )}

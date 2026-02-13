@@ -674,7 +674,7 @@ export function exportReportPdf(params: ExportPdfParams): void {
   recentAppointments.forEach((apt, rowIndex) => {
     const client = clients.find((c) => c.id === apt.clientId)
     const clientName = client ? `${client.firstName} ${client.lastName}` : 'Unknown'
-    const date = format(parseISO(apt.startTime), 'MMM d, HH:mm')
+    const date = format(parseISO(apt.startTime), 'MMM d, h:mm a')
 
     let serviceName = 'Multiple'
     if (apt.pets.length > 0 && apt.pets[0].services.length > 0) {
