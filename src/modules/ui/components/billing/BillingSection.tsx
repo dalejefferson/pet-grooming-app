@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Card, CardTitle, Button, Badge } from '../common'
+import { Card, CardTitle, Button, Badge, ConfirmDialog } from '../common'
 import { useSubscriptionContext } from '../../context/SubscriptionContext'
 import { useCreateCheckoutSession, useCreatePortalSession } from '@/modules/database/hooks'
 import type { SubscriptionPlanTier, SubscriptionBillingInterval, SubscriptionStatus } from '@/modules/database/types'
 import { CreditCard, ExternalLink, Crown, AlertTriangle, Zap } from 'lucide-react'
+import { getStaffLimit } from '@/config/subscriptionGates'
 
 const PLANS = [
   { tier: 'solo' as const, name: 'Solo', monthlyPrice: 45, yearlyPrice: 432, desc: 'For independent groomers' },
@@ -29,7 +30,9 @@ export function BillingSection() {
     trialDaysRemaining,
     isLoading,
     devBypass,
+    staffCount,
   } = useSubscriptionContext()
+  const [showDowngradeWarning, setShowDowngradeWarning] = useState(false)
   const checkout = useCreateCheckoutSession()
   const portal = useCreatePortalSession()
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlanTier>('solo')
@@ -84,6 +87,19 @@ export function BillingSection() {
     return (
       <Card>
         <CardTitle>Billing</CardTitle>
+        {subscription?.status === 'canceled' && (
+          <div className="mt-3 rounded-xl border-2 border-[#1e293b] bg-[#fef9c3] px-4 py-3 shadow-[2px_2px_0px_0px_#1e293b]">
+            <p className="text-sm font-medium text-[#a16207]">
+              Welcome back! Your previous subscription ended
+              {subscription.currentPeriodEnd
+                ? ` on ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`
+                : ''}.
+            </p>
+            <p className="mt-1 text-sm text-[#64748b]">
+              Choose a plan below to reactivate your account.
+            </p>
+          </div>
+        )}
         <p className="mt-2 text-sm text-[#64748b]">
           Choose a plan to get started. All plans include a 14-day free trial.
         </p>
@@ -209,16 +225,29 @@ export function BillingSection() {
           </div>
         )}
 
-        {/* Cancellation notice */}
+        {/* Cancellation notice + resume */}
         {subscription.cancelAtPeriodEnd && (
-          <div className="flex items-center gap-2 rounded-xl border-2 border-[#1e293b] bg-[#fef9c3] px-3 py-2 shadow-[2px_2px_0px_0px_#1e293b]">
-            <AlertTriangle className="h-4 w-4 shrink-0 text-[#a16207]" />
-            <span className="text-sm font-medium text-[#a16207]">
-              Your subscription cancels on{' '}
-              {subscription.currentPeriodEnd
-                ? new Date(subscription.currentPeriodEnd).toLocaleDateString()
-                : 'end of billing period'}.
-            </span>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 rounded-xl border-2 border-[#1e293b] bg-[#fef9c3] px-3 py-2 shadow-[2px_2px_0px_0px_#1e293b]">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-[#a16207]" />
+              <span className="text-sm font-medium text-[#a16207]">
+                Your subscription cancels on{' '}
+                {subscription.currentPeriodEnd
+                  ? new Date(subscription.currentPeriodEnd).toLocaleDateString()
+                  : 'end of billing period'}.
+              </span>
+            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              loading={portal.isPending}
+              onClick={() => portal.mutate()}
+            >
+              Resume Subscription
+            </Button>
+            <p className="text-xs text-[#64748b]">
+              Changed your mind? Resume your subscription through the billing portal.
+            </p>
           </div>
         )}
 
@@ -227,7 +256,14 @@ export function BillingSection() {
           <Button
             variant="outline"
             loading={portal.isPending}
-            onClick={() => portal.mutate()}
+            onClick={() => {
+              const soloLimit = getStaffLimit('solo')
+              if (planTier === 'studio' && staffCount > soloLimit) {
+                setShowDowngradeWarning(true)
+              } else {
+                portal.mutate()
+              }
+            }}
           >
             <CreditCard className="mr-2 h-4 w-4" />
             Manage Billing
@@ -238,6 +274,19 @@ export function BillingSection() {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showDowngradeWarning}
+        onClose={() => setShowDowngradeWarning(false)}
+        onConfirm={() => {
+          setShowDowngradeWarning(false)
+          portal.mutate()
+        }}
+        title="Staff Limit on Solo Plan"
+        message={`The Solo plan allows 1 staff member, but you currently have ${staffCount}. If you downgrade, you'll need to deactivate ${staffCount - 1} staff member${staffCount - 1 > 1 ? 's' : ''}.`}
+        confirmLabel="Continue to Billing"
+        variant="warning"
+      />
     </Card>
   )
 }

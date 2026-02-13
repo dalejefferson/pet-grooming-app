@@ -77,19 +77,22 @@ Deno.serve(async (req) => {
       to: emailTo,
       subject: emailSubject,
       html: emailHtml,
-      ...(replyTo ? { reply_to: replyTo } : {}),
+      ...(replyTo ? { replyTo } : {}),
     })
 
     if (error) {
+      console.error('[send-email] Resend error:', error.message)
       throw new Error(error.message)
     }
 
+    console.log('[send-email] Sent to:', emailTo, 'messageId:', data?.id)
     return new Response(
       JSON.stringify({ messageId: data?.id }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
+    console.error('[send-email] Error:', message)
     return new Response(
       JSON.stringify({ error: message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }

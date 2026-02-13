@@ -1,21 +1,46 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Calendar, Users, Dog, Clock, TrendingUp, AlertCircle, UserX, XCircle } from 'lucide-react'
-import { Card, CardTitle, Badge } from '../../components/common'
+import { Calendar, Users, Dog, Clock, TrendingUp, AlertCircle, UserX, XCircle, Crown, X } from 'lucide-react'
+import { Card, CardTitle, Badge, Button } from '../../components/common'
 import { AppointmentDetailsDrawer, StatusChangeModal } from '../../components/calendar'
 import { VaccinationAlertsWidget } from '../../components/dashboard'
 import { useAppointmentsByDay, useAppointmentsByDateRange, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useDeleteAppointment, useCreateAppointment } from '@/hooks'
+import { useCreateCheckoutSession } from '@/modules/database/hooks'
 import { useUndo } from '@/modules/ui/context'
+import { useSubscriptionContext } from '../../context/SubscriptionContext'
 import { format, subDays, addDays, startOfDay, endOfDay } from 'date-fns'
 import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_STATUS_COLORS } from '@/config/constants'
 import { cn } from '@/lib/utils'
 import { useTheme, useKeyboardShortcuts } from '../../context'
 import type { AppointmentStatus, Appointment } from '@/types'
+import type { SubscriptionPlanTier, SubscriptionBillingInterval } from '@/modules/database/types'
+
+const PLANS = [
+  { tier: 'solo' as const, name: 'Solo', monthlyPrice: 45, yearlyPrice: 432, desc: 'For independent groomers' },
+  { tier: 'studio' as const, name: 'Studio', monthlyPrice: 95, yearlyPrice: 912, desc: 'For growing salons' },
+]
 
 export function DashboardPage() {
   const { colors } = useTheme()
   const { registerDashboardCycle } = useKeyboardShortcuts()
   const { showUndo } = useUndo()
+  const { subscription, isLoading: isSubLoading, devBypass } = useSubscriptionContext()
+  const checkout = useCreateCheckoutSession()
+  const [showBanner, setShowBanner] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlanTier>('solo')
+  const [billingInterval, setBillingInterval] = useState<SubscriptionBillingInterval>('monthly')
+
+  useEffect(() => {
+    if (!isSubLoading && !subscription && !devBypass && !sessionStorage.getItem('onboarding_banner_dismissed')) {
+      setShowBanner(true)
+    }
+  }, [isSubLoading, subscription, devBypass])
+
+  const dismissBanner = useCallback(() => {
+    sessionStorage.setItem('onboarding_banner_dismissed', 'true')
+    setShowBanner(false)
+  }, [])
+
   const today = useMemo(() => startOfDay(new Date()), [])
   const { data: todayAppointments = [], isLoading: isLoadingAppointments } = useAppointmentsByDay(today, undefined, { refetchInterval: 10_000 })
   const { data: clients = [] } = useClients()
@@ -173,6 +198,92 @@ export function DashboardPage() {
   return (
     <div className={cn('min-h-screen p-4 lg:p-6', colors.pageGradientLight)}>
       <div className="space-y-6">
+        {/* Onboarding Banner */}
+        {showBanner && (
+          <Card colorVariant="lavender" className="relative">
+            <button
+              onClick={dismissBanner}
+              className="absolute right-3 top-3 rounded-lg p-1 text-[#334155] hover:bg-white/50 transition-colors"
+              aria-label="Dismiss banner"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <div className="flex items-center gap-2 mb-3">
+              <Crown className="h-5 w-5 text-[#1e293b]" />
+              <span className="text-lg font-bold text-[#1e293b]">Choose Your Plan to Get Started</span>
+            </div>
+            <p className="text-sm text-[#64748b] mb-4">All plans include a 14-day free trial.</p>
+
+            {/* Interval toggle */}
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <button
+                onClick={() => setBillingInterval('monthly')}
+                className={`rounded-lg border-2 border-[#1e293b] px-3 py-1.5 text-sm font-semibold transition-all ${
+                  billingInterval === 'monthly'
+                    ? 'bg-[#1e293b] text-white shadow-[2px_2px_0px_0px_#1e293b]'
+                    : 'bg-white text-[#334155] hover:bg-gray-50'
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingInterval('yearly')}
+                className={`rounded-lg border-2 border-[#1e293b] px-3 py-1.5 text-sm font-semibold transition-all ${
+                  billingInterval === 'yearly'
+                    ? 'bg-[#1e293b] text-white shadow-[2px_2px_0px_0px_#1e293b]'
+                    : 'bg-white text-[#334155] hover:bg-gray-50'
+                }`}
+              >
+                Yearly
+                <span className="ml-1 text-xs font-normal opacity-75">(Save 20%)</span>
+              </button>
+            </div>
+
+            {/* Plan cards */}
+            <div className="grid gap-3 sm:grid-cols-2 mb-4">
+              {PLANS.map((plan) => {
+                const isSelected = selectedPlan === plan.tier
+                const price = billingInterval === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice
+                const perMonth = billingInterval === 'yearly' ? Math.round(plan.yearlyPrice / 12) : plan.monthlyPrice
+
+                return (
+                  <button
+                    key={plan.tier}
+                    onClick={() => setSelectedPlan(plan.tier)}
+                    className={`flex flex-col rounded-xl border-2 border-[#1e293b] p-4 text-left transition-all ${
+                      isSelected
+                        ? 'bg-white shadow-[3px_3px_0px_0px_#1e293b] -translate-y-0.5'
+                        : 'bg-white/50 hover:bg-white hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_0px_#1e293b]'
+                    }`}
+                  >
+                    <span className="text-sm font-bold text-[#1e293b]">{plan.name}</span>
+                    <span className="text-xs text-[#64748b]">{plan.desc}</span>
+                    <div className="mt-2">
+                      <span className="text-2xl font-extrabold text-[#1e293b]">${price}</span>
+                      <span className="text-xs text-[#64748b]">/{billingInterval === 'monthly' ? 'mo' : 'yr'}</span>
+                      {billingInterval === 'yearly' && (
+                        <span className="ml-1 text-xs text-[#64748b]">(${perMonth}/mo)</span>
+                      )}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+
+            <Button
+              variant="primary"
+              className="w-full"
+              loading={checkout.isPending}
+              onClick={() => checkout.mutate({ planTier: selectedPlan, billingInterval })}
+            >
+              Start 14-Day Free Trial
+            </Button>
+            {checkout.isError && (
+              <p className="mt-2 text-sm text-red-600">{checkout.error.message}</p>
+            )}
+          </Card>
+        )}
+
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-600">{format(today, 'EEEE, MMMM d, yyyy')}</p>

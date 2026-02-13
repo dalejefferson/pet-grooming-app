@@ -2,7 +2,8 @@ import { Card, CardTitle, Button, Input, AddressAutocomplete } from '../../compo
 import { BillingSection } from '../../components/billing'
 import { useOrganization, useUpdateOrganization } from '@/hooks'
 import { useTheme, themeColors, type ThemeName, useToast } from '../../context'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import type { Organization } from '@/types'
 import { cn } from '@/lib/utils'
 import { validators, validateForm } from '@/lib/utils/formValidation'
@@ -123,12 +124,32 @@ export function SettingsPage() {
   const updateOrganization = useUpdateOrganization()
   const { currentTheme, setTheme, colors } = useTheme()
   const { showSuccess, showError } = useToast()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const billingHandledRef = useRef(false)
   const [formData, setFormData] = useState<Partial<Organization>>({})
   const [hasChanges, setHasChanges] = useState(false)
   const [themeExpanded, setThemeExpanded] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSendingTest, setIsSendingTest] = useState(false)
   const [testEmailAddress, setTestEmailAddress] = useState('')
+
+  useEffect(() => {
+    if (billingHandledRef.current) return
+    const billing = searchParams.get('billing')
+    if (!billing) return
+
+    billingHandledRef.current = true
+
+    if (billing === 'success') {
+      showSuccess('Subscription updated!', 'Your billing changes have been saved.')
+    } else if (billing === 'canceled') {
+      showSuccess('Checkout canceled', 'No changes were made to your subscription.')
+    }
+
+    const newParams = new URLSearchParams(searchParams)
+    newParams.delete('billing')
+    setSearchParams(newParams, { replace: true })
+  }, [searchParams, setSearchParams, showSuccess])
 
   useEffect(() => {
     if (organization) {
