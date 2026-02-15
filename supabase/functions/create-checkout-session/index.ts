@@ -1,4 +1,4 @@
-import { corsHeaders } from '../_shared/cors.ts'
+import { getCorsHeaders } from '../_shared/cors.ts'
 import { stripe } from '../_shared/stripe.ts'
 import { supabaseAdmin } from '../_shared/supabase-admin.ts'
 
@@ -10,8 +10,21 @@ const PRICE_IDS: Record<string, string> = {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req)
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
+  }
+
+  // Validate required environment variables
+  const requiredEnvVars = ['STRIPE_SOLO_MONTHLY_PRICE_ID', 'STRIPE_SOLO_YEARLY_PRICE_ID', 'STRIPE_STUDIO_MONTHLY_PRICE_ID', 'STRIPE_STUDIO_YEARLY_PRICE_ID']
+  const missing = requiredEnvVars.filter(v => !Deno.env.get(v))
+  if (missing.length > 0) {
+    console.error(`Missing required env vars: ${missing.join(', ')}`)
+    return new Response(
+      JSON.stringify({ error: `Server misconfigured: missing pricing data` }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
   }
 
   try {

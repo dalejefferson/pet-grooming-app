@@ -1,6 +1,12 @@
 import { supabase } from '@/lib/supabase/client'
 import { buildTestEmail, buildReadyForPickupEmail, buildAppointmentReminderEmail, buildVaccinationReminderEmail, buildBookingConfirmationEmail, buildNewBookingAlertEmail } from '@/modules/notifications/templates/emailTemplates'
 
+function validateEmail(email: string): void {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error(`Invalid email address: ${email}`)
+  }
+}
+
 interface SendEmailOptions {
   to: string
   subject: string
@@ -16,6 +22,7 @@ interface SendEmailResult {
 
 export const emailApi = {
   async sendEmail(options: SendEmailOptions): Promise<SendEmailResult> {
+    validateEmail(options.to)
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) throw new Error('Not authenticated')
 
@@ -37,6 +44,7 @@ export const emailApi = {
   },
 
   async sendTestEmail(options: { to: string; replyTo?: string; senderName?: string }): Promise<SendEmailResult> {
+    validateEmail(options.to)
     const businessName = options.senderName || 'Sit Pretty Club'
     const { subject, html } = buildTestEmail({ businessName })
 
@@ -57,6 +65,7 @@ export const emailApi = {
     replyTo?: string
     senderName?: string
   }): Promise<SendEmailResult> {
+    validateEmail(params.to)
     const { subject, html } = buildReadyForPickupEmail({
       clientName: params.clientName,
       petNames: params.petNames,
@@ -81,6 +90,7 @@ export const emailApi = {
     replyTo?: string
     senderName?: string
   }): Promise<SendEmailResult> {
+    validateEmail(params.to)
     const { subject, html } = buildAppointmentReminderEmail({
       clientName: params.clientName,
       petName: params.petName,
@@ -108,6 +118,7 @@ export const emailApi = {
     replyTo?: string
     senderName?: string
   }): Promise<SendEmailResult> {
+    validateEmail(params.to)
     const { subject, html } = buildVaccinationReminderEmail({
       clientName: params.clientName,
       petName: params.petName,

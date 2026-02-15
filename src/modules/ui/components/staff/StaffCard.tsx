@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Phone } from 'lucide-react'
+import { Phone, Trash2 } from 'lucide-react'
 import { Card } from '../common/Card'
 import { Badge } from '../common/Badge'
 import { formatPhone } from '@/lib/utils'
@@ -9,6 +9,7 @@ import type { Groomer } from '@/types'
 export interface StaffCardProps {
   staff: Groomer
   onClick?: () => void
+  onDelete?: () => void
 }
 
 const ROLE_BADGES: Record<
@@ -37,7 +38,7 @@ const ROLE_BADGES: Record<
   },
 }
 
-export function StaffCard({ staff, onClick }: StaffCardProps) {
+export function StaffCard({ staff, onClick, onDelete }: StaffCardProps) {
   const navigate = useNavigate()
   const { colors } = useTheme()
 
@@ -56,12 +57,28 @@ export function StaffCard({ staff, onClick }: StaffCardProps) {
     }
   }
 
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onDelete?.()
+  }
+
   return (
     <Card
       colorVariant={staff.isActive ? 'white' : 'lemon'}
-      className="flex cursor-pointer flex-col items-center justify-center p-4 text-center transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
+      className="relative group flex cursor-pointer flex-col items-center justify-center p-4 text-center transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
       onClick={handleClick}
     >
+      {/* Delete Button - Top Right */}
+      {onDelete && (
+        <button
+          onClick={handleDeleteClick}
+          className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/80 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
+          aria-label="Delete staff member"
+        >
+          <Trash2 className="h-3.5 w-3.5 text-red-500" />
+        </button>
+      )}
+
       {/* Profile Image or Initials */}
       <div className="relative">
         {staff.imageUrl ? (

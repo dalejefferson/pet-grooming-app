@@ -164,7 +164,7 @@ export function ServicesPage() {
         }}
         onConfirm={handleConfirmDelete}
         title="Delete Service?"
-        message="This will remove the service. You can restore from history."
+        message="This may affect existing appointments using this service. You can restore from history."
         variant="danger"
         confirmLabel="Delete"
       />

@@ -4,11 +4,12 @@ import { Card, CardTitle, Button, Input, Toggle, Textarea } from '../../componen
 import { VaccinationReminderSettings } from '../../components/reminders'
 import { useReminders, useUpdateReminders, usePreviewReminder, useDefaultTemplates } from '@/hooks'
 import type { ReminderSchedule } from '@/types'
-import { useTheme } from '../../context'
+import { useTheme, useToast } from '../../context'
 import { cn } from '@/lib/utils'
 
 export function RemindersPage() {
   const { colors } = useTheme()
+  const { showSuccess, showError } = useToast()
   const { data: reminders, isLoading } = useReminders()
   const updateReminders = useUpdateReminders()
   const { data: defaultTemplates } = useDefaultTemplates()
@@ -59,8 +60,18 @@ export function RemindersPage() {
   }
 
   const handleSave = async () => {
-    await updateReminders.mutateAsync(formData)
-    setHasChanges(false)
+    const intervalDays = formData.dueForGrooming?.intervalDays
+    if (intervalDays !== undefined && (intervalDays < 1 || !Number.isFinite(intervalDays))) {
+      showError('Grooming interval must be a positive number')
+      return
+    }
+    try {
+      await updateReminders.mutateAsync(formData)
+      setHasChanges(false)
+      showSuccess('Reminder settings saved successfully!')
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'Failed to save reminder settings')
+    }
   }
 
   const resetToDefault = (
@@ -91,7 +102,7 @@ export function RemindersPage() {
         <Button
           onClick={handleSave}
           loading={updateReminders.isPending}
-          disabled={!hasChanges}
+          disabled={!hasChanges || updateReminders.isPending}
           style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
           className="hover:opacity-90"
         >

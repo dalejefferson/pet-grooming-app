@@ -358,7 +358,7 @@ export function ClientsPage() {
           setClientToDeleteId(null)
         }}
         title="Delete Client?"
-        message="This will remove the client. You can restore from history."
+        message="This will also delete their pets and cancel any upcoming appointments. You can restore from history."
         variant="danger"
         confirmLabel="Delete"
       />

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { User, UserPlus, ArrowRight } from 'lucide-react'
 import { Card, CardTitle, Button, Input, LoadingPage, AddressAutocomplete } from '../../components/common'
@@ -28,10 +28,12 @@ export function BookingStartPage() {
   const { data: prefilledClient, isLoading: isLoadingPrefilledClient } = useClient(prefilledClientId || '')
 
   // If clientId is provided in URL, pre-fill the client and skip selection
-  if (prefilledClient && prefilledClientId && selectedClient?.id !== prefilledClient.id) {
-    setSelectedClient(prefilledClient)
-    setIsNewClient(false)
-  }
+  useEffect(() => {
+    if (prefilledClient && prefilledClientId && selectedClient?.id !== prefilledClient.id) {
+      setSelectedClient(prefilledClient)
+      setIsNewClient(false)
+    }
+  }, [prefilledClient, prefilledClientId])
 
   const handleContinue = () => {
     if (isNewClient && !validateFields()) return

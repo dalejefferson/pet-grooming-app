@@ -345,8 +345,8 @@ export const calendarApi = {
         const breakStart = parse(daySchedule.breakStart, 'HH:mm', date)
         const breakEnd = parse(daySchedule.breakEnd, 'HH:mm', date)
 
-        // Check for overlap with break
-        if (currentSlotStart < breakEnd && slotEnd > breakStart) {
+        // Only check break overlap if break times are valid (start < end)
+        if (breakStart < breakEnd && currentSlotStart < breakEnd && slotEnd > breakStart) {
           isDuringBreak = true
         }
       }

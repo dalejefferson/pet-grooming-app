@@ -23,6 +23,8 @@ function wrapInLayout(businessName: string, content: string): string {
       ${content}
       <div style="color: #94a3b8; font-size: 12px; text-align: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
         Sent from ${escapeHtml(businessName)} via Sit Pretty Club
+        <br style="margin-top: 8px;" />
+        <span style="font-size: 11px;">If you no longer wish to receive these emails, please contact ${escapeHtml(businessName)}.</span>
       </div>
     </div>
   </div>
@@ -148,14 +150,14 @@ const URGENCY_CONFIG: Record<
     subjectPrefix: '',
     bannerBg: '#fef9c3',
     bannerText: '#854d0e',
-    bodyFragment: (vacName, expDate) =>
+    bodyFragment: (_vacName, expDate) =>
       `expires on ${escapeHtml(expDate)}`,
   },
   '7_day': {
     subjectPrefix: 'Urgent: ',
     bannerBg: '#fed7aa',
     bannerText: '#9a3412',
-    bodyFragment: (vacName, expDate) =>
+    bodyFragment: (_vacName, expDate) =>
       `expires in less than a week on ${escapeHtml(expDate)}`,
   },
   expired: {

@@ -185,6 +185,7 @@ export function SettingsPage() {
     )
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
+      showError('Please fix the validation errors before saving')
       return
     }
     setErrors({})
@@ -209,7 +210,7 @@ export function SettingsPage() {
         <Button
           onClick={handleSave}
           loading={updateOrganization.isPending}
-          disabled={!hasChanges}
+          disabled={!hasChanges || updateOrganization.isPending}
           style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
           className="hover:opacity-90"
         >
@@ -397,6 +398,7 @@ export function SettingsPage() {
             return (
               <button
                 key={theme.name}
+                aria-label={`Select ${theme.label} theme`}
                 onClick={(e) => {
                   e.stopPropagation()
                   setTheme(theme.name)

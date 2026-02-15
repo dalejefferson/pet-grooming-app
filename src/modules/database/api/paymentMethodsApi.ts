@@ -1,13 +1,16 @@
 import type { PaymentMethod } from '../types'
 import { supabase } from '@/lib/supabase/client'
-import { mapPaymentMethod, toDbPaymentMethod } from '../types/supabase-mappers'
-import {
-  mockStripe,
-  toPaymentMethod,
-  type CardDetails,
-  type MockPaymentConfirmation,
-} from '@/lib/stripe/mockStripe'
-import { isCardExpired } from '@/lib/utils/cardUtils'
+import { mapPaymentMethod } from '../types/supabase-mappers'
+
+const COMING_SOON_ERROR = 'Payment methods coming soon. Manage billing via the Stripe portal.'
+
+/** Placeholder type — will be replaced by Stripe Setup Intents */
+export interface CardDetails {
+  number: string
+  expiry: string
+  cvc: string
+  name?: string
+}
 
 export const paymentMethodsApi = {
   /**
@@ -26,147 +29,45 @@ export const paymentMethodsApi = {
 
   /**
    * Create a new payment method for a client
-   *
-   * Uses mockStripe to validate and create the payment method,
-   * then stores it in the payment_methods table
+   * @deprecated Will be replaced by Stripe Setup Intents
    */
-  async create(clientId: string, cardDetails: CardDetails): Promise<PaymentMethod> {
-    // First, use mockStripe to create and validate the payment method
-    const stripeResponse = await mockStripe.createPaymentMethod(cardDetails)
-
-    // Check if client has existing methods
-    const existingMethods = await this.getByClientId(clientId)
-    const isDefault = existingMethods.length === 0
-
-    // Convert the Stripe response to our PaymentMethod type
-    const paymentMethod = toPaymentMethod(stripeResponse, clientId, isDefault)
-
-    // Insert into Supabase
-    const dbRow = toDbPaymentMethod(paymentMethod)
-    dbRow.id = paymentMethod.id
-
-    const { data: row, error } = await supabase
-      .from('payment_methods')
-      .insert(dbRow)
-      .select()
-      .single()
-
-    if (error) throw error
-    return mapPaymentMethod(row)
+  async create(_clientId: string, _cardDetails: CardDetails): Promise<PaymentMethod> {
+    throw new Error(COMING_SOON_ERROR)
   },
 
   /**
    * Delete a payment method
-   *
-   * If the deleted method was the default, the first remaining method
-   * becomes the new default
+   * @deprecated Will be replaced by Stripe Setup Intents
    */
-  async delete(paymentMethodId: string): Promise<void> {
-    // Call mockStripe to simulate deletion
-    await mockStripe.deletePaymentMethod(paymentMethodId)
-
-    // Get the payment method to check if it was default
-    const { data: pmRow, error: fetchError } = await supabase
-      .from('payment_methods')
-      .select('*')
-      .eq('id', paymentMethodId)
-      .single()
-
-    if (fetchError) throw fetchError
-    if (!pmRow) throw new Error('Payment method not found')
-
-    const wasDefault = pmRow.is_default
-    const clientId = pmRow.client_id
-
-    // Delete the payment method
-    const { error: deleteError } = await supabase
-      .from('payment_methods')
-      .delete()
-      .eq('id', paymentMethodId)
-
-    if (deleteError) throw deleteError
-
-    // If the deleted method was the default, make the first remaining one the new default
-    if (wasDefault) {
-      const { data: remaining } = await supabase
-        .from('payment_methods')
-        .select('id')
-        .eq('client_id', clientId)
-        .order('created_at', { ascending: true })
-        .limit(1)
-
-      if (remaining && remaining.length > 0) {
-        const { error: updateError } = await supabase
-          .from('payment_methods')
-          .update({ is_default: true })
-          .eq('id', remaining[0].id)
-
-        if (updateError) throw updateError
-      }
-    }
+  async delete(_paymentMethodId: string): Promise<void> {
+    throw new Error(COMING_SOON_ERROR)
   },
 
   /**
    * Set a payment method as the default for a client
-   *
-   * Unsets the current default and sets the specified method as default
+   * @deprecated Will be replaced by Stripe Setup Intents
    */
-  async setDefault(clientId: string, paymentMethodId: string): Promise<PaymentMethod> {
-    // Unset all defaults for this client
-    const { error: unsetError } = await supabase
-      .from('payment_methods')
-      .update({ is_default: false })
-      .eq('client_id', clientId)
-
-    if (unsetError) throw unsetError
-
-    // Set the specified method as default
-    const { data: row, error: setError } = await supabase
-      .from('payment_methods')
-      .update({ is_default: true })
-      .eq('id', paymentMethodId)
-      .select()
-      .single()
-
-    if (setError) throw setError
-    return mapPaymentMethod(row)
+  async setDefault(_clientId: string, _paymentMethodId: string): Promise<PaymentMethod> {
+    throw new Error(COMING_SOON_ERROR)
   },
 
   /**
    * Process a payment using a stored payment method
+   * @deprecated Will be replaced by Stripe Payment Intents
    */
   async processPayment(
-    clientId: string,
-    paymentMethodId: string,
-    amount: number,
-    currency: string = 'usd'
-  ): Promise<MockPaymentConfirmation> {
-    // Verify the payment method exists and belongs to the client
-    const { data: pmRow, error } = await supabase
-      .from('payment_methods')
-      .select('*')
-      .eq('id', paymentMethodId)
-      .eq('client_id', clientId)
-      .single()
-
-    if (error) throw error
-    if (!pmRow) throw new Error('Payment method not found')
-
-    // Check if the card is expired
-    const pm = mapPaymentMethod(pmRow)
-    if (isCardExpired(pm.card.expMonth, pm.card.expYear)) {
-      throw new Error('Payment method has expired. Please update your card or use a different payment method.')
-    }
-
-    // Use mockStripe to process the payment
-    return mockStripe.confirmPayment(amount, paymentMethodId, currency)
+    _clientId: string,
+    _paymentMethodId: string,
+    _amount: number,
+    _currency: string = 'usd'
+  ): Promise<{ success: boolean; error?: string; amount: number; currency: string }> {
+    throw new Error(COMING_SOON_ERROR)
   },
 
   /**
    * Get the default payment method for a client
    */
   async getDefault(clientId: string): Promise<PaymentMethod | null> {
-    // Try to get the explicitly-set default
     const { data: defaultRow } = await supabase
       .from('payment_methods')
       .select('*')
@@ -176,7 +77,6 @@ export const paymentMethodsApi = {
 
     if (defaultRow) return mapPaymentMethod(defaultRow)
 
-    // Fall back to the first payment method
     const { data: firstRow } = await supabase
       .from('payment_methods')
       .select('*')

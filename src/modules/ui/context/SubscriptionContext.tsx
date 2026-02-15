@@ -33,7 +33,16 @@ const SubscriptionContext = createContext<SubscriptionContextValue>({
 
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const { data: subscription, isLoading } = useSubscription()
-  const devBypass = import.meta.env.VITE_DEV_BYPASS_SUBSCRIPTION === 'true'
+  const devBypass = !import.meta.env.PROD && import.meta.env.VITE_DEV_BYPASS_SUBSCRIPTION === 'true'
+
+  if (import.meta.env.PROD && devBypass) {
+    console.error('DANGER: Subscription bypass is active in a production build! Set VITE_DEV_BYPASS_SUBSCRIPTION=false')
+  }
+
+  if (import.meta.env.PROD && import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY && !import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY.startsWith('pk_live_')) {
+    console.warn('WARNING: Using Stripe test key in production build')
+  }
+
   const { data: groomers = [] } = useGroomers()
 
   const value = useMemo<SubscriptionContextValue>(() => {

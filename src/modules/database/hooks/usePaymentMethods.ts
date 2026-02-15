@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { paymentMethodsApi } from '../api/paymentMethodsApi'
 import type { PaymentMethod } from '../types'
-import type { CardDetails } from '@/lib/stripe/mockStripe'
+import type { CardDetails } from '../api/paymentMethodsApi'
 
 /**
  * Query key factory for payment methods

@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react'
 import { Card, CardTitle, Button, Input, Select, Toggle, Textarea } from '../../components/common'
 import { usePolicies, useUpdatePolicies, useGeneratePolicyText } from '@/hooks'
 import type { BookingPolicies } from '@/types'
-import { useTheme } from '../../context'
+import { useTheme, useToast } from '../../context'
 import { cn } from '@/lib/utils'
 
 export function PoliciesPage() {
   const { colors } = useTheme()
+  const { showSuccess, showError } = useToast()
   const { data: policies, isLoading } = usePolicies()
   const updatePolicies = useUpdatePolicies()
   const { data: generatedText } = useGeneratePolicyText(policies)
@@ -30,8 +31,25 @@ export function PoliciesPage() {
   }
 
   const handleSave = async () => {
-    await updatePolicies.mutateAsync(formData)
-    setHasChanges(false)
+    if (formData.depositPercentage !== undefined && (formData.depositPercentage < 0 || formData.depositPercentage > 100)) {
+      showError('Deposit percentage must be between 0 and 100')
+      return
+    }
+    if (formData.lateCancellationFeePercentage !== undefined && formData.lateCancellationFeePercentage < 0) {
+      showError('Late cancellation fee cannot be negative')
+      return
+    }
+    if (formData.noShowFeePercentage !== undefined && formData.noShowFeePercentage < 0) {
+      showError('No-show fee cannot be negative')
+      return
+    }
+    try {
+      await updatePolicies.mutateAsync(formData)
+      setHasChanges(false)
+      showSuccess('Policies saved successfully!')
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'Failed to save policies')
+    }
   }
 
   if (isLoading) {
@@ -46,7 +64,7 @@ export function PoliciesPage() {
         <Button
           onClick={handleSave}
           loading={updatePolicies.isPending}
-          disabled={!hasChanges}
+          disabled={!hasChanges || updatePolicies.isPending}
           style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
           className="hover:opacity-90"
         >

@@ -1,9 +1,14 @@
 import { stripe } from '../_shared/stripe.ts'
 import { supabaseAdmin } from '../_shared/supabase-admin.ts'
 
-const WEBHOOK_SECRET = Deno.env.get('STRIPE_WEBHOOK_SECRET')!
+const WEBHOOK_SECRET = Deno.env.get('STRIPE_WEBHOOK_SECRET')
 
 Deno.serve(async (req) => {
+  if (!WEBHOOK_SECRET) {
+    console.error('STRIPE_WEBHOOK_SECRET is not set')
+    return new Response('Server misconfiguration', { status: 500 })
+  }
+
   if (req.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405 })
   }
@@ -57,8 +62,12 @@ Deno.serve(async (req) => {
         await handleSubscriptionDeleted(event)
         break
 
+      case 'customer.subscription.paused':
+        await handleSubscriptionPaused(event)
+        break
+
       case 'invoice.payment_succeeded':
-        console.log('Invoice payment succeeded:', event.data.object.id)
+        await handleInvoicePaymentSucceeded(event)
         break
 
       case 'invoice.payment_failed':
@@ -69,12 +78,26 @@ Deno.serve(async (req) => {
         await handleTrialWillEnd(event)
         break
 
+      case 'customer.deleted':
+        await handleCustomerDeleted(event)
+        break
+
       default:
         console.log(`Unhandled event type: ${event.type}`)
     }
   } catch (err) {
     console.error(`Error processing ${event.type}:`, err)
-    // Still log the event even if processing fails
+    // Log the event for audit trail even on failure, then return 500 so Stripe retries
+    await supabaseAdmin.from('billing_events').insert({
+      stripe_event_id: event.id,
+      event_type: event.type,
+      organization_id: orgId,
+      payload: event.data.object as Record<string, unknown>,
+    })
+    return new Response(JSON.stringify({ error: 'Processing failed, will retry' }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 500,
+    })
   }
 
   // Log event for audit trail
@@ -149,8 +172,7 @@ async function handleSubscriptionUpsert(event: { data: { object: Record<string, 
   const orgId = metadata?.organization_id || await getOrgIdByCustomer(customerId)
 
   if (!orgId) {
-    console.error('Cannot resolve organization for subscription', sub.id)
-    return
+    throw new Error(`Cannot resolve organization for subscription ${sub.id}`)
   }
 
   // Extract price info from line items
@@ -187,7 +209,9 @@ async function handleSubscriptionDeleted(event: { data: { object: Record<string,
   const metadata = sub.metadata as Record<string, string> | undefined
   const orgId = metadata?.organization_id || await getOrgIdByCustomer(customerId)
 
-  if (!orgId) return
+  if (!orgId) {
+    throw new Error(`Cannot resolve organization for deleted subscription ${sub.id}`)
+  }
 
   await supabaseAdmin
     .from('subscriptions')
@@ -203,7 +227,9 @@ async function handleInvoicePaymentFailed(event: { data: { object: Record<string
   const customerId = invoice.customer as string
   const orgId = await getOrgIdByCustomer(customerId)
 
-  if (!orgId) return
+  if (!orgId) {
+    throw new Error(`Cannot resolve organization for failed invoice ${invoice.id}`)
+  }
 
   // Mark subscription as past_due if currently active or trialing
   await supabaseAdmin
@@ -228,4 +254,53 @@ async function handleTrialWillEnd(event: { data: { object: Record<string, unknow
     title: 'Trial Ending Soon',
     message: 'Your free trial ends in 3 days. Add a payment method to continue using Sit Pretty Club.',
   })
+}
+
+async function handleSubscriptionPaused(event: { data: { object: Record<string, unknown> } }) {
+  const sub = event.data.object
+  const customerId = sub.customer as string
+  const metadata = sub.metadata as Record<string, string> | undefined
+  const orgId = metadata?.organization_id || await getOrgIdByCustomer(customerId)
+
+  if (!orgId) {
+    throw new Error('Organization not found for paused subscription')
+  }
+
+  await supabaseAdmin
+    .from('subscriptions')
+    .update({ status: 'paused' })
+    .eq('organization_id', orgId)
+}
+
+async function handleInvoicePaymentSucceeded(event: { data: { object: Record<string, unknown> } }) {
+  const invoice = event.data.object
+  const customerId = invoice.customer as string
+  const subscriptionId = invoice.subscription as string | undefined
+
+  console.log('Invoice payment succeeded:', invoice.id)
+
+  if (!subscriptionId) return
+
+  const orgId = await getOrgIdByCustomer(customerId)
+  if (!orgId) return
+
+  // If subscription was past_due, mark it active now that payment succeeded
+  await supabaseAdmin
+    .from('subscriptions')
+    .update({ status: 'active' })
+    .eq('organization_id', orgId)
+    .eq('stripe_subscription_id', subscriptionId)
+    .eq('status', 'past_due')
+}
+
+async function handleCustomerDeleted(event: { data: { object: Record<string, unknown> } }) {
+  const customer = event.data.object
+  const customerId = customer.id as string
+
+  console.log('Customer deleted:', customerId)
+
+  await supabaseAdmin
+    .from('organizations')
+    .update({ stripe_customer_id: null })
+    .eq('stripe_customer_id', customerId)
 }

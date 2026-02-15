@@ -1,19 +1,21 @@
 import { useState, useMemo } from 'react'
 import { Search, Plus, Filter, Users, Calendar, Clock } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
-import { Card, Button, Input, Modal, Badge, Select, HistorySection } from '../../components/common'
+import { Card, Button, Input, Modal, Badge, Select, HistorySection, ConfirmDialog } from '../../components/common'
 import { GroomerForm } from '../../components/groomers'
 import { StaffCard } from '../../components/staff'
 import {
   useGroomers,
   useCreateGroomer,
   useUpdateGroomer,
+  useDeleteGroomer,
   useDeletedHistory,
   useTimeOffRequests,
   useUpdateTimeOffRequest,
 } from '@/hooks'
 import { PermissionGate } from '@/modules/auth'
 import { cn, formatTime12h } from '@/lib/utils'
+import { debounce } from '@/lib/utils/debounce'
 import type { Groomer, TimeOffRequest, DaySchedule } from '@/types'
 import { useTheme } from '../../context'
 import { useSubscriptionContext } from '../../context/SubscriptionContext'
@@ -44,31 +46,44 @@ export function StaffPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all')
   const [timeOffStatusFilter, setTimeOffStatusFilter] = useState<TimeOffStatusFilter>('all')
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingStaff, setEditingStaff] = useState<Groomer | null>(null)
+  const [deletingStaff, setDeletingStaff] = useState<Groomer | null>(null)
 
   const { data: staff = [], isLoading } = useGroomers()
   const { data: deletedItems = [] } = useDeletedHistory('groomer')
   const { data: allTimeOffRequests = [] } = useTimeOffRequests()
   const createGroomer = useCreateGroomer()
   const updateGroomer = useUpdateGroomer()
+  const deleteGroomer = useDeleteGroomer()
   const updateTimeOff = useUpdateTimeOffRequest()
+
+  const debouncedSetSearch = useMemo(
+    () => debounce((value: string) => setDebouncedSearchQuery(value), 300),
+    []
+  )
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value)
+    debouncedSetSearch(e.target.value)
+  }
 
   // Filter staff by search and role
   const filteredStaff = useMemo(() => {
     return staff.filter((member) => {
       const matchesSearch =
-        !searchQuery ||
-        member.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.specialties.some((s) => s.toLowerCase().includes(searchQuery.toLowerCase()))
+        !debouncedSearchQuery ||
+        member.firstName.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        member.lastName.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        member.email.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        member.specialties.some((s) => s.toLowerCase().includes(debouncedSearchQuery.toLowerCase()))
 
       const matchesRole = roleFilter === 'all' || member.role === roleFilter
 
       return matchesSearch && matchesRole
     })
-  }, [staff, searchQuery, roleFilter])
+  }, [staff, debouncedSearchQuery, roleFilter])
 
   // Separate active and inactive staff
   const activeStaff = filteredStaff.filter((s) => s.isActive)
@@ -90,6 +105,13 @@ export function StaffPage() {
     if (editingStaff) {
       await updateGroomer.mutateAsync({ id: editingStaff.id, data })
       setEditingStaff(null)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (deletingStaff) {
+      await deleteGroomer.mutateAsync(deletingStaff.id)
+      setDeletingStaff(null)
     }
   }
 
@@ -186,7 +208,7 @@ export function StaffPage() {
                 <Input
                   placeholder="Search staff by name, email, or specialty..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={handleSearchChange}
                   className="pl-10"
                 />
               </div>
@@ -214,7 +236,7 @@ export function StaffPage() {
                 <div className="py-8 text-center">
                   <Users className="mx-auto h-12 w-12 text-gray-400" />
                   <p className="mt-2 text-gray-600">
-                    {searchQuery || roleFilter !== 'all'
+                    {debouncedSearchQuery || roleFilter !== 'all'
                       ? 'No staff found matching your filters.'
                       : 'No staff yet. Add your first team member to get started.'}
                   </p>
@@ -230,7 +252,7 @@ export function StaffPage() {
                     </h2>
                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                       {activeStaff.map((member) => (
-                        <StaffCard key={member.id} staff={member} />
+                        <StaffCard key={member.id} staff={member} onDelete={() => setDeletingStaff(member)} />
                       ))}
                     </div>
                   </div>
@@ -244,7 +266,7 @@ export function StaffPage() {
                     </h2>
                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                       {inactiveStaff.map((member) => (
-                        <StaffCard key={member.id} staff={member} />
+                        <StaffCard key={member.id} staff={member} onDelete={() => setDeletingStaff(member)} />
                       ))}
                     </div>
                   </div>
@@ -464,6 +486,18 @@ export function StaffPage() {
             />
           )}
         </Modal>
+
+        {/* Delete Confirmation */}
+        <ConfirmDialog
+          isOpen={!!deletingStaff}
+          onClose={() => setDeletingStaff(null)}
+          onConfirm={handleDelete}
+          title="Delete Staff Member"
+          message={`Are you sure you want to delete ${deletingStaff?.firstName} ${deletingStaff?.lastName}? This will unassign their appointments and remove their schedule.`}
+          confirmLabel="Delete"
+          variant="danger"
+          isLoading={deleteGroomer.isPending}
+        />
       </div>
     </div>
   )

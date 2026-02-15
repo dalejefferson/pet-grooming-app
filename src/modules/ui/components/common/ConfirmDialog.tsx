@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useToast } from '@/modules/ui/hooks/useToast'
 import { Modal } from './Modal'
 import { Button } from './Button'
 
@@ -27,6 +28,7 @@ export function ConfirmDialog({
   variant = 'danger',
   isLoading: externalLoading,
 }: ConfirmDialogProps) {
+  const { showError } = useToast()
   const [internalLoading, setInternalLoading] = useState(false)
   const [isReady, setIsReady] = useState(false)
   const isLoading = externalLoading || internalLoading
@@ -45,6 +47,7 @@ export function ConfirmDialog({
       await onConfirm()
     } catch (error) {
       console.error('Confirm action failed:', error)
+      showError(error instanceof Error ? error.message : 'Action failed. Please try again.')
     } finally {
       setInternalLoading(false)
     }

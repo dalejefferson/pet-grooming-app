@@ -1,6 +1,6 @@
 # MISSING.md - App Completeness Audit
 
-Last audited: 2026-02-12 (re-audited 2026-02-12, run #2)
+Last audited: 2026-02-15 (re-audited, run #3)
 
 ---
 
@@ -17,6 +17,7 @@ Last audited: 2026-02-12 (re-audited 2026-02-12, run #2)
 - [ ] [Critical] [A] **NEW-R2** Double-click booking race condition: `handlePayment()` in BookingConfirmPage has no idempotency protection — user can click "Confirm Booking" multiple times during the 2-second payment simulation, creating duplicate appointments (BookingConfirmPage.tsx lines 173-230). Upgrade from Medium line 70.
 - [ ] [Critical] [A] **NEW-R2** Booking intake allows 0 services per pet: no validation that at least 1 service is selected per pet before proceeding to payment — user can complete entire booking with empty services (BookingConfirmPage.tsx)
 - [ ] [Critical] [A] **NEW-R2** No empty state for "no services available" in booking intake: when selected groomer has no compatible services, page shows nothing helpful — user sees blank screen (BookingIntakePage.tsx line 99)
+- [ ] [Critical] [A] **NEW-R3** Subscription dev bypass warns but doesn't block in production: `VITE_DEV_BYPASS_SUBSCRIPTION=true` only `console.error`s in production builds — doesn't throw or prevent bypass. Any production build with this env var leaks all features for free (SubscriptionContext.tsx lines 38-39)
 
 ## High
 
@@ -45,6 +46,12 @@ Last audited: 2026-02-12 (re-audited 2026-02-12, run #2)
 - [ ] [High] [A] **NEW** Service modifier deletion invalidates existing appointments: `removeModifier()` deletes modifiers still referenced in existing appointments' appliedModifiers arrays (servicesApi.ts lines 196-207)
 - [ ] [High] [A] **NEW** CalendarPage has no loading state: fetches appointments, clients, pets, groomers, and services with no loading indicator — flash of empty calendar before data arrives
 - [ ] [High] [A] **NEW** ReportsPage has no loading state: fetches multiple data sources but charts render with incomplete/undefined data during initial load
+- [ ] [High] [A] **NEW-R3** ConfirmDialog silently swallows errors: try-catch block only does `console.error` — if delete/confirm action fails (network, permission), user sees no feedback and thinks it succeeded (ConfirmDialog.tsx lines 42-51)
+- [ ] [High] [A] **NEW-R3** BookingStartPage setState in render anti-pattern: setting state during render (lines 31-34) instead of useEffect — causes React warnings and potential infinite loop
+- [ ] [High] [A] **NEW-R3** CalendarPage email send failure silent: "ready for pickup" email errors only `console.warn` — user thinks email was sent when it wasn't (CalendarPage.tsx)
+- [ ] [High] [A] **NEW-R3** StaffPage no confirmation dialog for deletion: staff members deleted without ConfirmDialog, unlike Clients/Pets/Services which all have one (StaffPage.tsx)
+- [ ] [High] [A] **NEW-R3** ReportsPage CSV/PDF export failure silent: export functions have no try-catch or error toast — if export fails on large data, user gets no feedback (ReportsPage.tsx lines 307-331)
+- [ ] [High] [A] **NEW-R3** Groomer break time validation fails for inverted times: `breakStart > breakEnd` (backwards) not checked — allows booking during actual break period (calendarApi.ts lines 344-352)
 - [ ] [High] [B] Stripe integration is fully mocked: mockStripe.ts simulates payments — no real payment processing for bookings
 - [ ] [High] [B] Email notifications are mocked: mockEmailService.ts logs to console/localStorage only — needs Resend integration for all notification types (confirmations, reminders, cancellations, vaccination alerts). Email-first strategy; SMS deferred to future phase.
 - [ ] [High] [B] **NEW** RLS policies allow anonymous client creation: anonymous users can create clients and view client data (for booking flow) — abusable for data scraping or spamming (supabase/migrations/002_rls_policies.sql lines 77-82)
@@ -100,6 +107,16 @@ Last audited: 2026-02-12 (re-audited 2026-02-12, run #2)
 - [ ] [Medium] [A] **NEW-R2** Client/Pet card grids need xl/2xl breakpoints: `grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5` has no xl breakpoint — cards may be too large or too squeezed on tablets (ClientsPage.tsx, PetsPage.tsx)
 - [ ] [Medium] [A] **NEW-R2** Booking page buttons not full-width on mobile: `flex justify-between` leaves buttons crowded on narrow screens — should stack vertically on mobile (BookingConfirmPage.tsx lines 363-391)
 - [ ] [Medium] [A] **NEW-R2** BookingConfirmPage payment failure has no retry: `setPaymentStatus('failed')` shown but no way to retry without page reload — `.catch()` swallows error silently (BookingConfirmPage.tsx line 275)
+- [ ] [Medium] [A] **NEW-R3** SettingsPage validation errors return silently: form validation (lines 177-189) returns early without showing any error toast — user clicks Save, nothing happens, no feedback why
+- [ ] [Medium] [A] **NEW-R3** RemindersPage no validation before save: `updateReminders.mutateAsync(formData)` sends unvalidated data — negative days, invalid percentages all accepted
+- [ ] [Medium] [A] **NEW-R3** PoliciesPage no validation before save: deposit > 100%, negative fees, min/max booking range conflicts all accepted without error
+- [ ] [Medium] [A] **NEW-R3** Delete warnings don't mention related data: client deletion dialog doesn't show pet/appointment count, service deletion doesn't check active appointments — user lacks context for informed decision
+- [ ] [Medium] [A] **NEW-R3** Stripe webhook billing_events insert not protected: after successful event handling, `billing_events` INSERT (line 104) can fail but function returns 200 anyway — audit trail silently lost, Stripe won't retry (stripe-webhook/index.ts)
+- [ ] [Medium] [A] **NEW-R3** Service modifier conditions not validated during booking: modifiers applied without checking pet meets weight/coat/breed condition — wrong price calculated (bookingApi.ts lines 71-84)
+- [ ] [Medium] [A] **NEW-R3** Booking policies deposit not range-validated: `depositPercentage` not checked for 0-100 range, `depositMinimum` not checked for >= 0 — negative deposits possible (bookingApi.ts lines 110-113)
+- [ ] [Medium] [A] **NEW-R3** No unsaved changes warning on form pages: Settings, Reminders, Policies track `hasChanges` but don't warn on navigation — data silently lost
+- [ ] [Medium] [A] **NEW-R3** Save buttons missing disabled state during submission: multiple pages show loading spinner but don't disable button, allowing double-submit (SettingsPage, RemindersPage, PoliciesPage)
+- [ ] [Medium] [A] **NEW-R3** Pet deletion leaves orphaned appointments: `petsApi.delete()` removes pet from `appointment_pets` but leaves parent `appointments` row — appointment with 0 pets breaks rendering (petsApi.ts lines 122-150)
 - [ ] [Medium] [B] **NEW** Timezone conversion needs date-fns-tz: organization.timezone stored but never used for date conversion — multi-timezone orgs show wrong times
 
 ## Low
@@ -132,23 +149,37 @@ Last audited: 2026-02-12 (re-audited 2026-02-12, run #2)
 - [ ] [Low] [A] **NEW-R2** Sidebar routes array references deprecated `/app/groomers` path: keyboard navigation (Shift+Up/Down) hits redirect before landing on `/app/staff` — should use `/app/staff` directly (AppLayout.tsx line 35)
 - [ ] [Low] [A] **NEW-R2** Confirm dialog has no delay before enabling confirm button: user can accidentally double-click and confirm destructive action immediately (ConfirmDialog.tsx)
 - [ ] [Low] [A] **NEW-R2** Dropdown options lack visible focus state: keyboard navigation in Select/ComboBox components doesn't clearly highlight focused option (Select.tsx, ComboBox.tsx)
+- [ ] [Low] [A] **NEW-R3** StaffPage search has no debounce: unlike ClientsPage/PetsPage which use debounce, StaffPage filters on every keystroke — causes lag on large staff lists
+- [ ] [Low] [A] **NEW-R3** Theme picker not grouped by category: all 21 themes shown in flat grid with no Pastel/Vibrant/Dark grouping — overwhelming for users (SettingsPage.tsx lines 383-450)
+- [ ] [Low] [A] **NEW-R3** ReportsPage subscription gate uses silent mode: export buttons disappear without explanation on Solo plan — should show upgrade prompt instead (ReportsPage.tsx lines 346-364)
+- [ ] [Low] [A] **NEW-R3** SettingsPage theme buttons missing aria-labels: screen reader users can't identify theme options (SettingsPage.tsx lines 398-440)
+- [ ] [Low] [A] **NEW-R3** Subscription cache 30s stale time after upgrade: after upgrading in Stripe portal, features don't appear for up to 30 seconds — confusing UX (useBilling.ts line 11)
 - [ ] [Low] [B] Feature flags hardcoded: onlinePayments, smsReminders, petPhotos, etc. are static booleans (flags.ts)
 
 ## Bucket B (Requires External APIs) - Summary
 
 - [ ] [High] [B] Stripe integration is fully mocked: mockStripe.ts simulates payments — no real payment processing for bookings
 - [ ] [High] [B] Email notifications are mocked: needs Resend integration for all notification types (email-first strategy; SMS deferred)
-- [ ] [High] [A] **NEW-R2** DashboardPage "Today's Schedule" has no loading state: appointment list loads asynchronously with no skeleton or spinner — content pops in (DashboardPage.tsx lines 238-294)
-- [ ] [High] [A] **NEW-R2** BookingStartPage missing firstName/lastName inline validation: only email/phone show errors, required name fields have no error messages — guard prevents submission but user doesn't know why (BookingStartPage.tsx lines 64-74)
-- [ ] [High] [A] **NEW-R2** No skip-to-main-content link: keyboard users must tab through entire sidebar navigation before reaching main content area — WCAG 2.4.1 failure (AppLayout.tsx)
-- [ ] [High] [A] **NEW-R2** Groomer ID not validated before appointment creation: `calendarApi.create()` inserts `groomer_id` without checking groomer exists or is active — can assign to deleted/inactive staff (calendarApi.ts lines 152-197)
-- [ ] [High] [A] **NEW-R2** Phone validation regex too permissive: `/^[+]?[\d\s()-]{7,}$/` accepts invalid formats like "1 2 3 4 5 6 7" — needs stricter pattern or libphonenumber-js (BookingStartPage.tsx line 62)
-- [ ] [High] [A] **NEW-R2** Required form fields not visually marked: Input components have HTML `required` attribute but no asterisk or visual indicator — WCAG recommendation for sighted users (all forms)
 - [ ] [High] [B] **NEW** RLS policies allow anonymous client creation: needs rate limiting, CAPTCHA, or tighter scoping
 - [x] [RESOLVED] [Medium] [B] Supabase client is a stub: fully migrated — all 14 API modules now use Supabase queries, RLS policies active
 - [x] [RESOLVED] [Medium] [B] No real authentication: Supabase Auth integrated with Google OAuth (PKCE flow), real signInWithPassword/signInWithOAuth
 - [ ] [Medium] [B] Timezone conversion needs date-fns-tz: organization.timezone stored but never used for date conversion
 - [ ] [Low] [B] Feature flags hardcoded: onlinePayments, smsReminders, petPhotos, etc. are static booleans (flags.ts)
+
+## High Priority Bucket A - Summary
+
+- [ ] [High] [A] **NEW-R2** DashboardPage "Today's Schedule" has no loading state (DashboardPage.tsx lines 238-294)
+- [ ] [High] [A] **NEW-R2** BookingStartPage missing firstName/lastName inline validation (BookingStartPage.tsx lines 64-74)
+- [ ] [High] [A] **NEW-R2** No skip-to-main-content link — WCAG 2.4.1 failure (AppLayout.tsx)
+- [ ] [High] [A] **NEW-R2** Groomer ID not validated before appointment creation (calendarApi.ts lines 152-197)
+- [ ] [High] [A] **NEW-R2** Phone validation regex too permissive (BookingStartPage.tsx line 62)
+- [ ] [High] [A] **NEW-R2** Required form fields not visually marked (all forms)
+- [ ] [High] [A] **NEW-R3** ConfirmDialog silently swallows errors (ConfirmDialog.tsx lines 42-51)
+- [ ] [High] [A] **NEW-R3** BookingStartPage setState in render anti-pattern (BookingStartPage.tsx lines 31-34)
+- [ ] [High] [A] **NEW-R3** CalendarPage email send failure silent (CalendarPage.tsx)
+- [ ] [High] [A] **NEW-R3** StaffPage no confirmation dialog for deletion (StaffPage.tsx)
+- [ ] [High] [A] **NEW-R3** ReportsPage CSV/PDF export failure silent (ReportsPage.tsx lines 307-331)
+- [ ] [High] [A] **NEW-R3** Groomer break time validation fails for inverted times (calendarApi.ts lines 344-352)
 
 ---
 
@@ -156,8 +187,10 @@ Last audited: 2026-02-12 (re-audited 2026-02-12, run #2)
 
 | Severity | Bucket A (Open) | Bucket A (Resolved) | Bucket B (Open) | Bucket B (Resolved) | Total Open |
 |----------|-----------------|---------------------|-----------------|---------------------|------------|
-| Critical | 4               | 7                   | 0               | 0                   | 4          |
-| High     | 12              | 19                  | 3               | 0                   | 15         |
-| Medium   | 46              | 1                   | 1               | 2                   | 47         |
-| Low      | 28              | 0                   | 1               | 0                   | 29         |
-| **Total**| **90**          | **27**              | **5**           | **2**               | **95**     |
+| Critical | 5 (+1)          | 7                   | 0               | 0                   | 5          |
+| High     | 18 (+6)         | 19                  | 3               | 0                   | 21         |
+| Medium   | 56 (+10)        | 1                   | 1               | 2                   | 57         |
+| Low      | 33 (+5)         | 0                   | 1               | 0                   | 34         |
+| **Total**| **112**         | **27**              | **5**           | **2**               | **117**    |
+
+*+22 new issues found in run #3 (2026-02-15). No issues resolved since run #2.*

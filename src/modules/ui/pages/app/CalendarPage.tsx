@@ -15,6 +15,7 @@ import { CALENDAR_BUSINESS_HOURS } from '@/config/constants'
 import { cn } from '@/lib/utils'
 import type { Appointment, AppointmentStatus } from '@/types'
 import { useTheme, useKeyboardShortcuts, useUndo } from '../../context'
+import { useToast } from '@/modules/ui/hooks/useToast'
 
 import {
   HoverPopup,
@@ -37,6 +38,7 @@ const FC_VIEW_MAP = { day: 'timeGridDay', week: 'timeGridWeek', month: 'dayGridM
 
 export function CalendarPage() {
   const { colors } = useTheme()
+  const { showWarning } = useToast()
   const { data: currentUser } = useCurrentUser()
   const { data: organization } = useOrganization()
   const { registerCalendarViewCycle } = useKeyboardShortcuts()
@@ -170,13 +172,15 @@ export function CalendarPage() {
   }, [registerCalendarViewCycle, cycleView])
 
   // Handle book query param from keyboard shortcut
-  const bookParam = searchParams.get('book')
-  if (bookParam === 'true') {
-    setSearchParams({}, { replace: true })
-    if (!showCreateModal) {
-      setShowCreateModal(true)
+  useEffect(() => {
+    const bookParam = searchParams.get('book')
+    if (bookParam === 'true') {
+      setSearchParams({}, { replace: true })
+      if (!showCreateModal) {
+        setShowCreateModal(true)
+      }
     }
-  }
+  }, [searchParams, setSearchParams])
 
   // Status change handlers
   const handleStatusChange = async (status: AppointmentStatus) => {
@@ -235,7 +239,7 @@ export function CalendarPage() {
         businessName: organization?.name || 'Sit Pretty Club',
         replyTo: organization?.emailSettings?.replyToEmail || organization?.email,
         senderName: organization?.emailSettings?.senderDisplayName || organization?.name,
-      }).catch((err) => console.warn('[Email] Pickup ready notification failed:', err)) // fire-and-forget
+      }).catch(() => showWarning('Pickup email failed', 'The appointment was marked complete, but the pickup notification email could not be sent.'))
     }
   }
 

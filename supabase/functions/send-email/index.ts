@@ -1,8 +1,14 @@
-import { corsHeaders } from '../_shared/cors.ts'
+import { getCorsHeaders } from '../_shared/cors.ts'
 import { resend } from '../_shared/resend.ts'
 import { supabaseAdmin } from '../_shared/supabase-admin.ts'
 
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req)
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -66,6 +72,10 @@ Deno.serve(async (req) => {
 
     if (!emailTo || !emailSubject || (!body.body && !html)) {
       throw new Error('Missing required fields: to, subject, and either body or html')
+    }
+
+    if (!isValidEmail(emailTo)) {
+      return new Response(JSON.stringify({ error: 'Invalid email address format' }), { status: 400, headers: corsHeaders })
     }
 
     const emailHtml = html || `<p>${body.body}</p>`

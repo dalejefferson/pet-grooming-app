@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { Download, FileText, BarChart3 } from 'lucide-react'
 import { Button, EmptyState, SubscriptionGate } from '../../components/common'
+import { useToast } from '@/modules/ui/hooks/useToast'
 import { useAppointments, useClients, useServices, useGroomers, usePets } from '@/hooks'
 import { format, subDays, parseISO, isWithinInterval, startOfDay, getDay, getHours } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -28,6 +29,7 @@ import type { DateRange } from '../../components/reports'
 
 export function ReportsPage() {
   const { colors } = useTheme()
+  const { showSuccess, showError } = useToast()
   const { registerReportCycle } = useKeyboardShortcuts()
   const [dateRange, setDateRange] = useState<DateRange>(DATE_RANGES[2]) // Default to 30 days
   const { data: appointments = [] } = useAppointments()
@@ -305,29 +307,39 @@ export function ReportsPage() {
   }
 
   const handleExportCSV = () => {
-    exportReportCsv(filteredAppointments, clients, services, pets, groomers)
+    try {
+      exportReportCsv(filteredAppointments, clients, services, pets, groomers)
+      showSuccess('CSV report exported successfully')
+    } catch {
+      showError('Failed to export CSV report. Please try again.')
+    }
   }
 
   const handleExportPDF = () => {
-    exportReportPdf({
-      dateRange,
-      startDate,
-      today,
-      filteredAppointments,
-      clients,
-      services,
-      stats,
-      revenueData,
-      statusData,
-      topServicesData,
-      clientAcquisitionData,
-      groomerPerformanceData,
-      clientRetentionData,
-      noShowCancellationData,
-      peakHoursData,
-      serviceCategoryRevenueData,
-      themeColors: colors,
-    })
+    try {
+      exportReportPdf({
+        dateRange,
+        startDate,
+        today,
+        filteredAppointments,
+        clients,
+        services,
+        stats,
+        revenueData,
+        statusData,
+        topServicesData,
+        clientAcquisitionData,
+        groomerPerformanceData,
+        clientRetentionData,
+        noShowCancellationData,
+        peakHoursData,
+        serviceCategoryRevenueData,
+        themeColors: colors,
+      })
+      showSuccess('PDF report exported successfully')
+    } catch {
+      showError('Failed to export PDF report. Please try again.')
+    }
   }
 
   return (
@@ -343,7 +355,7 @@ export function ReportsPage() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <DateRangeSelector dateRange={dateRange} onDateRangeChange={setDateRange} colors={colors} />
-            <SubscriptionGate feature="advancedReports" silent>
+            <SubscriptionGate feature="advancedReports">
               <Button
                 onClick={handleExportPDF}
                 className="gap-2 hover:opacity-90"
