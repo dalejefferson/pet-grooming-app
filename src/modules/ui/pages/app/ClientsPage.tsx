@@ -213,7 +213,7 @@ export function ClientsPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [clientToDeleteId, setClientToDeleteId] = useState<string | null>(null)
   const { data: user } = useCurrentUser()
-  const { data: clients = [], isLoading } = useClients()
+  const { data: clients = [], isLoading, isError, error, refetch } = useClients()
   const { data: deletedItems = [] } = useDeletedHistory('client')
   const createClient = useCreateClient()
   const deleteClient = useDeleteClient()
@@ -276,7 +276,7 @@ export function ClientsPage() {
   return (
     <div className={cn('min-h-screen p-4 lg:p-6', colors.pageGradientLight)}>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div data-tour-step="clients-page-header" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold text-gray-900">Clients</h1>
         <Button
           onClick={() => setShowAddModal(true)}
@@ -298,7 +298,20 @@ export function ClientsPage() {
         />
       </div>
 
-      {isLoading ? (
+      {isError ? (
+        <div className="flex flex-col items-center justify-center p-12 text-center">
+          <div className="rounded-2xl border-2 border-[#1e293b] bg-white p-8 shadow-[3px_3px_0px_0px_#1e293b]">
+            <p className="text-lg font-semibold text-red-600">Failed to load clients</p>
+            <p className="text-[#64748b] text-sm mt-2">{error?.message || 'An unexpected error occurred'}</p>
+            <button
+              onClick={() => refetch()}
+              className="mt-4 px-4 py-2 rounded-xl border-2 border-[#1e293b] bg-white text-sm font-semibold hover:shadow-[3px_3px_0px_0px_#1e293b] transition-all"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      ) : isLoading ? (
         <Skeleton variant="card" count={10} />
       ) : filteredClients.length === 0 ? (
         <EmptyState

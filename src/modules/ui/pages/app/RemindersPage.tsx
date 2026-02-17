@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 export function RemindersPage() {
   const { colors } = useTheme()
   const { showSuccess, showError } = useToast()
-  const { data: reminders, isLoading } = useReminders()
+  const { data: reminders, isLoading, isError, error, refetch } = useReminders()
   const updateReminders = useUpdateReminders()
   const { data: defaultTemplates } = useDefaultTemplates()
 
@@ -89,6 +89,23 @@ export function RemindersPage() {
 
   if (isLoading) {
     return <div className="text-center text-gray-600">Loading reminder settings...</div>
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-center">
+        <div className="rounded-2xl border-2 border-[#1e293b] bg-white p-8 shadow-[3px_3px_0px_0px_#1e293b]">
+          <p className="text-lg font-semibold text-red-600">Failed to load reminder settings</p>
+          <p className="text-[#64748b] text-sm mt-2">{error?.message || 'An unexpected error occurred'}</p>
+          <button
+            onClick={() => refetch()}
+            className="mt-4 px-4 py-2 rounded-xl border-2 border-[#1e293b] bg-white text-sm font-semibold hover:shadow-[3px_3px_0px_0px_#1e293b] transition-all"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
   }
 
   const appointmentReminders = formData.appointmentReminders

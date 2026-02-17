@@ -35,15 +35,56 @@ Deno.serve(async (req) => {
       throw new Error('No billing account found. Please subscribe to a plan first.')
     }
 
-    const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/[^/]*$/, '') || ''
+    const body = await req.json().catch(() => ({}))
 
-    const session = await stripe.billingPortal.sessions.create({
-      customer: org.stripe_customer_id,
-      return_url: `${origin}/app/billing`,
-    })
+    // Fetch invoices and customer with default payment method in parallel
+    const [invoiceList, customer] = await Promise.all([
+      stripe.invoices.list({
+        customer: org.stripe_customer_id,
+        limit: body.limit || 10,
+        starting_after: body.startingAfter || undefined,
+      }),
+      stripe.customers.retrieve(org.stripe_customer_id, {
+        expand: ['invoice_settings.default_payment_method'],
+      }),
+    ])
+
+    // Map invoices to minimal camelCase shape
+    const invoices = invoiceList.data.map((inv: Record<string, unknown>) => ({
+      id: inv.id,
+      number: inv.number,
+      amountDue: inv.amount_due,
+      amountPaid: inv.amount_paid,
+      currency: inv.currency,
+      status: inv.status,
+      created: inv.created,
+      periodStart: inv.period_start,
+      periodEnd: inv.period_end,
+      invoicePdf: inv.invoice_pdf,
+      hostedInvoiceUrl: inv.hosted_invoice_url,
+    }))
+
+    // Extract default payment method card info
+    let paymentMethod = null
+    if (
+      customer &&
+      !customer.deleted &&
+      customer.invoice_settings?.default_payment_method &&
+      typeof customer.invoice_settings.default_payment_method === 'object'
+    ) {
+      const card = customer.invoice_settings.default_payment_method.card
+      if (card) {
+        paymentMethod = {
+          brand: card.brand,
+          last4: card.last4,
+          expMonth: card.exp_month,
+          expYear: card.exp_year,
+        }
+      }
+    }
 
     return new Response(
-      JSON.stringify({ url: session.url }),
+      JSON.stringify({ invoices, hasMore: invoiceList.has_more, paymentMethod }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
   } catch (error) {

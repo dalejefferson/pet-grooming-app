@@ -60,6 +60,36 @@ async function hydrateAppointment(row: Record<string, unknown>): Promise<Appoint
   return mapAppointment(row, pets)
 }
 
+/**
+ * Check for conflicting appointments for a groomer in a given time range.
+ * Excludes cancelled/no_show appointments and optionally a specific appointment ID (for updates).
+ */
+async function checkForConflicts(
+  groomerId: string,
+  startTime: string,
+  endTime: string,
+  excludeId?: string
+): Promise<void> {
+  let query = supabase
+    .from('appointments')
+    .select('id, start_time, end_time, status')
+    .eq('groomer_id', groomerId)
+    .not('status', 'in', '("cancelled","no_show")')
+    .lt('start_time', endTime)
+    .gt('end_time', startTime)
+
+  if (excludeId) {
+    query = query.neq('id', excludeId)
+  }
+
+  const { data, error } = await query
+  if (error) throw error
+
+  if (data && data.length > 0) {
+    throw new Error('Time slot conflict: another appointment was booked for this time.')
+  }
+}
+
 export const calendarApi = {
   async getAll(organizationId?: string): Promise<Appointment[]> {
     let query = supabase.from('appointments').select('*')
@@ -168,6 +198,11 @@ export const calendarApi = {
       }
     }
 
+    // Check for time slot conflicts before inserting
+    if (data.groomerId) {
+      await checkForConflicts(data.groomerId, data.startTime, data.endTime)
+    }
+
     // 1. Insert the appointment row (without pets)
     const aptRow = toDbAppointment(data)
     const { data: inserted, error: aptError } = await supabase
@@ -213,6 +248,20 @@ export const calendarApi = {
   },
 
   async update(id: string, data: Partial<Appointment>): Promise<Appointment> {
+    // If time or groomer changed, check for conflicts
+    if (data.startTime || data.endTime || data.groomerId) {
+      const existing = await this.getById(id)
+      if (existing) {
+        const groomerId = data.groomerId ?? existing.groomerId
+        const startTime = data.startTime ?? existing.startTime
+        const endTime = data.endTime ?? existing.endTime
+
+        if (groomerId) {
+          await checkForConflicts(groomerId, startTime, endTime, id)
+        }
+      }
+    }
+
     const row = toDbAppointment(data)
     const { data: updated, error } = await supabase
       .from('appointments')
@@ -230,6 +279,11 @@ export const calendarApi = {
       throw new Error('Appointment not found')
     }
     validateStatusTransition(appointment.status, status)
+
+    // Block completing appointment if payment has failed
+    if (status === 'completed' && appointment.paymentStatus === 'failed') {
+      throw new Error('Cannot complete appointment: payment has failed. Please resolve payment before completing.')
+    }
 
     // Enforce cancellation window when transitioning to cancelled
     if (status === 'cancelled') {

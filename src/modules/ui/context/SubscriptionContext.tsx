@@ -1,9 +1,12 @@
-import { createContext, useContext, useMemo } from 'react'
+import { createContext, useContext, useEffect, useMemo } from 'react'
 import type { ReactNode } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useSubscription } from '@/modules/database/hooks'
 import type { Subscription, SubscriptionPlanTier, GatedFeature } from '@/modules/database/types'
 import { FEATURE_TIER_MAP, tierSatisfies, getStaffLimit } from '@/config/subscriptionGates'
 import { useGroomers } from '@/modules/database/hooks'
+import { supabase } from '@/lib/supabase/client'
+import { mapSubscription } from '@/modules/database/types/supabase-mappers'
 
 interface SubscriptionContextValue {
   subscription: Subscription | null | undefined
@@ -33,11 +36,31 @@ const SubscriptionContext = createContext<SubscriptionContextValue>({
 
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const { data: subscription, isLoading } = useSubscription()
-  const devBypass = !import.meta.env.PROD && import.meta.env.VITE_DEV_BYPASS_SUBSCRIPTION === 'true'
+  const devBypass = import.meta.env.DEV && import.meta.env.VITE_DEV_BYPASS_SUBSCRIPTION === 'true'
+  const queryClient = useQueryClient()
 
-  if (import.meta.env.PROD && devBypass) {
-    console.error('DANGER: Subscription bypass is active in a production build! Set VITE_DEV_BYPASS_SUBSCRIPTION=false')
-  }
+  useEffect(() => {
+    const channel = supabase
+      .channel('subscription-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'subscriptions' },
+        (payload) => {
+          if (payload.eventType === 'DELETE') {
+            queryClient.setQueryData(['subscription'], null)
+          } else if (payload.new) {
+            queryClient.setQueryData(
+              ['subscription'],
+              mapSubscription(payload.new as Record<string, unknown>)
+            )
+          }
+        }
+      )
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [queryClient])
 
   if (import.meta.env.PROD && import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY && !import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY.startsWith('pk_live_')) {
     console.warn('WARNING: Using Stripe test key in production build')

@@ -40,6 +40,27 @@ export interface BillingEvent {
   processedAt: string
 }
 
+export interface StripeInvoice {
+  id: string
+  number: string | null
+  amountDue: number
+  amountPaid: number
+  currency: string
+  status: 'draft' | 'open' | 'paid' | 'void' | 'uncollectible'
+  created: number
+  periodStart: number
+  periodEnd: number
+  invoicePdf: string | null
+  hostedInvoiceUrl: string | null
+}
+
+export interface StripePaymentMethod {
+  brand: string
+  last4: string
+  expMonth: number
+  expYear: number
+}
+
 export type GatedFeature =
   | 'multipleStaff'
   | 'rolePermissions'

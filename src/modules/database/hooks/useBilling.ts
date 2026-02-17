@@ -8,7 +8,15 @@ export function useSubscription() {
     queryKey: ['subscription'],
     queryFn: () => billingApi.getSubscription(),
     refetchOnWindowFocus: true,
-    staleTime: 5_000,
+    staleTime: Infinity,
+  })
+}
+
+export function useInvoices(startingAfter?: string) {
+  return useQuery({
+    queryKey: ['invoices', startingAfter],
+    queryFn: () => billingApi.listInvoices(startingAfter),
+    staleTime: 60_000,
   })
 }
 

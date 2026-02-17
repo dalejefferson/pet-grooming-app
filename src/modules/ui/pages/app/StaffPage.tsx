@@ -51,7 +51,7 @@ export function StaffPage() {
   const [editingStaff, setEditingStaff] = useState<Groomer | null>(null)
   const [deletingStaff, setDeletingStaff] = useState<Groomer | null>(null)
 
-  const { data: staff = [], isLoading } = useGroomers()
+  const { data: staff = [], isLoading, isError, refetch } = useGroomers()
   const { data: deletedItems = [] } = useDeletedHistory('groomer')
   const { data: allTimeOffRequests = [] } = useTimeOffRequests()
   const createGroomer = useCreateGroomer()
@@ -146,7 +146,7 @@ export function StaffPage() {
     <div className={cn('min-h-screen p-4 lg:p-6', colors.pageGradientLight)}>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div data-tour-step="staff-page-header" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold text-gray-900">Staff</h1>
           <PermissionGate permission="canManageStaff">
             {canAddStaff ? (
@@ -229,7 +229,16 @@ export function StaffPage() {
               </div>
             </div>
 
-            {isLoading ? (
+            {isError ? (
+              <Card>
+                <div className="py-8 text-center">
+                  <p className="text-red-600 font-medium">Failed to load staff.</p>
+                  <Button variant="outline" size="sm" className="mt-3" onClick={() => refetch()}>
+                    Retry
+                  </Button>
+                </div>
+              </Card>
+            ) : isLoading ? (
               <div className="text-center text-gray-600">Loading staff...</div>
             ) : filteredStaff.length === 0 ? (
               <Card>

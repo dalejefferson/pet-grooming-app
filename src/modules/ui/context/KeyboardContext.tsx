@@ -10,6 +10,7 @@ interface KeyboardContextType {
   registerThemeCycle: (cycle: () => void) => void
   registerReportCycle: (cycle: () => void) => void
   registerDashboardCycle: (cycle: () => void) => void
+  registerTourActive: (isActive: boolean) => void
 }
 
 const KeyboardContext = createContext<KeyboardContextType | null>(null)
@@ -24,6 +25,7 @@ export function KeyboardProvider({ children }: { children: ReactNode }) {
   const themeCycleRef = useRef<(() => void) | null>(null)
   const reportCycleRef = useRef<(() => void) | null>(null)
   const dashboardCycleRef = useRef<(() => void) | null>(null)
+  const tourActiveRef = useRef(false)
 
   const registerSidebarToggle = useCallback((toggle: () => void) => {
     sidebarToggleRef.current = toggle
@@ -57,8 +59,15 @@ export function KeyboardProvider({ children }: { children: ReactNode }) {
     dashboardCycleRef.current = cycle
   }, [])
 
+  const registerTourActive = useCallback((isActive: boolean) => {
+    tourActiveRef.current = isActive
+  }, [])
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Suppress all shortcuts while product tour is active
+      if (tourActiveRef.current) return
+
       // Don't trigger shortcuts when typing in inputs
       const target = e.target as HTMLElement
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
@@ -127,7 +136,7 @@ export function KeyboardProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <KeyboardContext.Provider value={{ registerSidebarToggle, registerCalendarNavigate, registerCalendarViewCycle, registerBookAppointment, registerSidebarNavigate, registerThemeCycle, registerReportCycle, registerDashboardCycle }}>
+    <KeyboardContext.Provider value={{ registerSidebarToggle, registerCalendarNavigate, registerCalendarViewCycle, registerBookAppointment, registerSidebarNavigate, registerThemeCycle, registerReportCycle, registerDashboardCycle, registerTourActive }}>
       {children}
     </KeyboardContext.Provider>
   )

@@ -10,6 +10,7 @@ import {
   Bell,
   BarChart3,
   LayoutDashboard,
+  CreditCard,
   Settings,
   LogOut,
   ChevronLeft,
@@ -152,7 +153,7 @@ export function Sidebar({ collapsed, onToggle, isMobile = false, onClose }: Side
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 overflow-y-auto p-4">
+      <nav data-tour-step="sidebar-navigation" className="flex-1 space-y-1 overflow-y-auto p-4">
         {visibleNavItems.map((item) => (
           <NavLink
             key={item.to}
@@ -189,6 +190,36 @@ export function Sidebar({ collapsed, onToggle, isMobile = false, onClose }: Side
 
       {/* Footer */}
       <div className="border-t-2 border-[#1e293b] p-4">
+        {hasPermission('canManageSettings') && (
+          <NavLink
+            to="/app/billing"
+            onClick={handleNavClick}
+            onMouseEnter={(e) => showTooltip('Billing', e.currentTarget)}
+            onMouseLeave={hideTooltip}
+            aria-label="Billing"
+            className={({ isActive }) =>
+              cn(
+                'group relative flex items-center rounded-xl text-sm transition-all duration-150',
+                isMobile ? 'min-h-[44px] gap-3 px-3 py-2.5' : (
+                  effectiveCollapsed
+                    ? 'h-10 w-10 justify-center mx-auto'
+                    : 'gap-3 px-3 py-2.5'
+                ),
+                isActive ? 'nav-link-active' : 'nav-link-inactive'
+              )
+            }
+          >
+            <CreditCard className="h-5 w-5 flex-shrink-0" />
+            <span
+              className={cn(
+                'whitespace-nowrap transition-all duration-150',
+                effectiveCollapsed && !isMobile ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'
+              )}
+            >
+              Billing
+            </span>
+          </NavLink>
+        )}
         {hasPermission('canManageSettings') && (
           <NavLink
             to="/app/settings"

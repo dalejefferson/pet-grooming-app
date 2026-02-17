@@ -1,6 +1,12 @@
 import { supabase } from '@/lib/supabase/client'
-import type { Subscription } from '../types'
+import type { Subscription, StripeInvoice, StripePaymentMethod } from '../types'
 import { mapSubscription } from '../types/supabase-mappers'
+
+export interface InvoiceListResult {
+  invoices: StripeInvoice[]
+  hasMore: boolean
+  paymentMethod: StripePaymentMethod | null
+}
 
 export const billingApi = {
   async getSubscription(): Promise<Subscription | null> {
@@ -41,6 +47,28 @@ export const billingApi = {
     if (!response.ok) throw new Error(result.error || 'Failed to create checkout session')
 
     return result.url
+  },
+
+  async listInvoices(startingAfter?: string): Promise<InvoiceListResult> {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) throw new Error('Not authenticated')
+
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/list-invoices`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ startingAfter }),
+      }
+    )
+
+    const result = await response.json()
+    if (!response.ok) throw new Error(result.error || 'Failed to list invoices')
+
+    return result as InvoiceListResult
   },
 
   async createPortalSession(): Promise<string> {

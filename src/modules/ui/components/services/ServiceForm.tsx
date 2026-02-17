@@ -28,9 +28,25 @@ export function ServiceForm({
     category: service?.category || 'bath',
     isActive: service?.isActive ?? true,
   })
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    const validationErrors: Record<string, string> = {}
+    if (!formData.name.trim()) {
+      validationErrors.name = 'Service name is required'
+    }
+    if (formData.baseDurationMinutes <= 0) {
+      validationErrors.baseDurationMinutes = 'Duration must be greater than 0'
+    }
+    if (formData.basePrice < 0) {
+      validationErrors.basePrice = 'Price cannot be negative'
+    }
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors)
+      return
+    }
+    setErrors({})
     onSubmit({
       ...formData,
       organizationId: user?.organizationId || '',
@@ -42,7 +58,11 @@ export function ServiceForm({
       <Input
         label="Service Name"
         value={formData.name}
-        onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
+        onChange={(e) => {
+          setFormData((p) => ({ ...p, name: e.target.value }))
+          if (errors.name) setErrors((p) => ({ ...p, name: '' }))
+        }}
+        error={errors.name}
         required
       />
       <Textarea
@@ -56,7 +76,11 @@ export function ServiceForm({
           label="Base Duration (minutes)"
           type="number"
           value={formData.baseDurationMinutes}
-          onChange={(e) => setFormData((p) => ({ ...p, baseDurationMinutes: Number(e.target.value) }))}
+          onChange={(e) => {
+            setFormData((p) => ({ ...p, baseDurationMinutes: Number(e.target.value) }))
+            if (errors.baseDurationMinutes) setErrors((p) => ({ ...p, baseDurationMinutes: '' }))
+          }}
+          error={errors.baseDurationMinutes}
           min={5}
           required
         />
@@ -64,7 +88,11 @@ export function ServiceForm({
           label="Base Price ($)"
           type="number"
           value={formData.basePrice}
-          onChange={(e) => setFormData((p) => ({ ...p, basePrice: Number(e.target.value) }))}
+          onChange={(e) => {
+            setFormData((p) => ({ ...p, basePrice: Number(e.target.value) }))
+            if (errors.basePrice) setErrors((p) => ({ ...p, basePrice: '' }))
+          }}
+          error={errors.basePrice}
           min={0}
           step={0.01}
           required

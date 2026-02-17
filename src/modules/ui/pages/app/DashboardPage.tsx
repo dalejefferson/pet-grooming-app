@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Calendar, Users, Dog, Clock, TrendingUp, AlertCircle, UserX, XCircle, Crown, X } from 'lucide-react'
-import { Card, CardTitle, Badge, Button } from '../../components/common'
+import { Card, CardTitle, Badge, Button, LoadingSpinner } from '../../components/common'
 import { AppointmentDetailsDrawer, StatusChangeModal } from '../../components/calendar'
 import { VaccinationAlertsWidget } from '../../components/dashboard'
 import { useAppointmentsByDay, useAppointmentsByDateRange, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useDeleteAppointment, useCreateAppointment } from '@/hooks'
@@ -43,9 +43,11 @@ export function DashboardPage() {
 
   const today = useMemo(() => startOfDay(new Date()), [])
   const { data: todayAppointments = [], isLoading: isLoadingAppointments } = useAppointmentsByDay(today, undefined, { refetchInterval: 10_000 })
-  const { data: clients = [] } = useClients()
-  const { data: pets = [] } = usePets()
+  const { data: clients = [], isLoading: isLoadingClients } = useClients()
+  const { data: pets = [], isLoading: isLoadingPets } = usePets()
   const { data: groomers = [] } = useGroomers()
+
+  const isLoadingStats = isLoadingAppointments || isLoadingClients || isLoadingPets
 
   // Appointment editing state
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
@@ -290,26 +292,40 @@ export function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Link key={stat.label} to={stat.link}>
-            <Card className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]">
+      <div data-tour-step="dashboard-stats-grid" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {isLoadingStats ? (
+          [1, 2, 3, 4].map(i => (
+            <Card key={i}>
               <div className="flex items-center gap-4">
-                <div className={cn('shrink-0 rounded-lg p-3', stat.color)}>
-                  <stat.icon className="h-6 w-6" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  <p className="truncate text-sm text-gray-600">{stat.label}</p>
+                <div className="h-12 w-12 shrink-0 rounded-lg bg-gray-100 animate-pulse" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="h-6 w-12 rounded bg-gray-100 animate-pulse" />
+                  <div className="h-4 w-24 rounded bg-gray-100 animate-pulse" />
                 </div>
               </div>
             </Card>
-          </Link>
-        ))}
+          ))
+        ) : (
+          stats.map((stat) => (
+            <Link key={stat.label} to={stat.link}>
+              <Card className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]">
+                <div className="flex items-center gap-4">
+                  <div className={cn('shrink-0 rounded-lg p-3', stat.color)}>
+                    <stat.icon className="h-6 w-6" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                    <p className="truncate text-sm text-gray-600">{stat.label}</p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          ))
+        )}
       </div>
 
       {/* Today's Schedule */}
-      <Card>
+      <Card data-tour-step="dashboard-today-schedule">
         <div className="mb-4 flex items-center justify-between">
           <CardTitle>Today's Schedule</CardTitle>
           <Link

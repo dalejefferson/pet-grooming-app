@@ -10,7 +10,7 @@ import { useTheme, useUndo } from '../../context'
 export function ServicesPage() {
   const { colors } = useTheme()
   const { showUndo } = useUndo()
-  const { data: services = [], isLoading } = useServices()
+  const { data: services = [], isLoading, isError, refetch } = useServices()
   const { data: deletedItems = [] } = useDeletedHistory('service')
   const createService = useCreateService()
   const updateService = useUpdateService()
@@ -85,7 +85,7 @@ export function ServicesPage() {
   return (
     <div className={cn('min-h-screen p-4 lg:p-6', colors.pageGradientLight)}>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div data-tour-step="services-page-header" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold text-gray-900">Services</h1>
         <Button
           onClick={() => setShowCreateModal(true)}
@@ -97,7 +97,16 @@ export function ServicesPage() {
         </Button>
       </div>
 
-      {isLoading ? (
+      {isError ? (
+        <Card>
+          <div className="py-8 text-center">
+            <p className="text-red-600 font-medium">Failed to load services.</p>
+            <Button variant="outline" size="sm" className="mt-3" onClick={() => refetch()}>
+              Retry
+            </Button>
+          </div>
+        </Card>
+      ) : isLoading ? (
         <div className="text-center text-gray-600">Loading services...</div>
       ) : services.length === 0 ? (
         <Card>

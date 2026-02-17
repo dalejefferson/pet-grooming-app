@@ -51,6 +51,7 @@ export function BookingConfirmPage() {
   }, [groomerId, allGroomers])
 
   const isSubmittingRef = useRef(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [notes, setNotes] = useState('')
   const [agreedToPolicy, setAgreedToPolicy] = useState(false)
@@ -177,6 +178,7 @@ export function BookingConfirmPage() {
     // Prevent double-click race condition
     if (isSubmittingRef.current) return
     isSubmittingRef.current = true
+    setIsSubmitting(true)
     setError(null)
 
     // Validate every pet has at least 1 service selected
@@ -187,6 +189,7 @@ export function BookingConfirmPage() {
         : clientPets.find((p) => p.id === petWithNoServices.petId)?.name || 'A pet'
       setError(`${petName} has no services selected. Please go back and add at least one service per pet.`)
       isSubmittingRef.current = false
+      setIsSubmitting(false)
       return
     }
 
@@ -295,6 +298,7 @@ export function BookingConfirmPage() {
       setError('Payment failed. Please check your payment details and try again.')
     } finally {
       isSubmittingRef.current = false
+      setIsSubmitting(false)
     }
   }
 
@@ -414,7 +418,7 @@ export function BookingConfirmPage() {
         ) : paymentStatus !== 'completed' ? (
           <Button
             onClick={handlePayment}
-            disabled={!agreedToPolicy || paymentStatus === 'processing'}
+            disabled={!agreedToPolicy || paymentStatus === 'processing' || isSubmitting}
             className="bg-[#fcd9bd] text-[#1e293b] hover:bg-[#fbc4a0] border-[#1e293b]"
           >
             {paymentStatus === 'processing' ? (

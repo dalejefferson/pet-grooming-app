@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { Download, FileText, BarChart3 } from 'lucide-react'
-import { Button, EmptyState, SubscriptionGate } from '../../components/common'
+import { Button, EmptyState, SubscriptionGate, LoadingSpinner } from '../../components/common'
 import { useToast } from '@/modules/ui/hooks/useToast'
 import { useAppointments, useClients, useServices, useGroomers, usePets } from '@/hooks'
 import { format, subDays, parseISO, isWithinInterval, startOfDay, getDay, getHours } from 'date-fns'
@@ -32,11 +32,13 @@ export function ReportsPage() {
   const { showSuccess, showError } = useToast()
   const { registerReportCycle } = useKeyboardShortcuts()
   const [dateRange, setDateRange] = useState<DateRange>(DATE_RANGES[2]) // Default to 30 days
-  const { data: appointments = [] } = useAppointments()
-  const { data: clients = [] } = useClients()
-  const { data: services = [] } = useServices()
+  const { data: appointments = [], isLoading: isLoadingAppointments } = useAppointments()
+  const { data: clients = [], isLoading: isLoadingClients } = useClients()
+  const { data: services = [], isLoading: isLoadingServices } = useServices()
   const { data: groomers = [] } = useGroomers()
   const { data: pets = [] } = usePets()
+
+  const isLoading = isLoadingAppointments || isLoadingClients || isLoadingServices
 
   // Cycle through date ranges: 7 -> 14 -> 30 -> 90 -> 7
   const cycleReportRange = useCallback(() => {
@@ -377,31 +379,38 @@ export function ReportsPage() {
           </div>
         </div>
 
-        {/* Summary Stats */}
-        <ReportStatsCards stats={stats} colors={colors} />
-
-        {/* Charts Grid */}
-        {filteredAppointments.length === 0 ? (
-          <EmptyState
-            icon={<BarChart3 className="h-8 w-8" />}
-            title="No data for this period"
-            description={`No appointments found in the last ${dateRange.days} days. Try selecting a different date range.`}
-          />
-        ) : (
-          <div className="grid gap-6 lg:grid-cols-2">
-            <RevenueChart data={revenueData} colors={colors} />
-            <AppointmentsChart data={statusData} />
-            <TopServicesChart data={topServicesData} colors={colors} />
-            <NewClientsChart data={clientAcquisitionData} colors={colors} />
-            <GroomerPerformanceChart data={groomerPerformanceData} colors={colors} />
-            <ClientRetentionChart data={clientRetentionData} colors={colors} />
-            <NoShowCancellationChart data={noShowCancellationData} colors={colors} />
-            <PeakHoursChart data={peakHoursData} colors={colors} />
-            <ServiceCategoryRevenueChart data={serviceCategoryRevenueData} colors={colors} />
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <LoadingSpinner size="lg" />
           </div>
+        ) : (
+          <>
+            {/* Summary Stats */}
+            <ReportStatsCards stats={stats} colors={colors} />
+
+            {/* Charts Grid */}
+            {filteredAppointments.length === 0 ? (
+              <EmptyState
+                icon={<BarChart3 className="h-8 w-8" />}
+                title="No data for this period"
+                description={`No appointments found in the last ${dateRange.days} days. Try selecting a different date range.`}
+              />
+            ) : (
+              <div className="grid gap-6 lg:grid-cols-2">
+                <RevenueChart data={revenueData} colors={colors} />
+                <AppointmentsChart data={statusData} />
+                <TopServicesChart data={topServicesData} colors={colors} />
+                <NewClientsChart data={clientAcquisitionData} colors={colors} />
+                <GroomerPerformanceChart data={groomerPerformanceData} colors={colors} />
+                <ClientRetentionChart data={clientRetentionData} colors={colors} />
+                <NoShowCancellationChart data={noShowCancellationData} colors={colors} />
+                <PeakHoursChart data={peakHoursData} colors={colors} />
+                <ServiceCategoryRevenueChart data={serviceCategoryRevenueData} colors={colors} />
+              </div>
+            )}
+          </>
         )}
       </div>
-
       <ReportsChartStyles />
     </div>
   )

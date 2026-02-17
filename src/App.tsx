@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '@/modules/database'
-import { ThemeProvider, KeyboardProvider, UndoProvider, ShortcutTipsProvider, ToastProvider, SubscriptionProvider } from '@/modules/ui/context'
+import { ThemeProvider, KeyboardProvider, UndoProvider, ShortcutTipsProvider, ToastProvider, SubscriptionProvider, OnboardingProvider } from '@/modules/ui/context'
 import { ErrorBoundary } from '@/modules/ui/components/common'
 import { AppLayout, BookingLayout } from '@/modules/ui/components/layout'
 import { LoginPage, AuthCallbackPage, ProtectedRoute, AuthProvider } from '@/modules/auth'
@@ -19,6 +19,7 @@ import {
   SettingsPage,
   StaffPage,
   StaffDetailPage,
+  BillingPage,
 } from '@/modules/ui/pages/app'
 import {
   BookingStartPage,
@@ -39,6 +40,7 @@ function App() {
       <ThemeProvider>
         <SubscriptionProvider>
         <BrowserRouter>
+          <OnboardingProvider>
           <KeyboardProvider>
           <UndoProvider>
           <ToastProvider>
@@ -65,6 +67,7 @@ function App() {
             <Route path="reminders" element={<ProtectedRoute permission="canManagePolicies"><RemindersPage /></ProtectedRoute>} />
             <Route path="reports" element={<ProtectedRoute permission="canViewReports"><ReportsPage /></ProtectedRoute>} />
             <Route path="settings" element={<ProtectedRoute permission="canManageSettings"><SettingsPage /></ProtectedRoute>} />
+            <Route path="billing" element={<ProtectedRoute permission="canManageSettings"><BillingPage /></ProtectedRoute>} />
           </Route>
 
           {/* Public booking routes */}
@@ -89,6 +92,7 @@ function App() {
           </ToastProvider>
           </UndoProvider>
           </KeyboardProvider>
+          </OnboardingProvider>
         </BrowserRouter>
         </SubscriptionProvider>
       </ThemeProvider>

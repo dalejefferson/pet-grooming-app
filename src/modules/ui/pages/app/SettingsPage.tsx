@@ -1,14 +1,13 @@
 import { Card, CardTitle, Button, Input, AddressAutocomplete } from '../../components/common'
-import { BillingSection } from '../../components/billing'
 import { useOrganization, useUpdateOrganization } from '@/hooks'
-import { useTheme, themeColors, type ThemeName, useToast } from '../../context'
-import { useState, useEffect, useRef } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useTheme, themeColors, type ThemeName, useToast, useOnboarding } from '../../context'
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import type { Organization } from '@/types'
 import { cn } from '@/lib/utils'
 import { validators, validateForm } from '@/lib/utils/formValidation'
 import { emailApi } from '@/modules/database/api'
-import { ChevronDown, Mail, Send } from 'lucide-react'
+import { ChevronDown, ChevronRight, CreditCard, Mail, Send, Compass } from 'lucide-react'
 
 // Theme configuration for the picker
 const themeOptions: { name: ThemeName; label: string; swatches: string[] }[] = [
@@ -120,36 +119,17 @@ const themeOptions: { name: ThemeName; label: string; swatches: string[] }[] = [
 ]
 
 export function SettingsPage() {
-  const { data: organization, isLoading } = useOrganization()
+  const { data: organization, isLoading, isError, error, refetch } = useOrganization()
   const updateOrganization = useUpdateOrganization()
   const { currentTheme, setTheme, colors } = useTheme()
   const { showSuccess, showError } = useToast()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const billingHandledRef = useRef(false)
+  const { startTour } = useOnboarding()
   const [formData, setFormData] = useState<Partial<Organization>>({})
   const [hasChanges, setHasChanges] = useState(false)
   const [themeExpanded, setThemeExpanded] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSendingTest, setIsSendingTest] = useState(false)
   const [testEmailAddress, setTestEmailAddress] = useState('')
-
-  useEffect(() => {
-    if (billingHandledRef.current) return
-    const billing = searchParams.get('billing')
-    if (!billing) return
-
-    billingHandledRef.current = true
-
-    if (billing === 'success') {
-      showSuccess('Subscription updated!', 'Your billing changes have been saved.')
-    } else if (billing === 'canceled') {
-      showSuccess('Checkout canceled', 'No changes were made to your subscription.')
-    }
-
-    const newParams = new URLSearchParams(searchParams)
-    newParams.delete('billing')
-    setSearchParams(newParams, { replace: true })
-  }, [searchParams, setSearchParams, showSuccess])
 
   useEffect(() => {
     if (organization) {
@@ -202,10 +182,27 @@ export function SettingsPage() {
     return <div className="text-center text-gray-600">Loading settings...</div>
   }
 
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-center">
+        <div className="rounded-2xl border-2 border-[#1e293b] bg-white p-8 shadow-[3px_3px_0px_0px_#1e293b]">
+          <p className="text-lg font-semibold text-red-600">Failed to load settings</p>
+          <p className="text-[#64748b] text-sm mt-2">{error?.message || 'An unexpected error occurred'}</p>
+          <button
+            onClick={() => refetch()}
+            className="mt-4 px-4 py-2 rounded-xl border-2 border-[#1e293b] bg-white text-sm font-semibold hover:shadow-[3px_3px_0px_0px_#1e293b] transition-all"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={cn('min-h-screen p-4 lg:p-6', colors.pageGradientLight)}>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div data-tour-step="settings-page-header" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
         <Button
           onClick={handleSave}
@@ -218,7 +215,38 @@ export function SettingsPage() {
         </Button>
       </div>
 
-      <BillingSection />
+      <Card>
+        <Link to="/app/billing" className="flex items-center justify-between p-2">
+          <div className="flex items-center gap-3">
+            <CreditCard className="h-5 w-5 text-[#1e293b]" />
+            <div>
+              <CardTitle>Billing</CardTitle>
+              <p className="text-sm text-[#64748b]">Manage your subscription, invoices, and payment method</p>
+            </div>
+          </div>
+          <ChevronRight className="h-4 w-4 text-[#64748b]" />
+        </Link>
+      </Card>
+
+      <Card>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-pastel-lavender p-2 border-2 border-[#1e293b]">
+              <Compass className="h-5 w-5 text-[#1e293b]" />
+            </div>
+            <div>
+              <CardTitle>Product Tour</CardTitle>
+              <p className="text-sm text-[#64748b]">Walk through the key features of Sit Pretty Club</p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            onClick={startTour}
+          >
+            Restart Tour
+          </Button>
+        </div>
+      </Card>
 
       <Card>
         <CardTitle>Business Information</CardTitle>

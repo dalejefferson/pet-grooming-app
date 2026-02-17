@@ -3,8 +3,9 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { cn } from '@/lib/utils'
-import { useKeyboardShortcuts, useTheme, validThemes } from '../../context'
+import { useKeyboardShortcuts, useTheme, validThemes, useOnboarding } from '../../context'
 import { CreateAppointmentModal } from '../calendar'
+import { TourOverlay } from '../onboarding'
 import type { PetServiceSelection } from '../calendar'
 import { useClients, useClientPets, useServices, useGroomers, useCreateAppointment, useCurrentUser } from '@/hooks'
 import type { AppointmentStatus } from '@/types'
@@ -47,10 +48,18 @@ export function AppLayout() {
   const [selectedClientId, setSelectedClientId] = useState('')
   const isMobile = useIsMobile()
   const location = useLocation()
-  const { registerSidebarToggle, registerCalendarNavigate, registerBookAppointment, registerSidebarNavigate, registerThemeCycle } = useKeyboardShortcuts()
+  const { isTourActive } = useOnboarding()
+  const { registerSidebarToggle, registerCalendarNavigate, registerBookAppointment, registerSidebarNavigate, registerThemeCycle, registerTourActive } = useKeyboardShortcuts()
   const { currentTheme, setTheme } = useTheme()
   const navigate = useNavigate()
   const { data: currentUser } = useCurrentUser()
+
+  const effectiveSidebarCollapsed = isTourActive ? false : sidebarCollapsed
+
+  // Sync tour active state with keyboard context
+  useEffect(() => {
+    registerTourActive(isTourActive)
+  }, [isTourActive, registerTourActive])
 
   const navigateSidebar = useCallback((direction: 'up' | 'down') => {
     const currentIndex = sidebarRoutes.indexOf(location.pathname)
@@ -179,7 +188,7 @@ export function AppLayout() {
         {/* Desktop Sidebar - always visible */}
         <div className="hidden lg:block">
           <Sidebar
-            collapsed={sidebarCollapsed}
+            collapsed={effectiveSidebarCollapsed}
             onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
             isMobile={false}
           />
@@ -205,7 +214,7 @@ export function AppLayout() {
           className={cn(
             'min-h-screen transition-all duration-300',
             // Only add left padding on desktop
-            sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
+            effectiveSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
           )}
         >
           <Header onMenuClick={() => setSidebarOpen(true)} />
@@ -230,6 +239,8 @@ export function AppLayout() {
         onCreateAppointment={handleCreateAppointment}
         isCreating={createAppointment.isPending}
       />
+
+      <TourOverlay />
     </>
   )
 }

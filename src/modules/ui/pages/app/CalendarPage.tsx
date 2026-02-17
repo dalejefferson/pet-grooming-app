@@ -404,6 +404,7 @@ export function CalendarPage() {
   return (
     <div className={cn('min-h-screen p-4 lg:p-6 flex flex-col', colors.pageGradientLight)}>
       <div className="flex flex-col gap-6 flex-1 min-h-0">
+        <div data-tour-step="calendar-toolbar">
         <CalendarToolbar
           view={view}
           searchQuery={searchQuery}
@@ -418,6 +419,7 @@ export function CalendarPage() {
           onStatusFilterChange={setSelectedStatuses}
           getDisplayDate={getDisplayDate}
         />
+        </div>
 
         <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
           {(view === 'day' || view === 'week') && (
@@ -426,7 +428,7 @@ export function CalendarPage() {
             </div>
           )}
 
-          <Card padding="none" className={cn('flex-1 min-h-0 bg-white/80 backdrop-blur-sm', isDragging && 'cursor-grabbing')}>
+          <Card data-tour-step="calendar-grid" padding="none" className={cn('flex-1 min-h-0 bg-white/80 backdrop-blur-sm', isDragging && 'cursor-grabbing')}>
             {isInitialLoading ? (
               <div className="flex items-center justify-center min-h-[650px]">
                 <LoadingSpinner size="lg" />

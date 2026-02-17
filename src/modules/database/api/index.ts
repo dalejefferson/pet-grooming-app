@@ -13,6 +13,7 @@ export { vaccinationRemindersApi } from './vaccinationRemindersApi'
 export { staffApi } from './staffApi'
 export { performanceApi } from './performanceApi'
 export { billingApi } from './billingApi'
+export type { InvoiceListResult } from './billingApi'
 export { emailApi } from './emailApi'
 
 // Re-export types from bookingApi

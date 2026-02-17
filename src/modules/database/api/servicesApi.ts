@@ -194,6 +194,17 @@ export const servicesApi = {
   },
 
   async removeModifier(serviceId: string, modifierId: string): Promise<Service> {
+    // Check if modifier is referenced by existing appointments
+    const { data: refs, error: refError } = await supabase
+      .from('appointment_services')
+      .select('id')
+      .contains('applied_modifier_ids', [modifierId])
+
+    if (refError) throw new Error(refError.message)
+    if (refs && refs.length > 0) {
+      throw new Error('Cannot delete modifier — it is referenced by existing appointments.')
+    }
+
     const { error } = await supabase
       .from('service_modifiers')
       .delete()

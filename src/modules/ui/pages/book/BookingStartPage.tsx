@@ -33,7 +33,7 @@ export function BookingStartPage() {
       setSelectedClient(prefilledClient)
       setIsNewClient(false)
     }
-  }, [prefilledClient, prefilledClientId])
+  }, [prefilledClient, prefilledClientId, selectedClient?.id])
 
   const handleContinue = () => {
     if (isNewClient && !validateFields()) return
@@ -61,7 +61,7 @@ export function BookingStartPage() {
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  const phoneRegex = /^[+]?(?:[\d\s()-]*\d){7,}[\d\s()-]*$/
+  const phoneRegex = /^\+?[\d\s\-()]{10,}$/
 
   const validateFields = () => {
     const errors: { firstName?: string; lastName?: string; email?: string; phone?: string } = {}
@@ -239,6 +239,11 @@ export function BookingStartPage() {
                   setNewClientInfo((p) => ({ ...p, firstName: e.target.value }))
                   if (validationErrors.firstName) setValidationErrors((p) => ({ ...p, firstName: undefined }))
                 }}
+                onBlur={() => {
+                  if (!newClientInfo.firstName.trim()) {
+                    setValidationErrors((p) => ({ ...p, firstName: 'First name is required' }))
+                  }
+                }}
                 error={validationErrors.firstName}
                 required
               />
@@ -248,6 +253,11 @@ export function BookingStartPage() {
                 onChange={(e) => {
                   setNewClientInfo((p) => ({ ...p, lastName: e.target.value }))
                   if (validationErrors.lastName) setValidationErrors((p) => ({ ...p, lastName: undefined }))
+                }}
+                onBlur={() => {
+                  if (!newClientInfo.lastName.trim()) {
+                    setValidationErrors((p) => ({ ...p, lastName: 'Last name is required' }))
+                  }
                 }}
                 error={validationErrors.lastName}
                 required

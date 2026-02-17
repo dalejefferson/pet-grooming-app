@@ -104,8 +104,8 @@ Deno.serve(async (req) => {
           plan_tier: planTier,
         },
       },
-      success_url: `${origin}/app/settings?billing=success`,
-      cancel_url: `${origin}/app/settings?billing=canceled`,
+      success_url: `${origin}/app/billing?billing=success`,
+      cancel_url: `${origin}/app/billing?billing=canceled`,
       metadata: {
         organization_id: orgId,
         plan_tier: planTier,
