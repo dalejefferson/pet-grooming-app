@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import {
   BarChart,
   Bar,
@@ -11,15 +12,24 @@ import {
 import { Card, CardTitle } from '../common'
 import type { StatusDataPoint } from './types'
 
+const TOOLTIP_CONTENT_STYLE = {
+  backgroundColor: 'white',
+  border: '2px solid #1e293b',
+  borderRadius: '12px',
+  boxShadow: '2px 2px 0px 0px #1e293b',
+} as const
+
+const CARD_ANIMATION_STYLE = { animation: 'fadeInUp 0.5s ease-out 0.2s forwards', opacity: 0 } as const
+
 interface AppointmentsChartProps {
   data: StatusDataPoint[]
 }
 
-export function AppointmentsChart({ data }: AppointmentsChartProps) {
+export const AppointmentsChart = memo(function AppointmentsChart({ data }: AppointmentsChartProps) {
   return (
     <Card
       className="border-2 border-[#1e293b] rounded-2xl shadow-[3px_3px_0px_0px_#1e293b] bg-white"
-      style={{ animation: 'fadeInUp 0.5s ease-out 0.2s forwards', opacity: 0 }}
+      style={CARD_ANIMATION_STYLE}
     >
       <CardTitle className="mb-4 text-[#1e293b]">Appointments by Status</CardTitle>
       <div className="h-[300px]" style={{ outline: 'none', cursor: 'default' }}>
@@ -40,12 +50,7 @@ export function AppointmentsChart({ data }: AppointmentsChartProps) {
               tickLine={{ stroke: '#334155' }}
             />
             <Tooltip
-              contentStyle={{
-                backgroundColor: 'white',
-                border: '2px solid #1e293b',
-                borderRadius: '12px',
-                boxShadow: '2px 2px 0px 0px #1e293b',
-              }}
+              contentStyle={TOOLTIP_CONTENT_STYLE}
             />
             <Bar dataKey="count" radius={[8, 8, 0, 0]} style={{ cursor: 'default' }}>
               {data.map((entry, index) => (
@@ -57,4 +62,4 @@ export function AppointmentsChart({ data }: AppointmentsChartProps) {
       </div>
     </Card>
   )
-}
+})

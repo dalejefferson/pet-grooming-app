@@ -1,8 +1,6 @@
 import type { Client } from '../types'
 import { supabase } from '@/lib/supabase/client'
 import { mapClient, toDbClient, mapPaymentMethod } from '../types/supabase-mappers'
-import { petsApi } from './petsApi'
-import { calendarApi } from './calendarApi'
 
 async function fetchPaymentMethods(clientId: string) {
   const { data, error } = await supabase
@@ -142,17 +140,55 @@ export const clientsApi = {
   },
 
   async delete(id: string): Promise<void> {
-    // Cascade: delete appointments referencing this client
-    const appointments = await calendarApi.getByClientId(id)
-    for (const apt of appointments) {
-      await calendarApi.delete(apt.id)
+    // Get appointment IDs for this client
+    const { data: apts, error: aptQueryError } = await supabase
+      .from('appointments')
+      .select('id')
+      .eq('client_id', id)
+    if (aptQueryError) throw new Error(aptQueryError.message)
+
+    const appointmentIds = (apts ?? []).map(a => a.id)
+
+    if (appointmentIds.length > 0) {
+      // Get appointment_pet IDs
+      const { data: aptPets, error: petQueryError } = await supabase
+        .from('appointment_pets')
+        .select('id')
+        .in('appointment_id', appointmentIds)
+      if (petQueryError) throw new Error(petQueryError.message)
+
+      const aptPetIds = (aptPets ?? []).map(p => p.id)
+
+      if (aptPetIds.length > 0) {
+        // Delete appointment_services
+        const { error: svcDelError } = await supabase
+          .from('appointment_services')
+          .delete()
+          .in('appointment_pet_id', aptPetIds)
+        if (svcDelError) throw new Error(svcDelError.message)
+      }
+
+      // Delete appointment_pets
+      const { error: petDelError } = await supabase
+        .from('appointment_pets')
+        .delete()
+        .in('appointment_id', appointmentIds)
+      if (petDelError) throw new Error(petDelError.message)
+
+      // Delete appointments
+      const { error: aptDelError } = await supabase
+        .from('appointments')
+        .delete()
+        .eq('client_id', id)
+      if (aptDelError) throw new Error(aptDelError.message)
     }
 
-    // Cascade: delete pets belonging to this client
-    const pets = await petsApi.getByClientId(id)
-    for (const pet of pets) {
-      await petsApi.delete(pet.id)
-    }
+    // Delete pets belonging to this client
+    const { error: petsDelError } = await supabase
+      .from('pets')
+      .delete()
+      .eq('client_id', id)
+    if (petsDelError) throw new Error(petsDelError.message)
 
     // Delete payment methods
     const { error: pmError } = await supabase
@@ -166,7 +202,6 @@ export const clientsApi = {
       .from('clients')
       .delete()
       .eq('id', id)
-
     if (error) throw new Error(error.message)
   },
 }

@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { TrendingUp, Calendar, Scissors, Users, XCircle, UserX } from 'lucide-react'
 import { Card } from '../common'
 import type { ReportStats } from './types'
@@ -8,7 +9,7 @@ interface ReportStatsCardsProps {
   colors: ThemeColors
 }
 
-export function ReportStatsCards({ stats, colors }: ReportStatsCardsProps) {
+export const ReportStatsCards = memo(function ReportStatsCards({ stats }: ReportStatsCardsProps) {
   const { totalRevenue, totalAppointments, completedAppointments, cancelledAppointments, noShowAppointments, totalClients } = stats
 
   return (
@@ -20,9 +21,9 @@ export function ReportStatsCards({ stats, colors }: ReportStatsCardsProps) {
         <div className="flex items-center gap-3">
           <div
             className="shrink-0 rounded-xl p-3 border-2 border-[#1e293b]"
-            style={{ backgroundColor: colors.accentColor }}
+            style={{ backgroundColor: 'var(--accent-color)' }}
           >
-            <TrendingUp className="h-6 w-6" style={{ color: colors.textOnPrimary }} />
+            <TrendingUp className="h-6 w-6" style={{ color: 'var(--text-on-primary)' }} />
           </div>
           <div className="min-w-0">
             <p className="text-2xl font-bold text-[#1e293b]">${totalRevenue.toFixed(0)}</p>
@@ -34,9 +35,9 @@ export function ReportStatsCards({ stats, colors }: ReportStatsCardsProps) {
         <div className="flex items-center gap-3">
           <div
             className="shrink-0 rounded-xl p-3 border-2 border-[#1e293b]"
-            style={{ backgroundColor: colors.secondaryAccent }}
+            style={{ backgroundColor: 'var(--secondary-accent)' }}
           >
-            <Calendar className="h-6 w-6" style={{ color: colors.textOnSecondary }} />
+            <Calendar className="h-6 w-6" style={{ color: 'var(--text-on-secondary)' }} />
           </div>
           <div className="min-w-0">
             <p className="text-2xl font-bold text-[#1e293b]">{totalAppointments}</p>
@@ -48,9 +49,9 @@ export function ReportStatsCards({ stats, colors }: ReportStatsCardsProps) {
         <div className="flex items-center gap-3">
           <div
             className="shrink-0 rounded-xl p-3 border-2 border-[#1e293b]"
-            style={{ backgroundColor: colors.accentColorLight }}
+            style={{ backgroundColor: 'var(--accent-color-light)' }}
           >
-            <Scissors className="h-6 w-6" style={{ color: colors.textOnAccentLight }} />
+            <Scissors className="h-6 w-6" style={{ color: 'var(--text-on-accent-light)' }} />
           </div>
           <div className="min-w-0">
             <p className="text-2xl font-bold text-[#1e293b]">{completedAppointments}</p>
@@ -62,9 +63,9 @@ export function ReportStatsCards({ stats, colors }: ReportStatsCardsProps) {
         <div className="flex items-center gap-3">
           <div
             className="shrink-0 rounded-xl p-3 border-2 border-[#1e293b]"
-            style={{ backgroundColor: colors.accentColorDark }}
+            style={{ backgroundColor: 'var(--accent-color-dark)' }}
           >
-            <Users className="h-6 w-6" style={{ color: colors.textOnAccent }} />
+            <Users className="h-6 w-6" style={{ color: 'var(--text-on-accent)' }} />
           </div>
           <div className="min-w-0">
             <p className="text-2xl font-bold text-[#1e293b]">{totalClients}</p>
@@ -102,4 +103,4 @@ export function ReportStatsCards({ stats, colors }: ReportStatsCardsProps) {
       </Card>
     </div>
   )
-}
+})

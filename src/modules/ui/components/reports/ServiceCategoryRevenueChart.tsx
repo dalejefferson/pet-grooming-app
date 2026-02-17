@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import {
   PieChart,
   Pie,
@@ -11,12 +12,21 @@ import { Card, CardTitle } from '../common'
 import type { ServiceCategoryDataPoint } from './types'
 import type { ThemeColors } from '../../context/ThemeContext'
 
+const TOOLTIP_CONTENT_STYLE = {
+  backgroundColor: 'white',
+  border: '2px solid #1e293b',
+  borderRadius: '12px',
+  boxShadow: '2px 2px 0px 0px #1e293b',
+} as const
+
+const CARD_ANIMATION_STYLE = { animation: 'fadeInUp 0.5s ease-out 0.8s forwards', opacity: 0 } as const
+
 interface ServiceCategoryRevenueChartProps {
   data: ServiceCategoryDataPoint[]
   colors: ThemeColors
 }
 
-export function ServiceCategoryRevenueChart({ data, colors }: ServiceCategoryRevenueChartProps) {
+export const ServiceCategoryRevenueChart = memo(function ServiceCategoryRevenueChart({ data, colors }: ServiceCategoryRevenueChartProps) {
   // Map category names to theme colors
   const categoryColors: Record<string, string> = {
     Bath: colors.accentColor,
@@ -41,7 +51,7 @@ export function ServiceCategoryRevenueChart({ data, colors }: ServiceCategoryRev
   return (
     <Card
       className="border-2 border-[#1e293b] rounded-2xl shadow-[3px_3px_0px_0px_#1e293b] bg-white"
-      style={{ animation: 'fadeInUp 0.5s ease-out 0.8s forwards', opacity: 0 }}
+      style={CARD_ANIMATION_STYLE}
     >
       <CardTitle className="mb-4 text-[#1e293b]">Revenue by Service Category</CardTitle>
       <div className="h-[300px]" style={{ outline: 'none', cursor: 'default' }}>
@@ -69,12 +79,7 @@ export function ServiceCategoryRevenueChart({ data, colors }: ServiceCategoryRev
             </Pie>
             <Tooltip
               formatter={(value) => [formatCurrency(value as number | undefined), 'Revenue']}
-              contentStyle={{
-                backgroundColor: 'white',
-                border: '2px solid #1e293b',
-                borderRadius: '12px',
-                boxShadow: '2px 2px 0px 0px #1e293b',
-              }}
+              contentStyle={TOOLTIP_CONTENT_STYLE}
             />
             <Legend
               verticalAlign="bottom"
@@ -88,4 +93,4 @@ export function ServiceCategoryRevenueChart({ data, colors }: ServiceCategoryRev
       </div>
     </Card>
   )
-}
+})

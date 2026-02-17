@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Calendar, Users, Dog, Clock, TrendingUp, AlertCircle, UserX, XCircle, Crown, X } from 'lucide-react'
-import { Card, CardTitle, Badge, Button, LoadingSpinner } from '../../components/common'
+import { Card, CardTitle, Badge, Button } from '../../components/common'
 import { AppointmentDetailsDrawer, StatusChangeModal } from '../../components/calendar'
 import { VaccinationAlertsWidget } from '../../components/dashboard'
 import { useAppointmentsByDay, useAppointmentsByDateRange, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useDeleteAppointment, useCreateAppointment } from '@/hooks'
@@ -439,21 +439,21 @@ export function DashboardPage() {
                 to="/app/calendar"
                 className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
               >
-                <Calendar className="h-5 w-5" style={{ color: colors.accentColorDark }} />
+                <Calendar className="h-5 w-5" style={{ color: 'var(--accent-color-dark)' }} />
                 <span className="font-medium text-gray-900">View Calendar</span>
               </Link>
               <Link
                 to="/app/clients"
                 className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
               >
-                <Users className="h-5 w-5" style={{ color: colors.accentColorDark }} />
+                <Users className="h-5 w-5" style={{ color: 'var(--accent-color-dark)' }} />
                 <span className="font-medium text-gray-900">Manage Clients</span>
               </Link>
               <Link
                 to="/app/services"
                 className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
               >
-                <TrendingUp className="h-5 w-5" style={{ color: colors.accentColorDark }} />
+                <TrendingUp className="h-5 w-5" style={{ color: 'var(--accent-color-dark)' }} />
                 <span className="font-medium text-gray-900">Edit Services</span>
               </Link>
               <Link
@@ -461,7 +461,7 @@ export function DashboardPage() {
                 target="_blank"
                 className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
               >
-                <Dog className="h-5 w-5" style={{ color: colors.accentColorDark }} />
+                <Dog className="h-5 w-5" style={{ color: 'var(--accent-color-dark)' }} />
                 <span className="font-medium text-gray-900">Booking Portal</span>
               </Link>
             </div>
@@ -480,7 +480,7 @@ export function DashboardPage() {
                       ? 'shadow-[1px_1px_0px_0px_#1e293b] border-[#1e293b]'
                       : 'border-transparent bg-transparent text-[#334155] hover:bg-[var(--accent-color-light)]'
                   )}
-                  style={issuesRange === range ? { backgroundColor: colors.accentColorDark, color: 'var(--text-on-accent)' } : undefined}
+                  style={issuesRange === range ? { backgroundColor: 'var(--accent-color-dark)', color: 'var(--text-on-accent)' } : undefined}
                 >
                   {range === 'today' ? 'Today' : range === '7days' ? '7 Days' : '30 Days'}
                 </button>

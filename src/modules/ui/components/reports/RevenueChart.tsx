@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import {
   LineChart,
   Line,
@@ -11,16 +12,25 @@ import { Card, CardTitle } from '../common'
 import type { RevenueDataPoint } from './types'
 import type { ThemeColors } from '../../context/ThemeContext'
 
+const TOOLTIP_CONTENT_STYLE = {
+  backgroundColor: 'white',
+  border: '2px solid #1e293b',
+  borderRadius: '12px',
+  boxShadow: '2px 2px 0px 0px #1e293b',
+} as const
+
+const CARD_ANIMATION_STYLE = { animation: 'fadeInUp 0.5s ease-out 0.1s forwards', opacity: 0 } as const
+
 interface RevenueChartProps {
   data: RevenueDataPoint[]
   colors: ThemeColors
 }
 
-export function RevenueChart({ data, colors }: RevenueChartProps) {
+export const RevenueChart = memo(function RevenueChart({ data, colors }: RevenueChartProps) {
   return (
     <Card
       className="border-2 border-[#1e293b] rounded-2xl shadow-[3px_3px_0px_0px_#1e293b] bg-white"
-      style={{ animation: 'fadeInUp 0.5s ease-out 0.1s forwards', opacity: 0 }}
+      style={CARD_ANIMATION_STYLE}
     >
       <CardTitle className="mb-4 text-[#1e293b]">Revenue Over Time</CardTitle>
       <div className="h-[300px]" style={{ outline: 'none', cursor: 'default' }}>
@@ -40,12 +50,7 @@ export function RevenueChart({ data, colors }: RevenueChartProps) {
             />
             <Tooltip
               formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Revenue']}
-              contentStyle={{
-                backgroundColor: 'white',
-                border: '2px solid #1e293b',
-                borderRadius: '12px',
-                boxShadow: '2px 2px 0px 0px #1e293b',
-              }}
+              contentStyle={TOOLTIP_CONTENT_STYLE}
             />
             <Line
               type="monotone"
@@ -60,4 +65,4 @@ export function RevenueChart({ data, colors }: RevenueChartProps) {
       </div>
     </Card>
   )
-}
+})

@@ -109,6 +109,7 @@ export interface InAppNotification {
   petId?: string
   clientId?: string
   read: boolean
+  actionUrl?: string
   createdAt: string
 }
 

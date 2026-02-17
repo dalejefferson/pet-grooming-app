@@ -39,6 +39,45 @@ async function hydrateGroomer(row: Record<string, unknown>): Promise<Groomer> {
   return mapGroomer(row, availability ?? undefined, timeOff)
 }
 
+/**
+ * Batch-hydrate multiple groomer rows using 2 bulk queries instead of N+1.
+ */
+async function batchHydrateGroomers(rows: Record<string, unknown>[]): Promise<Groomer[]> {
+  const ids = rows.map(r => r.id as string)
+  if (ids.length === 0) return []
+
+  // Fetch all availability in one query
+  const { data: allAvail, error: availError } = await supabase
+    .from('staff_availability')
+    .select('*')
+    .in('staff_id', ids)
+  if (availError) throw availError
+
+  // Fetch all time-off in one query
+  const { data: allTimeOff, error: toError } = await supabase
+    .from('time_off_requests')
+    .select('*')
+    .in('staff_id', ids)
+  if (toError) throw toError
+
+  const availMap = new Map<string, StaffAvailability>()
+  for (const row of allAvail ?? []) {
+    availMap.set(row.staff_id, mapStaffAvailability(row))
+  }
+
+  const timeOffMap = new Map<string, TimeOffRequest[]>()
+  for (const row of allTimeOff ?? []) {
+    const existing = timeOffMap.get(row.staff_id) ?? []
+    existing.push(mapTimeOffRequest(row))
+    timeOffMap.set(row.staff_id, existing)
+  }
+
+  return rows.map(row => {
+    const id = row.id as string
+    return mapGroomer(row, availMap.get(id) ?? undefined, timeOffMap.get(id) ?? [])
+  })
+}
+
 export const staffApi = {
   // =============================================
   // Groomer CRUD (previously delegated to groomersApi)
@@ -51,8 +90,7 @@ export const staffApi = {
     }
     const { data, error } = await query
     if (error) throw error
-    const groomers = await Promise.all((data ?? []).map(hydrateGroomer))
-    return groomers
+    return batchHydrateGroomers(data ?? [])
   },
 
   async getById(id: string): Promise<Groomer | null> {
@@ -359,16 +397,13 @@ export const staffApi = {
     availability: StaffAvailability | null
     timeOffRequests: TimeOffRequest[]
   }>> {
+    // getAll() already batch-hydrates availability + timeOff, so reuse that data
     const groomers = await this.getAll(organizationId)
 
-    const result = await Promise.all(
-      groomers.map(async (groomer) => ({
-        groomer,
-        availability: await this.getStaffAvailability(groomer.id),
-        timeOffRequests: await this.getTimeOffRequests(groomer.id),
-      }))
-    )
-
-    return result
+    return groomers.map(groomer => ({
+      groomer,
+      availability: groomer.availability ?? null,
+      timeOffRequests: groomer.timeOff ?? [],
+    }))
   },
 }

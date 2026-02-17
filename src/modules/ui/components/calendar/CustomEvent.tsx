@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { format } from 'date-fns'
 import { APPOINTMENT_STATUS_LABELS } from '@/config/constants'
 import type { CustomEventProps } from './types'
@@ -10,7 +11,7 @@ import type { CustomEventProps } from './types'
  *
  * Uses explicit `view` prop to determine rendering mode.
  */
-export function CustomEvent({ event, view, onMouseEnter, onMouseLeave }: CustomEventProps) {
+export const CustomEvent = memo(function CustomEvent({ event, view, onMouseEnter, onMouseLeave }: CustomEventProps) {
   const status = event.resource.status
   const statusLabel = APPOINTMENT_STATUS_LABELS[status]
   const timeStr = format(event.start, 'h:mm a')
@@ -48,4 +49,4 @@ export function CustomEvent({ event, view, onMouseEnter, onMouseLeave }: CustomE
       )}
     </div>
   )
-}
+})

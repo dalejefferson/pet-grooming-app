@@ -1,11 +1,12 @@
 # MISSING.md - App Completeness Audit
 
-Last audited: 2026-02-15 (re-audited, run #4)
+Last audited: 2026-02-17 (re-audited, run #5)
 
 ---
 
 ## Critical
 
+- [ ] [Critical] [A] **NEW-R5** Cross-org appointment data leak: `getByClientId()` and `getByGroomerId()` in calendarApi.ts query WITHOUT `organization_id` filter — any authenticated user can view appointments from other organizations (calendarApi.ts lines 224-240)
 - [x] [RESOLVED] [Critical] [A] Seed data ID mismatch: seedUsers uses `user-1/2/3`, seedGroomers uses `groomer-1/2/3/4` — fixed in groomersApi.ts, all IDs now consistent
 - [x] [RESOLVED] [Critical] [A] Duplicate groomer seed data: groomersApi.ts had conflicting seedGroomers — removed, seed.ts is now single source of truth
 - [x] [RESOLVED] [Critical] [A] Staff availability ID mismatch: staffApi.ts referenced wrong IDs — updated to match seed.ts user IDs
@@ -53,8 +54,10 @@ Last audited: 2026-02-15 (re-audited, run #4)
 - [x] [RESOLVED] [High] [A] StaffPage no confirmation dialog for deletion: ConfirmDialog added with deleteConfirmId state
 - [x] [RESOLVED] [High] [A] ReportsPage CSV/PDF export failure silent: already had try-catch with toast, confirmed working
 - [x] [RESOLVED] [High] [A] Groomer break time validation fails for inverted times: guard added to skip break check when breakStart >= breakEnd
-- [ ] [High] [B] Stripe integration is fully mocked: mockStripe.ts simulates payments — no real payment processing for bookings
-- [ ] [High] [B] Email notifications are mocked: mockEmailService.ts logs to console/localStorage only — needs Resend integration for all notification types (confirmations, reminders, cancellations, vaccination alerts). Email-first strategy; SMS deferred to future phase.
+- [x] [RESOLVED] [High] [B] Stripe subscription billing now live: Products, prices, checkout, webhooks, and billing page all working in test mode. Fixed webhook `current_period_start`/`current_period_end` field location bug. Edge functions deployed with `--no-verify-jwt` for PKCE ES256 compatibility.
+- [ ] [High] [B] Stripe booking payment still mocked: mockStripe.ts simulates payment processing during booking flow — real Stripe payment intent needed for in-app booking payments (separate from subscription billing)
+- [x] [RESOLVED] [High] [B] Email notifications live via Resend: edge function `send-email` deployed, 6 email templates (test, ready-for-pickup, appointment reminder, vaccination reminder, booking confirmation, new booking alert). Sender: `onboarding@resend.dev` (sandbox).
+- [ ] [High] [A] **NEW-R5** `checkForConflicts()` in calendarApi.ts doesn't filter by `organization_id` — reports false conflicts from other organizations' appointments (calendarApi.ts lines 127-151)
 - [x] [RESOLVED] [High] [A] ServiceForm missing validation: validation added requiring non-empty name, positive duration, non-negative price
 - [ ] [High] [B] **NEW** RLS policies allow anonymous client creation: anonymous users can create clients and view client data (for booking flow) — abusable for data scraping or spamming (supabase/migrations/002_rls_policies.sql lines 77-82)
 - [ ] [High] [B] **NEW-R4** RLS policies for staff_availability and time_off_requests use `USING(true)` for SELECT — exposes all orgs' staff schedule data globally (002_rls_policies.sql lines 314, 330)
@@ -128,6 +131,7 @@ Last audited: 2026-02-15 (re-audited, run #4)
 - [ ] [Medium] [A] **NEW-R4** Floating point precision loss in price calculations — `basePrice * priceAdjustment / 100` accumulates rounding errors (bookingApi.ts line 80)
 - [ ] [Medium] [A] **NEW-R4** Time-off date parsing not validated — `parseISO()` on malformed DB dates returns Invalid Date, silently breaking availability checks (calendarApi.ts lines 304-307)
 - [ ] [Medium] [A] **NEW-R4** Inconsistent overlap logic between conflict detection and buffer checking — buffer applies `-bufferMinutes` to start but conflict check doesn't, causing edge-case double-bookings (calendarApi.ts lines 331-366)
+- [ ] [Medium] [A] **NEW-R5** `getAvailableSlots()` doesn't validate groomerId belongs to organizationId — cross-org groomer availability data leak (calendarApi.ts lines 376-501)
 - [ ] [Medium] [B] **NEW** Timezone conversion needs date-fns-tz: organization.timezone stored but never used for date conversion — multi-timezone orgs show wrong times
 
 ## Low
@@ -181,8 +185,9 @@ Last audited: 2026-02-15 (re-audited, run #4)
 
 ## Bucket B (Requires External APIs) - Summary
 
-- [ ] [High] [B] Stripe integration is fully mocked: mockStripe.ts simulates payments — no real payment processing for bookings
-- [ ] [High] [B] Email notifications are mocked: needs Resend integration for all notification types (email-first strategy; SMS deferred)
+- [x] [RESOLVED] [High] [B] Stripe subscription billing now live (test mode) — products, prices, checkout, webhooks, billing page all working
+- [ ] [High] [B] Stripe booking payment still mocked: mockStripe.ts simulates payment during booking — needs real Stripe payment intent
+- [x] [RESOLVED] [High] [B] Email notifications live via Resend: 6 templates, edge function deployed
 - [ ] [High] [B] **NEW** RLS policies allow anonymous client creation: needs rate limiting, CAPTCHA, or tighter scoping
 - [ ] [High] [B] **NEW-R4** RLS policies for staff_availability and time_off_requests use `USING(true)` — exposes all orgs' data globally
 - [x] [RESOLVED] [Medium] [B] Supabase client is a stub: fully migrated — all 14 API modules now use Supabase queries, RLS policies active
@@ -212,10 +217,10 @@ Last audited: 2026-02-15 (re-audited, run #4)
 
 | Severity | Bucket A (Open) | Bucket A (Resolved) | Bucket B (Open) | Bucket B (Resolved) | Total Open |
 |----------|-----------------|---------------------|-----------------|---------------------|------------|
-| Critical | 0               | 13                  | 0               | 0                   | 0          |
-| High     | 0               | 38                  | 4               | 0                   | 4          |
-| Medium   | 64              | 1                   | 1               | 2                   | 65         |
+| Critical | 1               | 13                  | 0               | 0                   | 1          |
+| High     | 1               | 38                  | 3               | 2                   | 4          |
+| Medium   | 65              | 1                   | 1               | 2                   | 66         |
 | Low      | 45              | 0                   | 1               | 0                   | 46         |
-| **Total**| **109**         | **52**              | **6**           | **2**               | **115**    |
+| **Total**| **112**         | **52**              | **5**           | **4**               | **117**    |
 
-*Run #4 fix pass (2026-02-15): 25 Critical/High Bucket A issues resolved. 0 Critical and 0 High Bucket A items remain open.*
+*Run #5 audit (2026-02-17): Stripe billing + email notifications now live (2 High-B resolved). Found 1 new Critical (cross-org data leak), 1 new High (conflict check missing org filter), 1 new Medium (availability org validation). RLS policy gaps still open from R4.*

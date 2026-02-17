@@ -10,7 +10,7 @@ import {
   SPECIALTY_TO_SERVICE_CATEGORIES,
   DEFAULT_GROOMER_SERVICE_CATEGORIES,
 } from '@/config/constants'
-import type { Service, Groomer } from '@/types'
+import type { Service, Groomer, Pet } from '@/types'
 
 // Helper function to get service categories a groomer can perform
 function getGroomerServiceCategories(groomer: Groomer | null): string[] {
@@ -37,12 +37,7 @@ function getGroomerServiceCategories(groomer: Groomer | null): string[] {
 interface SelectedPet {
   petId?: string
   isNewPet: boolean
-  petInfo?: {
-    name?: string
-    breed?: string
-    weightRange?: string
-    coatType?: string
-  }
+  petInfo?: Partial<Pet>
   services: { serviceId: string; modifierIds: string[] }[]
 }
 

@@ -1,6 +1,9 @@
+import { memo } from 'react'
 import { Card, CardTitle } from '../common'
 import type { ThemeColors } from '../../context/ThemeContext'
 import type { PeakHoursData } from './types'
+
+const CARD_ANIMATION_STYLE = { animation: 'fadeInUp 0.5s ease-out 0.7s forwards', opacity: 0 } as const
 
 export interface PeakHoursChartProps {
   data: PeakHoursData
@@ -64,13 +67,13 @@ function getCellColor(count: number, maxCount: number, colors: ThemeColors): str
   }
 }
 
-export function PeakHoursChart({ data, colors }: PeakHoursChartProps) {
+export const PeakHoursChart = memo(function PeakHoursChart({ data, colors }: PeakHoursChartProps) {
   const { grid, maxCount } = data
 
   return (
     <Card
       className="border-2 border-[#1e293b] rounded-2xl shadow-[3px_3px_0px_0px_#1e293b] bg-white"
-      style={{ animation: 'fadeInUp 0.5s ease-out 0.7s forwards', opacity: 0 }}
+      style={CARD_ANIMATION_STYLE}
     >
       <CardTitle className="mb-4 text-[#1e293b]">Peak Hours</CardTitle>
 
@@ -155,4 +158,4 @@ export function PeakHoursChart({ data, colors }: PeakHoursChartProps) {
       </div>
     </Card>
   )
-}
+})

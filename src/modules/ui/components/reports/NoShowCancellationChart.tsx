@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import {
   BarChart,
   Bar,
@@ -12,12 +13,21 @@ import { Card, CardTitle } from '../common'
 import type { NoShowCancellationData } from './types'
 import type { ThemeColors } from '../../context/ThemeContext'
 
+const TOOLTIP_CONTENT_STYLE = {
+  backgroundColor: 'white',
+  border: '2px solid #1e293b',
+  borderRadius: '12px',
+  boxShadow: '2px 2px 0px 0px #1e293b',
+} as const
+
+const CARD_ANIMATION_STYLE = { animation: 'fadeInUp 0.5s ease-out 0.6s forwards', opacity: 0 } as const
+
 interface NoShowCancellationChartProps {
   data: NoShowCancellationData
   colors: ThemeColors
 }
 
-export function NoShowCancellationChart({ data, colors }: NoShowCancellationChartProps) {
+export const NoShowCancellationChart = memo(function NoShowCancellationChart({ data, colors }: NoShowCancellationChartProps) {
   const { noShowCount, cancelledCount, completedCount, totalAppointments, estimatedLostRevenue } = data
 
   // Calculate rates
@@ -34,7 +44,7 @@ export function NoShowCancellationChart({ data, colors }: NoShowCancellationChar
   return (
     <Card
       className="border-2 border-[#1e293b] rounded-2xl shadow-[3px_3px_0px_0px_#1e293b] bg-white"
-      style={{ animation: 'fadeInUp 0.5s ease-out 0.6s forwards', opacity: 0 }}
+      style={CARD_ANIMATION_STYLE}
     >
       <CardTitle className="mb-4 text-[#1e293b]">No-Shows & Cancellations</CardTitle>
 
@@ -81,12 +91,7 @@ export function NoShowCancellationChart({ data, colors }: NoShowCancellationChar
               width={80}
             />
             <Tooltip
-              contentStyle={{
-                backgroundColor: 'white',
-                border: '2px solid #1e293b',
-                borderRadius: '12px',
-                boxShadow: '2px 2px 0px 0px #1e293b',
-              }}
+              contentStyle={TOOLTIP_CONTENT_STYLE}
               formatter={(value) => [Number(value) || 0, 'Count']}
             />
             <Bar dataKey="count" radius={[0, 8, 8, 0]} style={{ cursor: 'default' }}>
@@ -104,4 +109,4 @@ export function NoShowCancellationChart({ data, colors }: NoShowCancellationChar
       </div>
     </Card>
   )
-}
+})

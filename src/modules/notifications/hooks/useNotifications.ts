@@ -87,7 +87,7 @@ export function useMarkNotificationRead() {
 
   return useMutation({
     mutationFn: async (id: string): Promise<InAppNotification> => {
-      const result = markAsRead(id)
+      const result = await markAsRead(id)
       if (!result) {
         throw new Error('Notification not found')
       }
@@ -113,7 +113,7 @@ export function useMarkAllNotificationsRead() {
 
   return useMutation({
     mutationFn: async (organizationId: string): Promise<{ count: number; organizationId: string }> => {
-      const count = markAllAsRead(organizationId)
+      const count = await markAllAsRead(organizationId)
       return { count, organizationId }
     },
     onSuccess: ({ organizationId }) => {

@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import {
   BarChart,
   Bar,
@@ -12,12 +13,21 @@ import { Card, CardTitle } from '../common'
 import type { GroomerPerformanceDataPoint } from './types'
 import type { ThemeColors } from '../../context/ThemeContext'
 
+const TOOLTIP_CONTENT_STYLE = {
+  backgroundColor: 'white',
+  border: '2px solid #1e293b',
+  borderRadius: '12px',
+  boxShadow: '2px 2px 0px 0px #1e293b',
+} as const
+
+const CARD_ANIMATION_STYLE = { animation: 'fadeInUp 0.5s ease-out 0.4s forwards', opacity: 0 } as const
+
 interface GroomerPerformanceChartProps {
   data: GroomerPerformanceDataPoint[]
   colors: ThemeColors
 }
 
-export function GroomerPerformanceChart({ data, colors }: GroomerPerformanceChartProps) {
+export const GroomerPerformanceChart = memo(function GroomerPerformanceChart({ data, colors }: GroomerPerformanceChartProps) {
   // Create an array of theme colors for the bars
   const themeBarColors = [
     colors.accentColor,
@@ -30,7 +40,7 @@ export function GroomerPerformanceChart({ data, colors }: GroomerPerformanceChar
   return (
     <Card
       className="border-2 border-[#1e293b] rounded-2xl shadow-[3px_3px_0px_0px_#1e293b] bg-white"
-      style={{ animation: 'fadeInUp 0.5s ease-out 0.4s forwards', opacity: 0 }}
+      style={CARD_ANIMATION_STYLE}
     >
       <CardTitle className="mb-4 text-[#1e293b]">Groomer Performance</CardTitle>
       <div className="h-[300px]" style={{ outline: 'none', cursor: 'default' }}>
@@ -51,12 +61,7 @@ export function GroomerPerformanceChart({ data, colors }: GroomerPerformanceChar
               width={100}
             />
             <Tooltip
-              contentStyle={{
-                backgroundColor: 'white',
-                border: '2px solid #1e293b',
-                borderRadius: '12px',
-                boxShadow: '2px 2px 0px 0px #1e293b',
-              }}
+              contentStyle={TOOLTIP_CONTENT_STYLE}
               formatter={(value, name) => {
                 const numValue = Number(value) || 0
                 if (name === 'revenue') {
@@ -80,4 +85,4 @@ export function GroomerPerformanceChart({ data, colors }: GroomerPerformanceChar
       </div>
     </Card>
   )
-}
+})

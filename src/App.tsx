@@ -1,36 +1,37 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '@/modules/database'
 import { ThemeProvider, KeyboardProvider, UndoProvider, ShortcutTipsProvider, ToastProvider, SubscriptionProvider, OnboardingProvider } from '@/modules/ui/context'
-import { ErrorBoundary } from '@/modules/ui/components/common'
+import { ErrorBoundary, LoadingPage } from '@/modules/ui/components/common'
 import { AppLayout, BookingLayout } from '@/modules/ui/components/layout'
 import { LoginPage, AuthCallbackPage, ProtectedRoute, AuthProvider } from '@/modules/auth'
-import {
-  DashboardPage,
-  CalendarPage,
-  ClientsPage,
-  ClientDetailPage,
-  PetsPage,
-  PetDetailPage,
-  ServicesPage,
-  PoliciesPage,
-  RemindersPage,
-  ReportsPage,
-  SettingsPage,
-  StaffPage,
-  StaffDetailPage,
-  BillingPage,
-} from '@/modules/ui/pages/app'
-import {
-  BookingStartPage,
-  BookingPetsPage,
-  BookingGroomerPage,
-  BookingIntakePage,
-  BookingTimesPage,
-  BookingConfirmPage,
-  BookingSuccessPage,
-} from '@/modules/ui/pages/book'
 import { LandingPage } from '@/modules/ui/pages/landing'
+
+// Lazy-loaded app pages
+const DashboardPage = lazy(() => import('@/modules/ui/pages/app').then(m => ({ default: m.DashboardPage })))
+const CalendarPage = lazy(() => import('@/modules/ui/pages/app').then(m => ({ default: m.CalendarPage })))
+const ClientsPage = lazy(() => import('@/modules/ui/pages/app').then(m => ({ default: m.ClientsPage })))
+const ClientDetailPage = lazy(() => import('@/modules/ui/pages/app').then(m => ({ default: m.ClientDetailPage })))
+const PetsPage = lazy(() => import('@/modules/ui/pages/app').then(m => ({ default: m.PetsPage })))
+const PetDetailPage = lazy(() => import('@/modules/ui/pages/app').then(m => ({ default: m.PetDetailPage })))
+const ServicesPage = lazy(() => import('@/modules/ui/pages/app').then(m => ({ default: m.ServicesPage })))
+const PoliciesPage = lazy(() => import('@/modules/ui/pages/app').then(m => ({ default: m.PoliciesPage })))
+const RemindersPage = lazy(() => import('@/modules/ui/pages/app').then(m => ({ default: m.RemindersPage })))
+const ReportsPage = lazy(() => import('@/modules/ui/pages/app').then(m => ({ default: m.ReportsPage })))
+const SettingsPage = lazy(() => import('@/modules/ui/pages/app').then(m => ({ default: m.SettingsPage })))
+const StaffPage = lazy(() => import('@/modules/ui/pages/app').then(m => ({ default: m.StaffPage })))
+const StaffDetailPage = lazy(() => import('@/modules/ui/pages/app').then(m => ({ default: m.StaffDetailPage })))
+const BillingPage = lazy(() => import('@/modules/ui/pages/app').then(m => ({ default: m.BillingPage })))
+
+// Lazy-loaded booking pages
+const BookingStartPage = lazy(() => import('@/modules/ui/pages/book').then(m => ({ default: m.BookingStartPage })))
+const BookingPetsPage = lazy(() => import('@/modules/ui/pages/book').then(m => ({ default: m.BookingPetsPage })))
+const BookingGroomerPage = lazy(() => import('@/modules/ui/pages/book').then(m => ({ default: m.BookingGroomerPage })))
+const BookingIntakePage = lazy(() => import('@/modules/ui/pages/book').then(m => ({ default: m.BookingIntakePage })))
+const BookingTimesPage = lazy(() => import('@/modules/ui/pages/book').then(m => ({ default: m.BookingTimesPage })))
+const BookingConfirmPage = lazy(() => import('@/modules/ui/pages/book').then(m => ({ default: m.BookingConfirmPage })))
+const BookingSuccessPage = lazy(() => import('@/modules/ui/pages/book').then(m => ({ default: m.BookingSuccessPage })))
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
           <UndoProvider>
           <ToastProvider>
           <ShortcutTipsProvider>
+          <Suspense fallback={<LoadingPage />}>
           <Routes>
           {/* Auth routes */}
           <Route path="/login" element={<LoginPage />} />
@@ -88,6 +90,7 @@ function App() {
           {/* Default redirect */}
           <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
+          </Suspense>
           </ShortcutTipsProvider>
           </ToastProvider>
           </UndoProvider>

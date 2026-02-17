@@ -17,7 +17,6 @@ export function useFocusTrap<T extends HTMLElement = HTMLDivElement>(
     if (focusableElements.length === 0) return
 
     const firstFocusable = focusableElements[0]
-    const _lastFocusable = focusableElements[focusableElements.length - 1]
 
     // Focus the first focusable element when trap activates
     firstFocusable.focus()

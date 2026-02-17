@@ -176,14 +176,19 @@ async function handleSubscriptionUpsert(event: { data: { object: Record<string, 
   }
 
   // Extract price info from line items
-  const items = sub.items as { data: Array<{ price: { id: string; recurring?: { interval: string } } }> } | undefined
-  const priceId = items?.data?.[0]?.price?.id ?? ''
-  const interval = items?.data?.[0]?.price?.recurring?.interval
+  const items = sub.items as { data: Array<{ price: { id: string; recurring?: { interval: string } }; current_period_start?: number; current_period_end?: number }> } | undefined
+  const firstItem = items?.data?.[0]
+  const priceId = firstItem?.price?.id ?? ''
+  const interval = firstItem?.price?.recurring?.interval
 
   const planTier = resolvePlanTier(priceId) || metadata?.plan_tier || 'solo'
   const billingInterval = interval === 'year' ? 'yearly' : 'monthly'
 
-  await supabaseAdmin
+  // current_period_start/end live on subscription items, not top-level subscription
+  const periodStart = (sub.current_period_start as number) || firstItem?.current_period_start
+  const periodEnd = (sub.current_period_end as number) || firstItem?.current_period_end
+
+  const { error: upsertError } = await supabaseAdmin
     .from('subscriptions')
     .upsert({
       organization_id: orgId,
@@ -194,13 +199,18 @@ async function handleSubscriptionUpsert(event: { data: { object: Record<string, 
       status: sub.status as string,
       trial_start: sub.trial_start ? new Date((sub.trial_start as number) * 1000).toISOString() : null,
       trial_end: sub.trial_end ? new Date((sub.trial_end as number) * 1000).toISOString() : null,
-      current_period_start: new Date((sub.current_period_start as number) * 1000).toISOString(),
-      current_period_end: new Date((sub.current_period_end as number) * 1000).toISOString(),
+      current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : new Date().toISOString(),
+      current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : new Date().toISOString(),
       cancel_at_period_end: (sub.cancel_at_period_end as boolean) ?? false,
       canceled_at: sub.canceled_at ? new Date((sub.canceled_at as number) * 1000).toISOString() : null,
     }, {
       onConflict: 'organization_id',
     })
+
+  if (upsertError) {
+    console.error('Subscription upsert failed:', upsertError)
+    throw new Error(`Subscription upsert failed: ${upsertError.message}`)
+  }
 }
 
 async function handleSubscriptionDeleted(event: { data: { object: Record<string, unknown> } }) {

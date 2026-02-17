@@ -96,9 +96,9 @@ export function useCreateAppointment() {
       calendarApi.create(data),
     onSuccess: () => {
       showSuccess('Appointment created')
-      queryClient.invalidateQueries({ queryKey: ['appointments'] })
-      queryClient.invalidateQueries({ queryKey: ['availableSlots'] })
-      queryClient.invalidateQueries({ queryKey: ['groomerAvailableSlots'] })
+      queryClient.invalidateQueries({ queryKey: ['appointments'], refetchType: 'active' })
+      queryClient.invalidateQueries({ queryKey: ['availableSlots'], refetchType: 'active' })
+      queryClient.invalidateQueries({ queryKey: ['groomerAvailableSlots'], refetchType: 'active' })
     },
   })
 }
@@ -116,9 +116,9 @@ export function useUpdateAppointment() {
         ['appointment', updatedAppointment.id],
         updatedAppointment
       )
-      queryClient.invalidateQueries({ queryKey: ['appointments'] })
-      queryClient.invalidateQueries({ queryKey: ['availableSlots'] })
-      queryClient.invalidateQueries({ queryKey: ['groomerAvailableSlots'] })
+      queryClient.invalidateQueries({ queryKey: ['appointments'], refetchType: 'active' })
+      queryClient.invalidateQueries({ queryKey: ['availableSlots'], refetchType: 'active' })
+      queryClient.invalidateQueries({ queryKey: ['groomerAvailableSlots'], refetchType: 'active' })
     },
   })
 }
@@ -136,9 +136,9 @@ export function useUpdateAppointmentStatus() {
         ['appointment', updatedAppointment.id],
         updatedAppointment
       )
-      queryClient.invalidateQueries({ queryKey: ['appointments'] })
-      queryClient.invalidateQueries({ queryKey: ['availableSlots'] })
-      queryClient.invalidateQueries({ queryKey: ['groomerAvailableSlots'] })
+      queryClient.invalidateQueries({ queryKey: ['appointments'], refetchType: 'active' })
+      queryClient.invalidateQueries({ queryKey: ['availableSlots'], refetchType: 'active' })
+      queryClient.invalidateQueries({ queryKey: ['groomerAvailableSlots'], refetchType: 'active' })
     },
   })
 }
@@ -156,9 +156,9 @@ export function useUpdatePaymentStatus() {
         ['appointment', updatedAppointment.id],
         updatedAppointment
       )
-      queryClient.invalidateQueries({ queryKey: ['appointments'] })
-      queryClient.invalidateQueries({ queryKey: ['availableSlots'] })
-      queryClient.invalidateQueries({ queryKey: ['groomerAvailableSlots'] })
+      queryClient.invalidateQueries({ queryKey: ['appointments'], refetchType: 'active' })
+      queryClient.invalidateQueries({ queryKey: ['availableSlots'], refetchType: 'active' })
+      queryClient.invalidateQueries({ queryKey: ['groomerAvailableSlots'], refetchType: 'active' })
     },
   })
 }
@@ -171,9 +171,9 @@ export function useDeleteAppointment() {
     mutationFn: (id: string) => calendarApi.delete(id),
     onSuccess: () => {
       showSuccess('Appointment deleted')
-      queryClient.invalidateQueries({ queryKey: ['appointments'] })
-      queryClient.invalidateQueries({ queryKey: ['availableSlots'] })
-      queryClient.invalidateQueries({ queryKey: ['groomerAvailableSlots'] })
+      queryClient.invalidateQueries({ queryKey: ['appointments'], refetchType: 'active' })
+      queryClient.invalidateQueries({ queryKey: ['availableSlots'], refetchType: 'active' })
+      queryClient.invalidateQueries({ queryKey: ['groomerAvailableSlots'], refetchType: 'active' })
     },
   })
 }

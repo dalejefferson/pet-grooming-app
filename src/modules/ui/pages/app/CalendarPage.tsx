@@ -88,11 +88,15 @@ export function CalendarPage() {
   const createAppointment = useCreateAppointment()
   const deleteAppointment = useDeleteAppointment()
 
+  // Lookup maps for O(1) access instead of O(n) .find() calls
+  const clientMap = useMemo(() => new Map(clients.map(c => [c.id, c])), [clients])
+  const petMap = useMemo(() => new Map(pets.map(p => [p.id, p])), [pets])
+
   // Build calendar events from appointments
   const events: CalendarEvent[] = useMemo(() => {
     return appointments.map((apt) => {
-      const client = clients.find((c) => c.id === apt.clientId)
-      const petNames = apt.pets.map((p) => pets.find((pet) => pet.id === p.petId)?.name).filter(Boolean).join(', ')
+      const client = clientMap.get(apt.clientId)
+      const petNames = apt.pets.map((p) => petMap.get(p.petId)?.name).filter(Boolean).join(', ')
       const serviceSummary = apt.pets.flatMap((p) => p.services.map(() => 'Grooming')).slice(0, 2).join(', ') + (apt.pets.flatMap((p) => p.services).length > 2 ? '...' : '')
       return {
         id: apt.id,
@@ -105,7 +109,7 @@ export function CalendarPage() {
         serviceSummary,
       }
     })
-  }, [appointments, clients, pets])
+  }, [appointments, clientMap, petMap])
 
   // Filter events based on search query and status
   const filteredEvents = useMemo(() => {

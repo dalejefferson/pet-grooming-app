@@ -7,7 +7,6 @@ import { format, subDays, parseISO, isWithinInterval, startOfDay, getDay, getHou
 import { cn } from '@/lib/utils'
 import type { AppointmentStatus } from '@/types'
 import { useTheme, useKeyboardShortcuts } from '../../context'
-import { exportReportPdf } from '@/lib/utils/reportPdfExport'
 import { exportReportCsv } from '@/lib/utils/reportCsvExport'
 import {
   DateRangeSelector,
@@ -317,8 +316,9 @@ export function ReportsPage() {
     }
   }
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     try {
+      const { exportReportPdf } = await import('@/lib/utils/reportPdfExport')
       exportReportPdf({
         dateRange,
         startDate,
@@ -361,7 +361,7 @@ export function ReportsPage() {
               <Button
                 onClick={handleExportPDF}
                 className="gap-2 hover:opacity-90"
-                style={{ backgroundColor: colors.accentColorDark, color: colors.textOnAccent }}
+                style={{ backgroundColor: 'var(--accent-color-dark)', color: 'var(--text-on-accent)' }}
               >
                 <FileText className="h-4 w-4" />
                 Download PDF
@@ -370,7 +370,7 @@ export function ReportsPage() {
                 onClick={handleExportCSV}
                 variant="secondary"
                 className="gap-2"
-                style={{ backgroundColor: colors.secondaryAccent }}
+                style={{ backgroundColor: 'var(--secondary-accent)' }}
               >
                 <Download className="h-4 w-4" />
                 Download CSV

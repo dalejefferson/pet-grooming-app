@@ -40,8 +40,10 @@ export const bookingApi = {
     }[]
   }> {
     const policies = await policiesApi.get(booking.organizationId)
+    if (!policies) throw new BookingValidationError('Booking policies not found for this organization.')
     let totalDuration = 0
     let totalPrice = 0
+    const serviceCache = new Map<string, Service>()
     const petDetails: {
       petId: string
       services: {
@@ -61,8 +63,13 @@ export const bookingApi = {
       }[] = []
 
       for (const selectedService of selectedPet.services) {
-        const service = await servicesApi.getById(selectedService.serviceId)
-        if (!service) continue
+        let service = serviceCache.get(selectedService.serviceId)
+        if (!service) {
+          const fetched = await servicesApi.getById(selectedService.serviceId)
+          if (!fetched) continue
+          service = fetched
+          serviceCache.set(selectedService.serviceId, service)
+        }
 
         let duration = service.baseDurationMinutes
         let price = service.basePrice
@@ -122,9 +129,10 @@ export const bookingApi = {
 
   async createBooking(booking: BookingState): Promise<BookingResult> {
     const policies = await policiesApi.get(booking.organizationId)
+    if (!policies) throw new BookingValidationError('Booking policies not found for this organization.')
 
     // Block new clients before creating any records to avoid orphaned data
-    if (booking.isNewClient && policies?.newClientMode === 'blocked') {
+    if (booking.isNewClient && policies.newClientMode === 'blocked') {
       throw new BookingValidationError(
         'This salon is not accepting new clients at this time. Please contact us directly.'
       )
@@ -215,7 +223,7 @@ export const bookingApi = {
     validateAppointmentDuration(details.totalDuration)
 
     // Validate deposit payment if required
-    if (policies?.depositRequired && details.depositRequired > 0) {
+    if (policies.depositRequired && details.depositRequired > 0) {
       if (booking.payment?.paymentStatus !== 'completed') {
         throw new BookingValidationError(
           `A deposit of $${details.depositRequired.toFixed(2)} is required to complete this booking.`
@@ -275,14 +283,8 @@ export const bookingApi = {
       transactionId: booking.payment?.transactionId,
     })
 
-    // Get all pet details
-    const allPets: Pet[] = [...createdPets]
-    for (const selectedPet of booking.selectedPets) {
-      if (!selectedPet.isNewPet && selectedPet.petId) {
-        const pet = await petsApi.getById(selectedPet.petId)
-        if (pet) allPets.push(pet)
-      }
-    }
+    // Get all pet details — reuse already-fetched existing pets instead of re-querying
+    const allPets: Pet[] = [...createdPets, ...existingPetsForValidation]
 
     return {
       appointment,

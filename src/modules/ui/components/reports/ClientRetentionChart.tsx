@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import {
   PieChart,
   Pie,
@@ -10,12 +11,21 @@ import { Card, CardTitle } from '../common'
 import type { ClientRetentionDataPoint } from './types'
 import type { ThemeColors } from '../../context/ThemeContext'
 
+const TOOLTIP_CONTENT_STYLE = {
+  backgroundColor: 'white',
+  border: '2px solid #1e293b',
+  borderRadius: '12px',
+  boxShadow: '2px 2px 0px 0px #1e293b',
+} as const
+
+const CARD_ANIMATION_STYLE = { animation: 'fadeInUp 0.5s ease-out 0.5s forwards', opacity: 0 } as const
+
 interface ClientRetentionChartProps {
   data: ClientRetentionDataPoint[]
   colors: ThemeColors
 }
 
-export function ClientRetentionChart({ data, colors }: ClientRetentionChartProps) {
+export const ClientRetentionChart = memo(function ClientRetentionChart({ data, colors }: ClientRetentionChartProps) {
   // Map data names to theme colors: New = light, Repeat = dark
   const getColorForSegment = (name: string) => {
     if (name.toLowerCase().includes('new')) {
@@ -61,7 +71,7 @@ export function ClientRetentionChart({ data, colors }: ClientRetentionChartProps
   return (
     <Card
       className="border-2 border-[#1e293b] rounded-2xl shadow-[3px_3px_0px_0px_#1e293b] bg-white"
-      style={{ animation: 'fadeInUp 0.5s ease-out 0.5s forwards', opacity: 0 }}
+      style={CARD_ANIMATION_STYLE}
     >
       <CardTitle className="mb-4 text-[#1e293b]">Client Retention</CardTitle>
       <div className="h-[300px]" style={{ outline: 'none', cursor: 'default' }}>
@@ -87,12 +97,7 @@ export function ClientRetentionChart({ data, colors }: ClientRetentionChartProps
               ))}
             </Pie>
             <Tooltip
-              contentStyle={{
-                backgroundColor: 'white',
-                border: '2px solid #1e293b',
-                borderRadius: '12px',
-                boxShadow: '2px 2px 0px 0px #1e293b',
-              }}
+              contentStyle={TOOLTIP_CONTENT_STYLE}
             />
             <Legend
               wrapperStyle={{
@@ -105,4 +110,4 @@ export function ClientRetentionChart({ data, colors }: ClientRetentionChartProps
       </div>
     </Card>
   )
-}
+})

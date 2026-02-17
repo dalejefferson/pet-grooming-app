@@ -10,7 +10,7 @@ export function PoliciesPage() {
   const { showSuccess, showError } = useToast()
   const { data: policies, isLoading } = usePolicies()
   const updatePolicies = useUpdatePolicies()
-  const { data: generatedText } = useGeneratePolicyText(policies)
+  const { data: generatedText } = useGeneratePolicyText(policies ?? undefined)
 
   const [formData, setFormData] = useState<Partial<BookingPolicies>>({})
   const [hasChanges, setHasChanges] = useState(false)

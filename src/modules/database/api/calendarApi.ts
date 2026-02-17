@@ -1,4 +1,4 @@
-import type { Appointment, AppointmentPet, AppointmentStatus, PaymentStatus, TimeSlot, DayOfWeek, StaffAvailability } from '../types'
+import type { Appointment, AppointmentPet, AppointmentStatus, PaymentStatus, TimeSlot, DayOfWeek, StaffAvailability, TimeOffRequest } from '../types'
 import { supabase } from '@/lib/supabase/client'
 import { mapAppointment, toDbAppointment } from '../types/supabase-mappers'
 import { staffApi } from './staffApi'
@@ -61,6 +61,66 @@ async function hydrateAppointment(row: Record<string, unknown>): Promise<Appoint
 }
 
 /**
+ * Batch-load appointment_pets and appointment_services for multiple appointments in 2 queries.
+ */
+async function batchLoadAppointmentPets(appointmentIds: string[]): Promise<Map<string, AppointmentPet[]>> {
+  if (appointmentIds.length === 0) return new Map()
+
+  // 1. Fetch ALL appointment_pets for all appointments in one query
+  const { data: allAptPets, error: petsError } = await supabase
+    .from('appointment_pets')
+    .select('*')
+    .in('appointment_id', appointmentIds)
+  if (petsError) throw petsError
+
+  const aptPets = allAptPets ?? []
+  if (aptPets.length === 0) return new Map()
+
+  // 2. Fetch ALL appointment_services for all pets in one query
+  const allPetIds = aptPets.map(p => p.id)
+  const { data: allServices, error: svcError } = await supabase
+    .from('appointment_services')
+    .select('*')
+    .in('appointment_pet_id', allPetIds)
+  if (svcError) throw svcError
+
+  // 3. Group services by appointment_pet_id
+  const servicesByPetId = new Map<string, typeof allServices>()
+  for (const svc of allServices ?? []) {
+    const existing = servicesByPetId.get(svc.appointment_pet_id) ?? []
+    existing.push(svc)
+    servicesByPetId.set(svc.appointment_pet_id, existing)
+  }
+
+  // 4. Group pets by appointment_id and attach services
+  const result = new Map<string, AppointmentPet[]>()
+  for (const aptPet of aptPets) {
+    const services = (servicesByPetId.get(aptPet.id) ?? []).map(svc => ({
+      serviceId: svc.service_id,
+      appliedModifiers: svc.applied_modifier_ids ?? [],
+      finalDuration: svc.final_duration,
+      finalPrice: Number(svc.final_price),
+    }))
+
+    const pet: AppointmentPet = { petId: aptPet.pet_id, services }
+    const existing = result.get(aptPet.appointment_id) ?? []
+    existing.push(pet)
+    result.set(aptPet.appointment_id, existing)
+  }
+
+  return result
+}
+
+/**
+ * Batch-hydrate multiple appointment rows using 2 bulk queries instead of N+1.
+ */
+async function batchHydrateAppointments(rows: Record<string, unknown>[]): Promise<Appointment[]> {
+  const ids = rows.map(r => r.id as string)
+  const petsMap = await batchLoadAppointmentPets(ids)
+  return rows.map(row => mapAppointment(row, petsMap.get(row.id as string) ?? []))
+}
+
+/**
  * Check for conflicting appointments for a groomer in a given time range.
  * Excludes cancelled/no_show appointments and optionally a specific appointment ID (for updates).
  */
@@ -98,7 +158,7 @@ export const calendarApi = {
     }
     const { data, error } = await query
     if (error) throw error
-    return Promise.all((data ?? []).map(hydrateAppointment))
+    return batchHydrateAppointments(data ?? [])
   },
 
   async getById(id: string): Promise<Appointment | null> {
@@ -127,7 +187,7 @@ export const calendarApi = {
     }
     const { data, error } = await query
     if (error) throw error
-    return Promise.all((data ?? []).map(hydrateAppointment))
+    return batchHydrateAppointments(data ?? [])
   },
 
   async getIssues(
@@ -146,7 +206,7 @@ export const calendarApi = {
     }
     const { data, error } = await query
     if (error) throw error
-    return Promise.all((data ?? []).map(hydrateAppointment))
+    return batchHydrateAppointments(data ?? [])
   },
 
   async getByDay(date: Date, organizationId?: string): Promise<Appointment[]> {
@@ -167,7 +227,7 @@ export const calendarApi = {
       .select('*')
       .eq('client_id', clientId)
     if (error) throw error
-    return Promise.all((data ?? []).map(hydrateAppointment))
+    return batchHydrateAppointments(data ?? [])
   },
 
   async getByGroomerId(groomerId: string): Promise<Appointment[]> {
@@ -176,7 +236,7 @@ export const calendarApi = {
       .select('*')
       .eq('groomer_id', groomerId)
     if (error) throw error
-    return Promise.all((data ?? []).map(hydrateAppointment))
+    return batchHydrateAppointments(data ?? [])
   },
 
   async create(
@@ -317,7 +377,9 @@ export const calendarApi = {
     date: Date,
     durationMinutes: number,
     organizationId: string,
-    groomerId?: string
+    groomerId?: string,
+    preloadedAvailability?: StaffAvailability | null,
+    preloadedTimeOff?: TimeOffRequest[]
   ): Promise<TimeSlot[]> {
     const dayAppointments = await this.getByDay(date, organizationId)
 
@@ -332,7 +394,9 @@ export const calendarApi = {
     let groomerHasTimeOff = false
 
     if (groomerId) {
-      groomerAvailability = await staffApi.getStaffAvailability(groomerId)
+      groomerAvailability = preloadedAvailability !== undefined
+        ? preloadedAvailability
+        : await staffApi.getStaffAvailability(groomerId)
       if (groomerAvailability) {
         const dayOfWeek = date.getDay() as DayOfWeek
         daySchedule = groomerAvailability.weeklySchedule.find((d) => d.dayOfWeek === dayOfWeek)
@@ -351,7 +415,9 @@ export const calendarApi = {
       }
 
       // Check for approved time off
-      const timeOffRequests = await staffApi.getTimeOffRequests(groomerId)
+      const timeOffRequests = preloadedTimeOff !== undefined
+        ? preloadedTimeOff
+        : await staffApi.getTimeOffRequests(groomerId)
       const approvedTimeOff = timeOffRequests.filter((r) => r.status === 'approved')
 
       for (const timeOff of approvedTimeOff) {
@@ -505,8 +571,8 @@ export const calendarApi = {
       }
     }
 
-    // Get available slots respecting groomer's schedule
-    const slots = await this.getAvailableSlots(date, durationMinutes, organizationId, groomerId)
+    // Get available slots respecting groomer's schedule, passing preloaded data to avoid re-fetching
+    const slots = await this.getAvailableSlots(date, durationMinutes, organizationId, groomerId, groomerAvailability, timeOffRequests)
 
     return {
       slots,
@@ -527,6 +593,14 @@ export const calendarApi = {
   ): Promise<Record<string, TimeSlot[]>> {
     const result: Record<string, TimeSlot[]> = {}
 
+    // Fetch availability + timeOff ONCE before the loop to avoid 7x redundant queries
+    let availability: StaffAvailability | null = null
+    let timeOff: TimeOffRequest[] = []
+    if (groomerId) {
+      availability = await staffApi.getStaffAvailability(groomerId)
+      timeOff = await staffApi.getTimeOffRequests(groomerId)
+    }
+
     for (let i = 0; i < 7; i++) {
       const date = addDays(startDate, i)
       const dateStr = format(date, 'yyyy-MM-dd')
@@ -534,7 +608,9 @@ export const calendarApi = {
         date,
         durationMinutes,
         organizationId,
-        groomerId
+        groomerId,
+        availability,
+        timeOff
       )
     }
 
