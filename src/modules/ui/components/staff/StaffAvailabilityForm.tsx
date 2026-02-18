@@ -33,6 +33,7 @@ export function StaffAvailabilityForm({ staffId }: StaffAvailabilityFormProps) {
   const [maxAppointmentsPerDay, setMaxAppointmentsPerDay] = useState(10)
   const [bufferMinutes, setBufferMinutes] = useState(15)
   const [hasChanges, setHasChanges] = useState(false)
+  const [hasValidationErrors, setHasValidationErrors] = useState(false)
 
   // Load data from availability
   useEffect(() => {
@@ -89,6 +90,7 @@ export function StaffAvailabilityForm({ staffId }: StaffAvailabilityFormProps) {
       <WeeklyScheduleEditor
         schedule={weeklySchedule}
         onChange={handleScheduleChange}
+        onValidationChange={setHasValidationErrors}
         disabled={updateMutation.isPending}
       />
 
@@ -133,7 +135,7 @@ export function StaffAvailabilityForm({ staffId }: StaffAvailabilityFormProps) {
         <Button
           onClick={handleSave}
           loading={updateMutation.isPending}
-          disabled={!hasChanges}
+          disabled={!hasChanges || hasValidationErrors}
         >
           <Save className="mr-1.5 h-4 w-4" />
           Save Availability

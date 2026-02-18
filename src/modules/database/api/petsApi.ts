@@ -92,6 +92,44 @@ export const petsApi = {
     return rows.map((row) => mapPet(row, vaxMap.get(row.id) ?? []))
   },
 
+  /**
+   * Get pets by client ID with org verification. Uses RPC — safe for anonymous booking flow.
+   */
+  async getByClientIdForBooking(clientId: string, organizationId: string): Promise<Pet[]> {
+    const { data, error } = await supabase
+      .rpc('get_pets_for_booking', {
+        p_org_id: organizationId,
+        p_client_id: clientId,
+      })
+
+    if (error) throw new Error(error.message)
+
+    const rows = (data ?? []) as Record<string, unknown>[]
+    const petIds = rows.map((r) => r.id as string)
+    const vaxMap = await fetchVaccinationsForPets(petIds)
+
+    return rows.map((row) => mapPet(row, vaxMap.get(row.id as string) ?? []))
+  },
+
+  /**
+   * Get single pet by ID with org verification. Uses RPC — safe for anonymous booking flow.
+   */
+  async getByIdForBooking(id: string, organizationId: string): Promise<Pet | null> {
+    const { data, error } = await supabase
+      .rpc('get_pet_for_booking', {
+        p_org_id: organizationId,
+        p_pet_id: id,
+      })
+
+    if (error) throw new Error(error.message)
+
+    const row = Array.isArray(data) ? data[0] : data
+    if (!row) return null
+
+    const vaccinations = await fetchVaccinations(row.id)
+    return mapPet(row as Record<string, unknown>, vaccinations)
+  },
+
   async create(data: Omit<Pet, 'id' | 'createdAt' | 'updatedAt'>): Promise<Pet> {
     const dbData = toDbPet(data)
     const { data: row, error } = await supabase
@@ -209,5 +247,29 @@ export const petsApi = {
     const pet = await fetchPetWithVaccinations(petId)
     if (!pet) throw new Error('Pet not found')
     return pet
+  },
+
+  async restorePet(pet: Pet): Promise<void> {
+    // Re-insert pet with original ID
+    const petDbData = toDbPet(pet)
+    petDbData.id = pet.id
+    petDbData.created_at = pet.createdAt
+    petDbData.updated_at = pet.updatedAt
+    const { error: petError } = await supabase
+      .from('pets')
+      .upsert(petDbData, { onConflict: 'id' })
+    if (petError) throw new Error(petError.message)
+
+    // Re-insert vaccination records
+    if (pet.vaccinations && pet.vaccinations.length > 0) {
+      for (const vax of pet.vaccinations) {
+        const vaxDbData = toDbVaccinationRecord({ ...vax, petId: pet.id })
+        vaxDbData.id = vax.id
+        const { error: vaxError } = await supabase
+          .from('vaccination_records')
+          .upsert(vaxDbData, { onConflict: 'id' })
+        if (vaxError) throw new Error(vaxError.message)
+      }
+    }
   },
 }

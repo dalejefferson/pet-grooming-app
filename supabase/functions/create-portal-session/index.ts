@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
       throw new Error('No billing account found. Please subscribe to a plan first.')
     }
 
-    const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/[^/]*$/, '') || ''
+    const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/[^/]*$/, '') || 'https://sitprettyclub.com'
 
     const session = await stripe.billingPortal.sessions.create({
       customer: org.stripe_customer_id,

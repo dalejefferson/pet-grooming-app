@@ -1,12 +1,160 @@
 # MISSING.md - App Completeness Audit
 
-Last audited: 2026-02-17 (re-audited, run #5)
+Last audited: 2026-02-18 (re-audited, run #7)
+
+---
+
+## Production Deployment Checklist
+
+**App URL:** `https://sitprettyclub.com`
+**Supabase Project:** `zswdgvusahmvwwbfuyle.supabase.co`
+**Hosting:** Vercel
+
+---
+
+### 1. Supabase Dashboard -- Auth -- URL Configuration
+
+| Setting | Value | Where |
+|---------|-------|-------|
+| Site URL | `https://sitprettyclub.com` | Supabase Dashboard > Auth > URL Configuration |
+| Redirect URLs | `https://sitprettyclub.com/**` | Supabase Dashboard > Auth > URL Configuration |
+
+- [ ] Set **Site URL** to `https://sitprettyclub.com` (used as the base for all auth redirect URLs)
+- [ ] Add **Redirect URL** `https://sitprettyclub.com/**` (wildcard -- covers `/auth/callback` and any future routes)
+- [ ] Optionally add explicit entry: `https://sitprettyclub.com/auth/callback`
+- [ ] Keep `http://localhost:5173/**` for local development (do NOT remove)
+
+### 2. Supabase Dashboard -- Auth -- Providers -- Google OAuth
+
+| Setting | Value |
+|---------|-------|
+| Provider | Google |
+| Status | Enabled |
+| Client ID | From Google Cloud Console |
+| Client Secret | From Google Cloud Console |
+
+- [ ] Ensure Google provider is **enabled** in Supabase Dashboard > Auth > Providers
+- [ ] Enter **Client ID** from Google Cloud Console OAuth 2.0 credentials
+- [ ] Enter **Client Secret** from Google Cloud Console OAuth 2.0 credentials
+
+### 3. Google Cloud Console -- OAuth 2.0 Credentials
+
+Navigate to: [Google Cloud Console](https://console.cloud.google.com/) > APIs & Services > Credentials > OAuth 2.0 Client IDs
+
+- [ ] **Authorized JavaScript Origins:** add `https://sitprettyclub.com`
+- [ ] **Authorized Redirect URIs:** add `https://zswdgvusahmvwwbfuyle.supabase.co/auth/v1/callback`
+- [ ] Keep `http://localhost:5173` in JavaScript Origins for local dev
+- [ ] Keep `https://zswdgvusahmvwwbfuyle.supabase.co/auth/v1/callback` (same for both local and production -- Supabase handles the redirect)
+
+### 4. Supabase Edge Function Secrets
+
+Set via: Supabase Dashboard > Edge Functions > Manage Secrets, or CLI: `supabase secrets set KEY=VALUE`
+
+**CORS:**
+
+| Secret | Value | Notes |
+|--------|-------|-------|
+| `ALLOWED_ORIGIN` | `https://sitprettyclub.com` | Used by `_shared/cors.ts`; production origin is also hardcoded in DEFAULT_ALLOWED_ORIGINS as a fallback |
+
+- [ ] Set `ALLOWED_ORIGIN` to `https://sitprettyclub.com`
+
+**Stripe (Billing):**
+
+| Secret | Value | Notes |
+|--------|-------|-------|
+| `STRIPE_SECRET_KEY` | `sk_live_...` or `sk_test_...` | Used by `_shared/stripe.ts` |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_...` | Used by `stripe-webhook/index.ts` |
+| `STRIPE_SOLO_MONTHLY_PRICE_ID` | `price_...` | Stripe Price ID for Solo monthly |
+| `STRIPE_SOLO_YEARLY_PRICE_ID` | `price_...` | Stripe Price ID for Solo yearly |
+| `STRIPE_STUDIO_MONTHLY_PRICE_ID` | `price_...` | Stripe Price ID for Studio monthly |
+| `STRIPE_STUDIO_YEARLY_PRICE_ID` | `price_...` | Stripe Price ID for Studio yearly |
+
+- [ ] Set `STRIPE_SECRET_KEY` (use `sk_live_` for production, `sk_test_` for testing)
+- [ ] Set `STRIPE_WEBHOOK_SECRET` (from Stripe Dashboard > Webhooks > endpoint signing secret)
+- [ ] Set all 4 `STRIPE_*_PRICE_ID` values (from Stripe Dashboard > Products > Price IDs)
+
+**Resend (Email):**
+
+| Secret | Value | Notes |
+|--------|-------|-------|
+| `RESEND_API_KEY` | `re_...` | Used by `_shared/resend.ts` |
+| `RESEND_FROM_EMAIL` | `noreply@sitprettyclub.com` (optional) | Falls back to `onboarding@resend.dev` (sandbox) |
+
+- [ ] Set `RESEND_API_KEY` from Resend dashboard
+- [ ] (Optional) Set `RESEND_FROM_EMAIL` to a verified domain email (e.g., `noreply@sitprettyclub.com`)
+- [ ] To use a custom from-email, verify domain in Resend dashboard first
+
+**Supabase (auto-provided, usually pre-set):**
+
+| Secret | Value | Notes |
+|--------|-------|-------|
+| `SUPABASE_URL` | `https://zswdgvusahmvwwbfuyle.supabase.co` | Usually auto-set by Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | `eyJ...` | Usually auto-set; used by `_shared/supabase-admin.ts` for admin operations |
+
+- [ ] Verify `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set (these are typically auto-injected by Supabase for edge functions)
+
+### 5. Vercel Environment Variables
+
+Set via: Vercel Dashboard > Project Settings > Environment Variables (set for Production environment)
+
+| Variable | Value | Notes |
+|----------|-------|-------|
+| `VITE_SUPABASE_URL` | `https://zswdgvusahmvwwbfuyle.supabase.co` | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | `eyJ...` | Supabase anon/public key (safe for client-side) |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | `pk_live_...` or `pk_test_...` | Stripe publishable key (safe for client-side) |
+| `VITE_GOOGLE_MAPS_API_KEY` | `AIza...` | Google Maps Places API key |
+| `VITE_APP_URL` | `https://sitprettyclub.com` | App base URL |
+| `VITE_DEV_BYPASS_SUBSCRIPTION` | `false` | Must be `false` in production (code also guards with `import.meta.env.DEV`) |
+| `VITE_SHOW_DEMO_LOGIN` | `false` | Must be `false` in production |
+
+- [ ] Set `VITE_SUPABASE_URL` to `https://zswdgvusahmvwwbfuyle.supabase.co`
+- [ ] Set `VITE_SUPABASE_ANON_KEY` (from Supabase Dashboard > Settings > API > anon public key)
+- [ ] Set `VITE_STRIPE_PUBLISHABLE_KEY` (use `pk_live_` for production, `pk_test_` for testing)
+- [ ] Set `VITE_GOOGLE_MAPS_API_KEY` (from Google Cloud Console > APIs & Services > Credentials)
+- [ ] Set `VITE_APP_URL` to `https://sitprettyclub.com`
+- [ ] Ensure `VITE_DEV_BYPASS_SUBSCRIPTION` is `false` (or unset)
+- [ ] Ensure `VITE_SHOW_DEMO_LOGIN` is `false` (or unset)
+
+### 6. Stripe Dashboard -- Webhook Endpoint
+
+| Setting | Value |
+|---------|-------|
+| Endpoint URL | `https://zswdgvusahmvwwbfuyle.supabase.co/functions/v1/stripe-webhook` |
+| Events | `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_succeeded`, `invoice.payment_failed` |
+
+- [ ] Create webhook endpoint pointing to the Supabase edge function URL above
+- [ ] Subscribe to all required events (listed above)
+- [ ] Copy the **Signing Secret** (`whsec_...`) and set it as `STRIPE_WEBHOOK_SECRET` in Supabase secrets
+- [ ] Send a test event from Stripe to verify the webhook is receiving and processing correctly
+
+### 7. Google Maps API -- Key Restrictions (Recommended)
+
+- [ ] Restrict API key to **HTTP referrers**: `https://sitprettyclub.com/*`
+- [ ] Enable only the **Places API** (and Maps JavaScript API) for this key
+- [ ] Set a billing alert/quota limit to prevent unexpected charges
+
+### 8. Post-Deployment Verification
+
+After all configuration is complete, verify:
+
+- [ ] Visit `https://sitprettyclub.com` -- landing page loads
+- [ ] Click "Sign in with Google" -- redirects to Google, then back to `/auth/callback`, then to `/app/dashboard`
+- [ ] Email/password login works
+- [ ] Navigate to Settings > Email Settings > send a test email -- email arrives
+- [ ] Navigate to Billing > subscribe to a plan -- Stripe Checkout opens, payment completes, redirects back to `/app/billing`
+- [ ] Booking flow: visit `/book/{orgSlug}/start` -- full booking flow works including address autocomplete
+- [ ] Check browser console for CORS errors on edge function calls
+- [ ] Check Supabase Dashboard > Edge Functions > Logs for any runtime errors
 
 ---
 
 ## Critical
 
-- [ ] [Critical] [A] **NEW-R5** Cross-org appointment data leak: `getByClientId()` and `getByGroomerId()` in calendarApi.ts query WITHOUT `organization_id` filter — any authenticated user can view appointments from other organizations (calendarApi.ts lines 224-240)
+- [x] [RESOLVED] [Critical] [A] **NEW-R7** Cross-org client data leak via `getByEmail()`: `clientsApi.getByEmail()` queries ALL organizations — fixed: now requires `organizationId` param and uses `lookup_client_by_email` RPC function. Booking flow uses `getByIdForBooking()` RPC. (clientsApi.ts)
+- [x] [RESOLVED] [Critical] [A] **NEW-R7** RLS: anonymous SELECT on `clients` table was completely unscoped — fixed: dropped anon SELECT policy, replaced with SECURITY DEFINER RPC functions (`lookup_client_by_email`, `search_clients_for_booking`, `get_client_for_booking`) that enforce org scoping internally. (011_secure_anon_rpc.sql)
+- [x] [RESOLVED] [Critical] [A] **NEW-R7** RLS: anonymous SELECT on `pets` table was completely unscoped — fixed: dropped anon SELECT policy, replaced with SECURITY DEFINER RPC functions (`get_pets_for_booking`, `get_pet_for_booking`) that enforce org scoping internally. (011_secure_anon_rpc.sql)
+- [x] [RESOLVED] [Critical] [A] Cross-org appointment data leak: `getByClientId()` and `getByGroomerId()` in calendarApi.ts query WITHOUT `organization_id` filter — fixed: added `organizationId` param + `.eq('organization_id')` filter to `getByClientId()`, `getByGroomerId()`, and `checkForConflicts()`; updated all call sites including hooks
+- [x] [RESOLVED] [Critical] [A] Unassigned appointments skip ALL conflict checking: when `groomerId` is undefined, `checkForConflicts()` was never called — fixed: added `checkForUnassignedConflicts()` function + `else` branches in `create()` and `update()` to check for overlapping unassigned appointments
 - [x] [RESOLVED] [Critical] [A] Seed data ID mismatch: seedUsers uses `user-1/2/3`, seedGroomers uses `groomer-1/2/3/4` — fixed in groomersApi.ts, all IDs now consistent
 - [x] [RESOLVED] [Critical] [A] Duplicate groomer seed data: groomersApi.ts had conflicting seedGroomers — removed, seed.ts is now single source of truth
 - [x] [RESOLVED] [Critical] [A] Staff availability ID mismatch: staffApi.ts referenced wrong IDs — updated to match seed.ts user IDs
@@ -57,8 +205,19 @@ Last audited: 2026-02-17 (re-audited, run #5)
 - [x] [RESOLVED] [High] [B] Stripe subscription billing now live: Products, prices, checkout, webhooks, and billing page all working in test mode. Fixed webhook `current_period_start`/`current_period_end` field location bug. Edge functions deployed with `--no-verify-jwt` for PKCE ES256 compatibility.
 - [ ] [High] [B] Stripe booking payment still mocked: mockStripe.ts simulates payment processing during booking flow — real Stripe payment intent needed for in-app booking payments (separate from subscription billing)
 - [x] [RESOLVED] [High] [B] Email notifications live via Resend: edge function `send-email` deployed, 6 email templates (test, ready-for-pickup, appointment reminder, vaccination reminder, booking confirmation, new booking alert). Sender: `onboarding@resend.dev` (sandbox).
-- [ ] [High] [A] **NEW-R5** `checkForConflicts()` in calendarApi.ts doesn't filter by `organization_id` — reports false conflicts from other organizations' appointments (calendarApi.ts lines 127-151)
+- [x] [RESOLVED] [High] [A] `checkForConflicts()` in calendarApi.ts doesn't filter by `organization_id` — fixed: added `organizationId` param + `.eq('organization_id')` filter
+- [x] [RESOLVED] [High] [A] BookingConfirmPage null guard missing on service modifier price — fixed: added optional chaining on `service.modifiers?.find()` and `Math.max(0, servicePrice)` floor to prevent negative prices from modifier stacking
+- [x] [RESOLVED] [High] [A] Performance API null check missing on `finalPrice` — fixed: `Number(service.finalPrice) || 0` guards against NaN/undefined corrupting revenue totals
 - [x] [RESOLVED] [High] [A] ServiceForm missing validation: validation added requiring non-empty name, positive duration, non-negative price
+- [ ] [High] [A] **NEW-R7** 12h time format leaks into parsing: `getAvailableSlots()` formats slots as `h:mm a` (e.g., "9:00 AM"), but `validateAdvanceBooking()` and `validateTimeSlot()` pass these to `parseISO()` which expects 24h — produces Invalid Date, silently disabling advance booking validation and allowing past bookings (calendarApi.ts:486, bookingApi.ts:146)
+- [ ] [High] [A] **NEW-R7** `useDeletePet` doesn't invalidate `['pets', 'client', clientId]` cache key — deleted pets remain visible on ClientDetailPage until manual refresh. `useUpdatePet` has same gap. (usePets.ts:59-70)
+- [ ] [High] [A] **NEW-R7** `performanceApi.getTeamPerformance()` N+1 query: fires individual `getStaffPerformance()` DB query per staff member instead of computing from already-fetched org-wide data (performanceApi.ts:216)
+- [ ] [High] [A] **NEW-R7** `BookingIntakePage` no empty state when org has zero services: pet tabs render empty category sections with nothing to click — user sees blank page with no guidance
+- [ ] [High] [A] **NEW-R7** `GroomerForm` has no client-side JS validation: `handleSubmit` calls `onSubmit(formData)` directly without any field checks — relies solely on HTML `required` attribute (GroomerForm.tsx:65)
+- [ ] [High] [A] **NEW-R7** Modal uses `aria-label` instead of `aria-labelledby`: dialog name not tied to visible `<h2>` heading — screen readers read both separately. Should use `aria-labelledby="dialog-title-id"` (Modal.tsx:67)
+- [ ] [High] [A] **NEW-R7** `GroomerForm` `<select>` elements not programmatically associated with `<label>` via htmlFor/id — screen readers cannot announce label when select is focused (GroomerForm.tsx:135)
+- [ ] [High] [A] **NEW-R7** RLS: anonymous INSERT on `clients`/`pets` has no `organization_id` validation in `WITH CHECK` — anonymous user can insert records into any arbitrary org (002_rls_policies.sql)
+- [ ] [High] [B] **NEW-R7** No rate limiting on public booking email lookup — combined with unscoped RLS, enables client email enumeration attack (BookingStartPage)
 - [ ] [High] [B] **NEW** RLS policies allow anonymous client creation: anonymous users can create clients and view client data (for booking flow) — abusable for data scraping or spamming (supabase/migrations/002_rls_policies.sql lines 77-82)
 - [ ] [High] [B] **NEW-R4** RLS policies for staff_availability and time_off_requests use `USING(true)` for SELECT — exposes all orgs' staff schedule data globally (002_rls_policies.sql lines 314, 330)
 
@@ -131,7 +290,37 @@ Last audited: 2026-02-17 (re-audited, run #5)
 - [ ] [Medium] [A] **NEW-R4** Floating point precision loss in price calculations — `basePrice * priceAdjustment / 100` accumulates rounding errors (bookingApi.ts line 80)
 - [ ] [Medium] [A] **NEW-R4** Time-off date parsing not validated — `parseISO()` on malformed DB dates returns Invalid Date, silently breaking availability checks (calendarApi.ts lines 304-307)
 - [ ] [Medium] [A] **NEW-R4** Inconsistent overlap logic between conflict detection and buffer checking — buffer applies `-bufferMinutes` to start but conflict check doesn't, causing edge-case double-bookings (calendarApi.ts lines 331-366)
-- [ ] [Medium] [A] **NEW-R5** `getAvailableSlots()` doesn't validate groomerId belongs to organizationId — cross-org groomer availability data leak (calendarApi.ts lines 376-501)
+- [ ] [Medium] [A] **NEW-R5** `getAvailableSlots()` doesn't validate groomerId belongs to organizationId — cross-org groomer availability data leak (calendarApi.ts lines 376-501) *(note: conflict checks now org-scoped, but slot generation still doesn't validate groomer-org ownership)*
+- [ ] [Medium] [A] **NEW-R6** StaffPage time-off approve/reject has no confirmation dialog: buttons immediately mutate without confirm — accidental rejection cannot be undone (StaffPage.tsx lines 119-123)
+- [ ] [Medium] [A] **NEW-R6** Unassigned appointments excluded from groomer performance metrics: `performanceApi` filters out null groomerId — revenue appears in org totals but not in any groomer's stats, making metrics impossible to reconcile (performanceApi.ts line 213)
+- [ ] [Medium] [A] **NEW-R6** Service data not hydrated in appointments: `calendarApi` maps `serviceId` but never populates `service` object — `service?.name` always falls back to "Unknown Service" in performance reports (calendarApi.ts lines 43-48)
+- [ ] [Medium] [A] **NEW-R6** Pets with zero vaccination records bypass vaccination validation: loop over `pet.vaccinations` never executes when array is empty — unvaccinated pets are bookable (validators.ts lines 64-84)
+- [ ] [Medium] [A] **NEW-R6** BookingConfirmPage passes empty string to useClientPets when clientId is undefined: existing pet names show as "Pet" instead of real name (BookingConfirmPage.tsx line 43)
+- [ ] [Medium] [A] **NEW-R6** ReportsPage charts show empty axes when no data in date range: Recharts renders blank chart area with no "No data available" message — confusing UX
+- [ ] [Medium] [A] **NEW-R6** DashboardPage stat cards have no error boundary: if any stat card fails to render (bad icon, bad data), entire stats grid crashes
+- [ ] [Medium] [A] **NEW-R6** CalendarPage CustomEvent has no error boundary: malformed appointment data crashes entire calendar view
+- [ ] [Medium] [A] **NEW-R6** ClientDetailPage not-found state missing back button: user stuck on error page, must use browser back (unlike PetDetailPage which has back link)
+- [ ] [Medium] [A] **NEW-R7** `useAddVaccination`/`useRemoveVaccination` don't invalidate `['pets']` or `['pets', 'client']` list queries — stale vaccination data on PetsPage and BookingPetsPage (usePets.ts:84,96)
+- [ ] [Medium] [A] **NEW-R7** `BookingConfirmPage` guard only checks `selectedTimeSlot`, not earlier prerequisites — stale sessionStorage with `selectedTimeSlot` set lets user reach confirm page with invalid pet/service data (BookingConfirmPage.tsx:152)
+- [ ] [Medium] [A] **NEW-R7** `performanceApi.fetchAppointments()` pets array always empty — `row.pets` is always `undefined` because pets are in junction table, not JSONB column — service breakdown always $0 (performanceApi.ts:139)
+- [ ] [Medium] [A] **NEW-R7** `staffApi.getStaffAvailability()` silently inserts default row during a read — hidden write side effect, possible duplicate rows with no unique constraint on `staff_id` (staffApi.ts:205)
+- [ ] [Medium] [A] **NEW-R7** Working hours parsing ignores minutes: `split(':').map(Number)` discards minutes — groomer `9:30–5:30` generates slots starting at 9:00 and ending at 5:00 (calendarApi.ts:450)
+- [ ] [Medium] [A] **NEW-R7** `validateCancellationWindow` blocks in-progress cancellations: `isPast(startTime)` returns true for started appointments, but `statusMachine` allows `in_progress → cancelled` — admin can't cancel mid-grooming (validators.ts:44)
+- [ ] [Medium] [A] **NEW-R7** `BookingConfirmPage` price breakdown renders $0 before data loads: `usePolicies`, `useActiveServices`, `useGroomers` loading states not surfaced — totals jump after query resolves
+- [ ] [Medium] [A] **NEW-R7** `BookingGroomerPage` no loading state for groomer list: groomer grid shows only "Any Available" initially, then groomers pop in after query resolves
+- [ ] [Medium] [A] **NEW-R7** `PoliciesPage` no `isError` branch: if Supabase query fails, `policies` is undefined, form shows defaults — saving overwrites real policies with blank defaults (PoliciesPage.tsx)
+- [ ] [Medium] [A] **NEW-R7** `SettingsPage` `isError` destructured but never used in render — org load failure shows empty form silently (SettingsPage.tsx:122)
+- [ ] [Medium] [A] **NEW-R7** `AppLayout` `handleCreateAppointment` error silently swallowed: catch block has `/* Error handled by react-query */` comment but no `onError` on mutation — no toast shown (AppLayout.tsx:130)
+- [ ] [Medium] [A] **NEW-R7** `BookingStartPage` disabled Continue button gives no explanation: email/phone required for `canContinue` but no validation message tells user what's missing
+- [ ] [Medium] [A] **NEW-R7** `BookingPetsPage` new pet form has no validation: pet with no name or breed can be added inline
+- [ ] [Medium] [A] **NEW-R7** `BookingTimesPage` slot buttons have no date context for screen readers: "9:00 AM" button repeated 7 times (once per day column) with no way to distinguish which day (BookingTimesPage.tsx:326)
+- [ ] [Medium] [A] **NEW-R7** `BookingGroomerPage` selection buttons lack `aria-pressed` state — screen reader users can't tell which groomer is selected
+- [ ] [Medium] [A] **NEW-R7** `ClientCard`/`PetCard` hidden delete buttons keyboard-inaccessible: `opacity-0 group-hover:opacity-100` makes buttons invisible and unreachable for keyboard/touch users
+- [ ] [Medium] [A] **NEW-R7** `StaffPage` Approve/Reject time-off buttons lack context: no `aria-label` indicating whose request — screen reader hears "Approve, button" with no context
+- [ ] [Medium] [A] **NEW-R7** `create-checkout-session` redirect URL derived from request `Origin` header — attacker can craft `Origin: https://evil.com` to redirect post-payment to malicious site (create-checkout-session/index.ts:93)
+- [ ] [Medium] [A] **NEW-R7** Dual-tab double-submission creates duplicate clients: no `email + organization_id` unique constraint in DB — concurrent submissions from two browser tabs create two client records
+- [ ] [Medium] [A] **NEW-R7** `preferred_groomer_id` is TEXT with no FK — no referential integrity, deleted groomer leaves stale reference (001_initial_schema.sql:83)
+- [ ] [Medium] [A] **NEW-R7** `groomers.user_id` is TEXT with no FK to `auth.users` — deleted auth user leaves stale `user_id` string (001_initial_schema.sql:126)
 - [ ] [Medium] [B] **NEW** Timezone conversion needs date-fns-tz: organization.timezone stored but never used for date conversion — multi-timezone orgs show wrong times
 
 ## Low
@@ -181,6 +370,37 @@ Last audited: 2026-02-17 (re-audited, run #5)
 - [ ] [Low] [A] **NEW-R4** Deposit calculation doesn't cap at totalPrice — `depositRequired` could exceed total cost (bookingApi.ts line 112)
 - [ ] [Low] [A] **NEW-R4** useGroomers vs useStaff dual hook system — both call staffApi, causes maintenance confusion about which to use
 - [ ] [Low] [A] **NEW-R4** Groomer email uniqueness not enforced in DB schema — duplicate emails possible per org (001_initial_schema.sql groomers table)
+- [ ] [Low] [A] **NEW-R6** BookingStartPage email not trimmed before validation: leading/trailing whitespace causes valid emails to fail (BookingStartPage.tsx line 37)
+- [ ] [Low] [A] **NEW-R6** Calendar route date params not validated: malformed `?date=` param silently fails to filter instead of showing error (CalendarPage.tsx)
+- [ ] [Low] [A] **NEW-R6** Booking flow lacks error boundary: BookingLayout has no error recovery — network errors require manual page refresh
+- [ ] [Low] [A] **NEW-R6** ServiceForm duration has no upper bound: accepts 999+ minute services, caught later by max duration validator but poor UX
+- [ ] [Low] [A] **NEW-R6** BookingStartPage email lookup silently takes first match on multiple results: `clients.find()` returns first hit without warning (BookingStartPage.tsx line 48)
+- [ ] [Low] [A] **NEW-R6** PetDetailPage shows "Unknown Client" for deleted client with no reassign prompt or warning
+- [ ] [Low] [A] **NEW-R6** ConfirmDialog should use aria-describedby for message text: generic `aria-label="Dialog"` fallback is unhelpful for screen readers
+- [ ] [Low] [A] **NEW-R6** Hardcoded default business hours 8-18 in slot generation: if no groomer selected, slots don't match actual salon hours — should read from organization config (calendarApi.ts lines 386-389)
+- [ ] [Low] [A] **NEW-R6** Inactive/deprecated services can still be booked: `bookingApi` fetches service by ID but doesn't check `isActive` flag (bookingApi.ts lines 68-69)
+- [ ] [Low] [A] **NEW-R6** Seed data org ID mismatch: `seed.ts` uses `ORG_ID = 'org-1'` but `seed-supabase.ts` uses `crypto.randomUUID()` — incompatible seeding contexts
+- [ ] [Low] [A] **NEW-R6** Email validation regex too basic: doesn't validate TLD length, internationalized domains, or very long addresses — invalid emails silently fail at Resend (emailApi.ts lines 4-7)
+- [ ] [Low] [A] **NEW-R6** Unused `dayErrors` state variable in WeeklyScheduleEditor.tsx: declared line 22 but never read — TypeScript build warning
+- [ ] [Low] [A] **NEW-R7** `BookingTimesPage` "Previous Week" button disabled mid-week on current week: `isBefore(weekStart, today)` is true Mon–Sat because weekStart is Sunday — should compare against previous week boundary (BookingTimesPage.tsx:248)
+- [ ] [Low] [A] **NEW-R7** `BookingTimesPage` caps slots at 8/day with non-interactive "+N more" text: salon with 30-min intervals 8am–8pm has 24 slots, 16 are unreachable (BookingTimesPage.tsx:305)
+- [ ] [Low] [A] **NEW-R7** `BookingSuccessPage` eslint-disabled hook deps suppression: `// eslint-disable-line react-hooks/exhaustive-deps` on useEffect — code smell, `resetBookingState` is stable but lint suppression hides issues (BookingSuccessPage.tsx:17)
+- [ ] [Low] [A] **NEW-R7** `PermissionGate` with no `permission` prop silently allows all authenticated users through — intentional but undocumented footgun (PermissionGate.tsx:77)
+- [ ] [Low] [A] **NEW-R7** `getIssues()` filters by `updated_at` instead of appointment `start_time` — cancellation from last month appears in "this week's issues" if cancelled yesterday (calendarApi.ts:226)
+- [ ] [Low] [A] **NEW-R7** `vaccination_reminders`/`in_app_notifications` use TEXT for FK-like fields with no constraints — stale records persist after entity deletion
+- [ ] [Low] [A] **NEW-R7** No Sarah Johnson availability in seed data: only Mike and Lisa get seed availability — Sarah auto-inserts default on first query (seed-supabase.ts:690)
+- [ ] [Low] [A] **NEW-R7** Expired Mastercard (exp 2025) in seed data — already stale as of Feb 2026 (seed-supabase.ts:313)
+- [ ] [Low] [A] **NEW-R7** `clientsApi.delete()` has no transaction: 6 sequential DELETEs with no `BEGIN/COMMIT` — partial network failure orphans data (clientsApi.ts:143)
+- [ ] [Low] [A] **NEW-R7** LoginPage Google button SVGs lack `aria-hidden="true"` — screen readers may read SVG paths alongside button text
+- [ ] [Low] [A] **NEW-R7** `BookingStartPage` New/Returning client toggle buttons lack `aria-pressed` or `role="radio"` — screen readers can't convey selection state
+- [ ] [Low] [A] **NEW-R7** DashboardPage status note `truncate` with no `title` attribute — full text inaccessible when truncated
+- [ ] [Low] [A] **NEW-R7** DashboardPage `handleConfirmStatusWithNotes` calls `updateStatus.mutateAsync` with no try/catch — errors swallowed silently
+- [ ] [Low] [A] **NEW-R7** StaffPage approve/reject time-off calls `.mutate()` with no `onError` callback — failure gives no user feedback
+- [ ] [Low] [A] **NEW-R7** `PaymentMethodCard` on BillingPage has no loading indicator — shows empty until `useInvoices` query resolves
+- [ ] [Low] [A] **NEW-R7** `BookingGroomerPage` no empty state message when zero active groomers after filtering — only "Any Available" with no explanation
+- [ ] [Low] [A] **NEW-R7** PoliciesPage fee % inputs have no upper-bound JS validation — `max={100}` HTML attribute can be bypassed by typing
+- [ ] [Low] [A] **NEW-R7** SettingsPage `replyToEmail` field has no email format validation — invalid addresses accepted silently
+- [ ] [Low] [A] **NEW-R7** `calendarApi.update()` may strip fields when called with partial data: only fetches existing record when time/groomer changes (calendarApi.ts:347)
 - [ ] [Low] [B] Feature flags hardcoded: onlinePayments, smsReminders, petPhotos, etc. are static booleans (flags.ts)
 
 ## Bucket B (Requires External APIs) - Summary
@@ -190,6 +410,7 @@ Last audited: 2026-02-17 (re-audited, run #5)
 - [x] [RESOLVED] [High] [B] Email notifications live via Resend: 6 templates, edge function deployed
 - [ ] [High] [B] **NEW** RLS policies allow anonymous client creation: needs rate limiting, CAPTCHA, or tighter scoping
 - [ ] [High] [B] **NEW-R4** RLS policies for staff_availability and time_off_requests use `USING(true)` — exposes all orgs' data globally
+- [ ] [High] [B] **NEW-R7** No rate limiting on public booking email lookup — enables client email enumeration attack
 - [x] [RESOLVED] [Medium] [B] Supabase client is a stub: fully migrated — all 14 API modules now use Supabase queries, RLS policies active
 - [x] [RESOLVED] [Medium] [B] No real authentication: Supabase Auth integrated with Google OAuth (PKCE flow), real signInWithPassword/signInWithOAuth
 - [ ] [Medium] [B] Timezone conversion needs date-fns-tz: organization.timezone stored but never used for date conversion
@@ -217,10 +438,12 @@ Last audited: 2026-02-17 (re-audited, run #5)
 
 | Severity | Bucket A (Open) | Bucket A (Resolved) | Bucket B (Open) | Bucket B (Resolved) | Total Open |
 |----------|-----------------|---------------------|-----------------|---------------------|------------|
-| Critical | 1               | 13                  | 0               | 0                   | 1          |
-| High     | 1               | 38                  | 3               | 2                   | 4          |
-| Medium   | 65              | 1                   | 1               | 2                   | 66         |
-| Low      | 45              | 0                   | 1               | 0                   | 46         |
-| **Total**| **112**         | **52**              | **5**           | **4**               | **117**    |
+| Critical | 0               | 18                  | 0               | 0                   | 0          |
+| High     | 8               | 41                  | 4               | 2                   | 12         |
+| Medium   | 95              | 1                   | 1               | 2                   | 96         |
+| Low      | 77              | 0                   | 1               | 0                   | 78         |
+| **Total**| **180**         | **60**              | **6**           | **4**               | **186**    |
 
-*Run #5 audit (2026-02-17): Stripe billing + email notifications now live (2 High-B resolved). Found 1 new Critical (cross-org data leak), 1 new High (conflict check missing org filter), 1 new Medium (availability org validation). RLS policy gaps still open from R4.*
+*Run #7 audit (2026-02-18): Full 3-agent parallel audit (navigation + data flows, UX completeness, data integrity + business logic). Found 3 new Critical (cross-org `getByEmail`, unscoped RLS on clients/pets tables), 9 new High-A (12h time format parsing bug, pet cache invalidation gaps, N+1 performance query, missing form validation, a11y issues), 1 new High-B (email enumeration via rate limiting gap), 21 new Medium (checkout redirect vulnerability, cancellation logic conflict, loading/error state gaps, a11y labels, schema FK gaps), 19 new Low (seed data staleness, a11y polish, slot pagination, validation edges). Priority: fix 3 Critical RLS/data leak issues first, then 12h time format bug.*
+
+*Run #6 audit (2026-02-17): Full 3-agent parallel audit (navigation, UX, data integrity). Found 1 new Critical (unassigned appointments skip conflict checking), 2 new High (price calc null guards, performance metric corruption), 9 new Medium (missing confirmations, error boundaries, data hydration gaps), 13 new Low (validation edges, accessibility, build warnings). Fixed both Critical-A issues: cross-org data leak (added org filter to 3 functions + hooks) and unassigned conflict checking (added checkForUnassignedConflicts + else branches).*

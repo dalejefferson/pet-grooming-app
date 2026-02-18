@@ -21,7 +21,8 @@ export function LoginPage() {
     try {
       await login.mutateAsync({ email, password })
       const pendingCheckout = localStorage.getItem('pendingCheckout')
-      navigate(pendingCheckout ? '/app/settings' : '/app/calendar')
+      localStorage.removeItem('pendingCheckout')
+      navigate(pendingCheckout ? '/app/billing' : '/app/dashboard', { replace: true })
     } catch (_err) {
       setError('Invalid email or password')
     }

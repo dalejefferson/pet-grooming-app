@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { User, UserPlus, ArrowRight } from 'lucide-react'
 import { Card, CardTitle, Button, Input, LoadingPage, AddressAutocomplete } from '../../components/common'
-import { useSearchClients, useClient } from '@/hooks'
+import { useClientForBooking } from '@/hooks'
 import { useBookingContext } from '../../context/BookingContext'
+import { clientsApi } from '@/modules/database/api'
 import type { Client } from '@/types'
 
 export function BookingStartPage() {
@@ -13,7 +14,11 @@ export function BookingStartPage() {
   const prefilledClientId = searchParams.get('clientId')
 
   const [isNewClient, setIsNewClient] = useState<boolean | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [emailLookup, setEmailLookup] = useState('')
+  const [lookupResult, setLookupResult] = useState<Client | null>(null)
+  const [lookupError, setLookupError] = useState<string | null>(null)
+  const [isSearching, setIsSearching] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [newClientInfo, setNewClientInfo] = useState({
     firstName: '',
@@ -24,8 +29,34 @@ export function BookingStartPage() {
   })
   const [validationErrors, setValidationErrors] = useState<{ firstName?: string; lastName?: string; email?: string; phone?: string }>({})
 
-  const { data: searchResults = [] } = useSearchClients(searchQuery, organization.id)
-  const { data: prefilledClient, isLoading: isLoadingPrefilledClient } = useClient(prefilledClientId || '')
+  const { data: prefilledClient, isLoading: isLoadingPrefilledClient } = useClientForBooking(prefilledClientId || '', organization?.id || '')
+
+  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+
+  const handleEmailLookup = async () => {
+    if (!isValidEmail(emailLookup)) {
+      setLookupError('Please enter a valid email address')
+      return
+    }
+    setIsSearching(true)
+    setLookupError(null)
+    setLookupResult(null)
+    setHasSearched(true)
+    try {
+      const results = await clientsApi.search(emailLookup, organization.id)
+      // Only match exact email (case-insensitive)
+      const match = results.find(
+        (c) => c.email?.toLowerCase() === emailLookup.toLowerCase().trim()
+      )
+      if (match) {
+        setLookupResult(match)
+      }
+    } catch {
+      setLookupError('Something went wrong. Please try again.')
+    } finally {
+      setIsSearching(false)
+    }
+  }
 
   // If clientId is provided in URL, pre-fill the client and skip selection
   useEffect(() => {
@@ -184,37 +215,56 @@ export function BookingStartPage() {
         <Card>
           <CardTitle>Find Your Account</CardTitle>
           <div className="mt-4 space-y-4">
-            <Input
-              label="Search by name, email, or phone"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Enter your name or email..."
-            />
+            <div>
+              <Input
+                label="Enter your email to find your account"
+                type="email"
+                value={emailLookup}
+                onChange={(e) => {
+                  setEmailLookup(e.target.value)
+                  setLookupError(null)
+                  setHasSearched(false)
+                  setLookupResult(null)
+                  setSelectedClient(null)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && isValidEmail(emailLookup)) {
+                    handleEmailLookup()
+                  }
+                }}
+                placeholder="your@email.com"
+                error={lookupError || undefined}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={handleEmailLookup}
+                disabled={!isValidEmail(emailLookup) || isSearching}
+              >
+                {isSearching ? 'Looking up...' : 'Look Up'}
+              </Button>
+            </div>
 
-            {searchResults.length > 0 && (
-              <div className="space-y-2">
-                {searchResults.map((client) => (
-                  <button
-                    key={client.id}
-                    onClick={() => setSelectedClient(client)}
-                    className={`w-full rounded-xl border-2 p-3 text-left transition-all ${
-                      selectedClient?.id === client.id
-                        ? 'border-primary-500 bg-primary-50 shadow-[2px_2px_0px_0px_#1e293b]'
-                        : 'border-[#1e293b] hover:shadow-[2px_2px_0px_0px_#1e293b] hover:-translate-y-0.5'
-                    }`}
-                  >
-                    <p className="font-medium text-gray-900">
-                      {client.firstName} {client.lastName}
-                    </p>
-                    <p className="text-sm text-gray-600">{client.email}</p>
-                  </button>
-                ))}
-              </div>
+            {lookupResult && (
+              <button
+                onClick={() => setSelectedClient(lookupResult)}
+                className={`w-full rounded-xl border-2 p-3 text-left transition-all ${
+                  selectedClient?.id === lookupResult.id
+                    ? 'border-primary-500 bg-primary-50 shadow-[2px_2px_0px_0px_#1e293b]'
+                    : 'border-[#1e293b] hover:shadow-[2px_2px_0px_0px_#1e293b] hover:-translate-y-0.5'
+                }`}
+              >
+                <p className="font-medium text-gray-900">
+                  {lookupResult.firstName} {lookupResult.lastName}
+                </p>
+                <p className="text-sm text-gray-600">{lookupResult.email}</p>
+              </button>
             )}
 
-            {searchQuery.length >= 2 && searchResults.length === 0 && (
+            {hasSearched && !isSearching && !lookupResult && !lookupError && (
               <p className="text-sm text-gray-600">
-                No clients found. Are you sure you've been here before?{' '}
+                No account found with that email. Are you sure you've been here before?{' '}
                 <button
                   onClick={() => setIsNewClient(true)}
                   className="text-primary-600 hover:underline"

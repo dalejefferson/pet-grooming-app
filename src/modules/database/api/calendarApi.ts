@@ -128,12 +128,14 @@ async function checkForConflicts(
   groomerId: string,
   startTime: string,
   endTime: string,
+  organizationId: string,
   excludeId?: string
 ): Promise<void> {
   let query = supabase
     .from('appointments')
     .select('id, start_time, end_time, status')
     .eq('groomer_id', groomerId)
+    .eq('organization_id', organizationId)
     .not('status', 'in', '("cancelled","no_show")')
     .lt('start_time', endTime)
     .gt('end_time', startTime)
@@ -147,6 +149,37 @@ async function checkForConflicts(
 
   if (data && data.length > 0) {
     throw new Error('Time slot conflict: another appointment was booked for this time.')
+  }
+}
+
+/**
+ * Check for conflicting unassigned appointments in a given time range.
+ * Used when groomerId is null/undefined to prevent overlapping unassigned appointments.
+ */
+async function checkForUnassignedConflicts(
+  organizationId: string,
+  startTime: string,
+  endTime: string,
+  excludeId?: string
+): Promise<void> {
+  let query = supabase
+    .from('appointments')
+    .select('id, start_time, end_time, status')
+    .is('groomer_id', null)
+    .eq('organization_id', organizationId)
+    .not('status', 'in', '("cancelled","no_show")')
+    .lt('start_time', endTime)
+    .gt('end_time', startTime)
+
+  if (excludeId) {
+    query = query.neq('id', excludeId)
+  }
+
+  const { data, error } = await query
+  if (error) throw error
+
+  if (data && data.length > 0) {
+    throw new Error('Time slot conflict: another unassigned appointment exists for this time.')
   }
 }
 
@@ -221,20 +254,22 @@ export const calendarApi = {
     )
   },
 
-  async getByClientId(clientId: string): Promise<Appointment[]> {
+  async getByClientId(clientId: string, organizationId: string): Promise<Appointment[]> {
     const { data, error } = await supabase
       .from('appointments')
       .select('*')
       .eq('client_id', clientId)
+      .eq('organization_id', organizationId)
     if (error) throw error
     return batchHydrateAppointments(data ?? [])
   },
 
-  async getByGroomerId(groomerId: string): Promise<Appointment[]> {
+  async getByGroomerId(groomerId: string, organizationId: string): Promise<Appointment[]> {
     const { data, error } = await supabase
       .from('appointments')
       .select('*')
       .eq('groomer_id', groomerId)
+      .eq('organization_id', organizationId)
     if (error) throw error
     return batchHydrateAppointments(data ?? [])
   },
@@ -260,7 +295,9 @@ export const calendarApi = {
 
     // Check for time slot conflicts before inserting
     if (data.groomerId) {
-      await checkForConflicts(data.groomerId, data.startTime, data.endTime)
+      await checkForConflicts(data.groomerId, data.startTime, data.endTime, data.organizationId)
+    } else {
+      await checkForUnassignedConflicts(data.organizationId, data.startTime, data.endTime)
     }
 
     // 1. Insert the appointment row (without pets)
@@ -317,7 +354,9 @@ export const calendarApi = {
         const endTime = data.endTime ?? existing.endTime
 
         if (groomerId) {
-          await checkForConflicts(groomerId, startTime, endTime, id)
+          await checkForConflicts(groomerId, startTime, endTime, existing.organizationId, id)
+        } else {
+          await checkForUnassignedConflicts(existing.organizationId, startTime, endTime, id)
         }
       }
     }

@@ -9,7 +9,7 @@ import type { EventResizeDoneArg } from '@fullcalendar/interaction'
 import { format, startOfWeek, endOfWeek, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from 'date-fns'
 
 import { Card, MiniCalendar, Modal, Button, LoadingSpinner } from '../../components/common'
-import { useAppointmentsByWeek, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useUpdateAppointment, useClientPets, useServices, useCreateAppointment, useDeleteAppointment, useCurrentUser, useOrganization } from '@/hooks'
+import { useAppointmentsByView, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useUpdateAppointment, useClientPets, useServices, useCreateAppointment, useDeleteAppointment, useCurrentUser, useOrganization } from '@/hooks'
 import { emailApi } from '@/modules/database/api'
 import { CALENDAR_BUSINESS_HOURS } from '@/config/constants'
 import { cn } from '@/lib/utils'
@@ -75,7 +75,7 @@ export function CalendarPage() {
   const [statusNotes, setStatusNotes] = useState('')
   const [showCompletedConfirmModal, setShowCompletedConfirmModal] = useState(false)
 
-  const { data: appointments = [], isLoading: isLoadingAppointments } = useAppointmentsByWeek(currentDate)
+  const { data: appointments = [], isLoading: isLoadingAppointments } = useAppointmentsByView(view, currentDate)
   const { data: clients = [], isLoading: isLoadingClients } = useClients()
   const { data: pets = [], isLoading: isLoadingPets } = usePets()
   const { data: groomers = [] } = useGroomers()

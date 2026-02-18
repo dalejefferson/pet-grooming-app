@@ -493,6 +493,17 @@ export interface BookingState {
   payment?: PaymentInfo
   selectedPaymentMethodId?: string
   saveNewCardForFuture?: boolean
+  bookingSummary?: {
+    groomerName: string | null
+    petNames: string
+    date: string
+    time: string
+    endTime: string
+    totalAmount: string
+    depositAmount?: number
+    depositPaid?: boolean
+    isRequested: boolean
+  }
 }
 
 // Time slot types

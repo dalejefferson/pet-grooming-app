@@ -26,6 +26,17 @@ export function useClientPets(clientId: string) {
   })
 }
 
+/**
+ * Fetch pets by client ID with org verification. Uses RPC — safe for anonymous booking flow.
+ */
+export function useClientPetsForBooking(clientId: string, organizationId: string) {
+  return useQuery({
+    queryKey: ['pets', 'client', 'booking', clientId, organizationId],
+    queryFn: () => petsApi.getByClientIdForBooking(clientId, organizationId),
+    enabled: !!clientId && !!organizationId,
+  })
+}
+
 export function useCreatePet() {
   const queryClient = useQueryClient()
   const { showSuccess } = useToast()

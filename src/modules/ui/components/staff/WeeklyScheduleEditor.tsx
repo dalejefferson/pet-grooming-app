@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react'
 import { Card, CardHeader, CardTitle } from '../common/Card'
 import { DayScheduleRow } from './DayScheduleRow'
 import type { DaySchedule, DayOfWeek } from '@/types'
@@ -5,6 +6,7 @@ import type { DaySchedule, DayOfWeek } from '@/types'
 export interface WeeklyScheduleEditorProps {
   schedule: DaySchedule[]
   onChange: (schedule: DaySchedule[]) => void
+  onValidationChange?: (hasErrors: boolean) => void
   disabled?: boolean
 }
 
@@ -14,8 +16,11 @@ const DAY_ORDER: DayOfWeek[] = [0, 1, 2, 3, 4, 5, 6]
 export function WeeklyScheduleEditor({
   schedule,
   onChange,
+  onValidationChange,
   disabled = false,
 }: WeeklyScheduleEditorProps) {
+  const [dayErrors, setDayErrors] = useState<Record<number, boolean>>({})
+
   // Create a map for quick lookup
   const scheduleMap = new Map(schedule.map((s) => [s.dayOfWeek, s]))
 
@@ -38,6 +43,16 @@ export function WeeklyScheduleEditor({
     onChange(newSchedule)
   }
 
+  const handleDayValidationChange = useCallback((dayOfWeek: DayOfWeek, hasErrors: boolean) => {
+    setDayErrors((prev) => {
+      if (prev[dayOfWeek] === hasErrors) return prev
+      const next = { ...prev, [dayOfWeek]: hasErrors }
+      const anyErrors = Object.values(next).some(Boolean)
+      onValidationChange?.(anyErrors)
+      return next
+    })
+  }, [onValidationChange])
+
   return (
     <Card padding="lg">
       <CardHeader>
@@ -49,6 +64,7 @@ export function WeeklyScheduleEditor({
             key={daySchedule.dayOfWeek}
             schedule={daySchedule}
             onChange={handleDayChange}
+            onValidationChange={handleDayValidationChange}
             disabled={disabled}
           />
         ))}

@@ -61,7 +61,7 @@ export function RescheduleConfirmModal({
           <div className="flex items-start gap-3 rounded-xl border-2 border-[#fbbf24] bg-[#fef9c3] p-3">
             <AlertTriangle className="h-5 w-5 flex-shrink-0 text-[#d97706]" />
             <p className="text-sm text-[#92400e]">
-              This will update the appointment time. The client will be notified of the change.
+              This will update the appointment time. Remember to notify the client of this change.
             </p>
           </div>
 

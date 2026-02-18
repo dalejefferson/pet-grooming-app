@@ -3,7 +3,7 @@ import { useNavigate, Navigate, useParams } from 'react-router-dom'
 import { Plus, ArrowRight, ArrowLeft, Check, AlertTriangle } from 'lucide-react'
 import { Card, CardTitle, Button, Input, Select, ComboBox } from '../../components/common'
 import { VaccinationStatusBadge, ExpiredVaccinationWarning } from '../../components/booking'
-import { useClientPets } from '@/hooks'
+import { useClientPetsForBooking } from '@/hooks'
 import { useBookingContext } from '../../context/BookingContext'
 import { COAT_TYPE_LABELS, WEIGHT_RANGE_LABELS, DOG_BREEDS, CAT_BREEDS } from '@/config/constants'
 import {
@@ -26,7 +26,7 @@ export function BookingPetsPage() {
   const isNewClient = bookingState.isNewClient
   const clientId = bookingState.clientId
 
-  const { data: existingPets = [] } = useClientPets(clientId || '')
+  const { data: existingPets = [] } = useClientPetsForBooking(clientId || '', organization?.id || '')
 
   const [selectedPets, setSelectedPets] = useState<SelectedPet[]>([])
   const [showNewPetForm, setShowNewPetForm] = useState(isNewClient)

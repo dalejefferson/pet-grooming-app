@@ -14,7 +14,7 @@ export interface StaffPerformanceMetrics {
   appointmentsCompleted: number
   appointmentsScheduled: number
   totalRevenue: number
-  averageRating: number
+  averageRating: number | null
   noShowRate: number
   cancellationRate: number
   clientReturnRate: number
@@ -27,9 +27,9 @@ export interface StaffPerformanceMetrics {
 // Pure calculation helpers (no DB access)
 // ============================================
 
-function calculateAverageRating(): number {
-  // Mock rating between 4.5 and 5.0
-  return Number((4.5 + Math.random() * 0.5).toFixed(2))
+function calculateAverageRating(): null {
+  // No real rating system implemented yet
+  return null
 }
 
 function calculateClientReturnRate(appointments: Appointment[]): number {
@@ -79,7 +79,8 @@ function calculateServiceBreakdown(
           serviceData[serviceName] = { count: 0, revenue: 0 }
         }
         serviceData[serviceName].count += 1
-        serviceData[serviceName].revenue += service.finalPrice
+        const price = Number(service.finalPrice) || 0
+        serviceData[serviceName].revenue += price
       }
     }
   }
@@ -238,10 +239,7 @@ export const performanceApi = {
         appointmentsCompleted: completedAppointments.length,
         appointmentsScheduled: orgAppointments.length,
         totalRevenue: Number(totalRevenue.toFixed(2)),
-        averageRating:
-          byStaff.length > 0
-            ? Number((byStaff.reduce((sum, s) => sum + s.averageRating, 0) / byStaff.length).toFixed(2))
-            : 0,
+        averageRating: null,
         noShowRate,
         cancellationRate,
         clientReturnRate: calculateClientReturnRate(completedAppointments),

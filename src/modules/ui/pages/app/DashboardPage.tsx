@@ -5,6 +5,7 @@ import { Card, CardTitle, Badge, Button } from '../../components/common'
 import { AppointmentDetailsDrawer, StatusChangeModal } from '../../components/calendar'
 import { VaccinationAlertsWidget } from '../../components/dashboard'
 import { useAppointmentsByDay, useAppointmentsByDateRange, useClients, usePets, useGroomers, useUpdateAppointmentStatus, useDeleteAppointment, useCreateAppointment } from '@/hooks'
+import { useOrganization } from '@/modules/database/hooks'
 import { useCreateCheckoutSession } from '@/modules/database/hooks'
 import { useUndo } from '@/modules/ui/context'
 import { useSubscriptionContext } from '../../context/SubscriptionContext'
@@ -46,6 +47,7 @@ export function DashboardPage() {
   const { data: clients = [], isLoading: isLoadingClients } = useClients()
   const { data: pets = [], isLoading: isLoadingPets } = usePets()
   const { data: groomers = [] } = useGroomers()
+  const { data: organization } = useOrganization()
 
   const isLoadingStats = isLoadingAppointments || isLoadingClients || isLoadingPets
 
@@ -456,14 +458,23 @@ export function DashboardPage() {
                 <TrendingUp className="h-5 w-5" style={{ color: 'var(--accent-color-dark)' }} />
                 <span className="font-medium text-gray-900">Edit Services</span>
               </Link>
-              <Link
-                to={`/book/paws-claws/start`}
-                target="_blank"
-                className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
-              >
-                <Dog className="h-5 w-5" style={{ color: 'var(--accent-color-dark)' }} />
-                <span className="font-medium text-gray-900">Booking Portal</span>
-              </Link>
+              {organization?.slug ? (
+                <Link
+                  to={`/book/${organization.slug}/start`}
+                  target="_blank"
+                  className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-white p-4 shadow-[3px_3px_0px_0px_#1e293b] transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_#1e293b]"
+                >
+                  <Dog className="h-5 w-5" style={{ color: 'var(--accent-color-dark)' }} />
+                  <span className="font-medium text-gray-900">Booking Portal</span>
+                </Link>
+              ) : (
+                <div
+                  className="flex items-center gap-3 rounded-xl border-2 border-[#1e293b] bg-gray-50 p-4 shadow-[3px_3px_0px_0px_#1e293b] opacity-50 cursor-not-allowed"
+                >
+                  <Dog className="h-5 w-5 text-gray-400" />
+                  <span className="font-medium text-gray-400">Booking Portal</span>
+                </div>
+              )}
             </div>
           </Card>
 

@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
     }
 
     // Determine origin for redirect URLs
-    const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/[^/]*$/, '') || ''
+    const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/[^/]*$/, '') || 'https://sitprettyclub.com'
 
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,

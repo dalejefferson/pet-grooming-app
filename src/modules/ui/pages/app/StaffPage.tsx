@@ -166,7 +166,7 @@ export function StaffPage() {
                 </Button>
                 <span className="text-sm text-[#64748b]">
                   Solo plan includes 1 staff member.{' '}
-                  <a href="/app/settings" className="font-semibold text-[#5a7a5d] underline hover:text-[#6F8F72]">
+                  <a href="/app/billing" className="font-semibold text-[#5a7a5d] underline hover:text-[#6F8F72]">
                     Upgrade to add more
                   </a>
                 </span>

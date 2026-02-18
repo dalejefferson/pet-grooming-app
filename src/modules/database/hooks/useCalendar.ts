@@ -1,4 +1,6 @@
+import { useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
 import { calendarApi } from '../api'
 import { useToast } from '@/modules/ui/hooks/useToast'
 import type { Appointment, AppointmentStatus, PaymentStatus } from '../types'
@@ -30,6 +32,34 @@ export function useAppointmentsByWeek(date: Date, organizationId?: string) {
   return useQuery({
     queryKey: ['appointments', 'week', date.toISOString(), organizationId],
     queryFn: () => calendarApi.getByWeek(date, organizationId),
+  })
+}
+
+export function useAppointmentsByView(
+  view: 'day' | 'week' | 'month',
+  date: Date,
+  organizationId?: string
+) {
+  const { start, end } = useMemo(() => {
+    if (view === 'day') {
+      return { start: startOfDay(date), end: endOfDay(date) }
+    }
+    if (view === 'week') {
+      return {
+        start: startOfWeek(date, { weekStartsOn: 0 }),
+        end: endOfWeek(date, { weekStartsOn: 0 }),
+      }
+    }
+    // month: fetch the full grid range that react-big-calendar / FullCalendar displays
+    return {
+      start: startOfWeek(startOfMonth(date), { weekStartsOn: 0 }),
+      end: endOfWeek(endOfMonth(date), { weekStartsOn: 0 }),
+    }
+  }, [view, date])
+
+  return useQuery({
+    queryKey: ['appointments', 'view', view, start.toISOString(), end.toISOString(), organizationId],
+    queryFn: () => calendarApi.getByDateRange(start, end, organizationId),
   })
 }
 
@@ -71,19 +101,19 @@ export function useIssuesAppointments(
   })
 }
 
-export function useClientAppointments(clientId: string) {
+export function useClientAppointments(clientId: string, organizationId: string) {
   return useQuery({
-    queryKey: ['appointments', 'client', clientId],
-    queryFn: () => calendarApi.getByClientId(clientId),
-    enabled: !!clientId,
+    queryKey: ['appointments', 'client', clientId, organizationId],
+    queryFn: () => calendarApi.getByClientId(clientId, organizationId),
+    enabled: !!clientId && !!organizationId,
   })
 }
 
-export function useGroomerAppointments(groomerId: string) {
+export function useGroomerAppointments(groomerId: string, organizationId: string) {
   return useQuery({
-    queryKey: ['appointments', 'groomer', groomerId],
-    queryFn: () => calendarApi.getByGroomerId(groomerId),
-    enabled: !!groomerId,
+    queryKey: ['appointments', 'groomer', groomerId, organizationId],
+    queryFn: () => calendarApi.getByGroomerId(groomerId, organizationId),
+    enabled: !!groomerId && !!organizationId,
   })
 }
 

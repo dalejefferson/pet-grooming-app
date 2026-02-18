@@ -29,9 +29,25 @@ export function BookingProvider({
     const saved = sessionStorage.getItem(STORAGE_KEY)
     if (saved) {
       try {
-        return JSON.parse(saved)
+        const parsed = JSON.parse(saved)
+        // Validate expected shape before trusting parsed data
+        if (
+          parsed &&
+          typeof parsed === 'object' &&
+          typeof parsed.isNewClient === 'boolean' &&
+          Array.isArray(parsed.selectedPets) &&
+          (parsed.step === undefined || typeof parsed.step === 'number') &&
+          (parsed.clientInfo === undefined || (typeof parsed.clientInfo === 'object' && parsed.clientInfo !== null)) &&
+          // Ensure the saved state belongs to this organization
+          (parsed.organizationId === undefined || parsed.organizationId === organization.id)
+        ) {
+          // Force organizationId to current org
+          return { ...parsed, organizationId: organization.id }
+        }
+        // Validation failed — discard saved state
+        sessionStorage.removeItem(STORAGE_KEY)
       } catch {
-        // ignore invalid data
+        sessionStorage.removeItem(STORAGE_KEY)
       }
     }
     return {

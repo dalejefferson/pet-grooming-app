@@ -1,31 +1,23 @@
-import { useEffect } from 'react'
-import { useSearchParams, Link } from 'react-router-dom'
-import { CheckCircle, Calendar, MapPin, Phone, User, Users } from 'lucide-react'
-import { Card, Button, Badge } from '../../components/common'
-import { useAppointment, useGroomers } from '@/hooks'
+import { useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
+import { CheckCircle, Calendar, MapPin, Phone, User, Users, PawPrint } from 'lucide-react'
+import { Card, Button } from '../../components/common'
 import { useBookingContext } from '../../context/BookingContext'
-import { format, parseISO } from 'date-fns'
 import { formatCurrency } from '@/lib/utils'
-import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_STATUS_COLORS } from '@/config/constants'
-import { cn } from '@/lib/utils'
 
 export function BookingSuccessPage() {
-  const [searchParams] = useSearchParams()
-  const { organization, resetBookingState } = useBookingContext()
-  const appointmentId = searchParams.get('appointmentId')
+  const { organization, bookingState, resetBookingState } = useBookingContext()
+
+  // Capture summary data in a ref so it survives the reset
+  const summaryRef = useRef(bookingState.bookingSummary)
 
   // Clear booking state on mount since the booking is complete
   useEffect(() => {
     resetBookingState()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const { data: appointment } = useAppointment(appointmentId || '')
-  const { data: allGroomers = [] } = useGroomers()
-
-  const isRequested = appointment?.status === 'requested'
-  const selectedGroomer = appointment?.groomerId
-    ? allGroomers.find((g) => g.id === appointment.groomerId)
-    : null
+  const summary = summaryRef.current
+  const isRequested = summary?.isRequested ?? false
 
   return (
     <div className="space-y-6 text-center">
@@ -46,25 +38,17 @@ export function BookingSuccessPage() {
         </p>
       </div>
 
-      {appointment && (
+      {summary && (
         <Card className="text-left">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Appointment Details</h2>
-            <Badge className={cn(APPOINTMENT_STATUS_COLORS[appointment.status])}>
-              {APPOINTMENT_STATUS_LABELS[appointment.status]}
-            </Badge>
-          </div>
+          <h2 className="text-lg font-semibold text-gray-900">Appointment Details</h2>
 
           <div className="mt-6 space-y-4">
             <div className="flex items-start gap-3">
               <Calendar className="mt-0.5 h-5 w-5 text-gray-400" />
               <div>
-                <p className="font-medium text-gray-900">
-                  {format(parseISO(appointment.startTime), 'EEEE, MMMM d, yyyy')}
-                </p>
+                <p className="font-medium text-gray-900">{summary.date}</p>
                 <p className="text-gray-600">
-                  {format(parseISO(appointment.startTime), 'h:mm a')} -{' '}
-                  {format(parseISO(appointment.endTime), 'h:mm a')}
+                  {summary.time} - {summary.endTime}
                 </p>
               </div>
             </div>
@@ -87,7 +71,7 @@ export function BookingSuccessPage() {
             {/* Groomer */}
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-5 w-5 items-center justify-center">
-                {selectedGroomer ? (
+                {summary.groomerName ? (
                   <User className="h-5 w-5 text-gray-400" />
                 ) : (
                   <Users className="h-5 w-5 text-gray-400" />
@@ -96,27 +80,34 @@ export function BookingSuccessPage() {
               <div>
                 <p className="text-sm text-gray-500">Your Groomer</p>
                 <p className="font-medium text-gray-900">
-                  {selectedGroomer
-                    ? `${selectedGroomer.firstName} ${selectedGroomer.lastName}`
-                    : 'First Available Groomer'}
+                  {summary.groomerName || 'First Available Groomer'}
                 </p>
               </div>
             </div>
+
+            {/* Pets */}
+            {summary.petNames && (
+              <div className="flex items-start gap-3">
+                <PawPrint className="mt-0.5 h-5 w-5 text-gray-400" />
+                <div>
+                  <p className="text-sm text-gray-500">Pets</p>
+                  <p className="font-medium text-gray-900">{summary.petNames}</p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="mt-6 border-t pt-4">
             <div className="flex justify-between text-lg">
               <span className="font-medium text-gray-900">Total</span>
-              <span className="font-semibold text-gray-900">
-                {formatCurrency(appointment.totalAmount)}
-              </span>
+              <span className="font-semibold text-gray-900">{summary.totalAmount}</span>
             </div>
-            {appointment.depositAmount && (
+            {summary.depositAmount != null && summary.depositAmount > 0 && (
               <div className="mt-1 flex justify-between text-sm">
                 <span className="text-gray-600">Deposit</span>
-                <span className={appointment.depositPaid ? 'text-success-600' : 'text-warning-600'}>
-                  {formatCurrency(appointment.depositAmount)}{' '}
-                  {appointment.depositPaid ? '(Paid)' : '(Pending)'}
+                <span className={summary.depositPaid ? 'text-success-600' : 'text-warning-600'}>
+                  {formatCurrency(summary.depositAmount)}{' '}
+                  {summary.depositPaid ? '(Paid)' : '(Pending)'}
                 </span>
               </div>
             )}
@@ -129,16 +120,16 @@ export function BookingSuccessPage() {
         <ul className="mt-3 space-y-2 text-sm text-primary-800">
           {isRequested ? (
             <>
-              <li>• We'll review your request and contact you within 24 hours</li>
-              <li>• Once confirmed, you'll receive a confirmation email</li>
-              <li>• A deposit may be required to finalize your booking</li>
+              <li>We'll review your request and contact you within 24 hours</li>
+              <li>Once confirmed, you'll receive a confirmation email</li>
+              <li>A deposit may be required to finalize your booking</li>
             </>
           ) : (
             <>
-              <li>• You'll receive a confirmation email shortly</li>
-              <li>• We'll send reminders before your appointment</li>
-              <li>• Please arrive 5 minutes early</li>
-              <li>• Bring vaccination records if this is your pet's first visit</li>
+              <li>You'll receive a confirmation email shortly</li>
+              <li>We'll send reminders before your appointment</li>
+              <li>Please arrive 5 minutes early</li>
+              <li>Bring vaccination records if this is your pet's first visit</li>
             </>
           )}
         </ul>

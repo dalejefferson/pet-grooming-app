@@ -15,7 +15,7 @@ import {
 } from '../../components/booking'
 import type { PetServiceSummary } from '../../components/booking'
 import type { CardInputValue } from '../../components/payment'
-import { useActiveServices, usePolicies, useCreateBooking, useClientPets, useGroomers } from '@/hooks'
+import { useActiveServices, usePolicies, useCreateBooking, useClientPetsForBooking, useGroomers } from '@/hooks'
 import { useAddPaymentMethod } from '@/modules/database/hooks'
 import { useBookingContext } from '../../context/BookingContext'
 import { emailApi } from '@/modules/database/api/emailApi'
@@ -40,7 +40,7 @@ export function BookingConfirmPage() {
 
   const { data: services = [] } = useActiveServices(organization.id)
   const { data: policies } = usePolicies(organization.id)
-  const { data: clientPets = [] } = useClientPets(clientId || '')
+  const { data: clientPets = [] } = useClientPetsForBooking(clientId || '', organization?.id || '')
   const { data: allGroomers = [] } = useGroomers()
   const createBooking = useCreateBooking()
 
@@ -89,7 +89,7 @@ export function BookingConfirmPage() {
           let servicePrice = service.basePrice
 
           for (const modifierId of selectedService.modifierIds) {
-            const modifier = service.modifiers.find((m) => m.id === modifierId)
+            const modifier = service.modifiers?.find((m) => m.id === modifierId)
             if (modifier) {
               serviceDuration += modifier.durationMinutes
               if (modifier.isPercentage) {
@@ -99,6 +99,9 @@ export function BookingConfirmPage() {
               }
             }
           }
+
+          // Ensure price never goes below zero from negative modifiers
+          servicePrice = Math.max(0, servicePrice)
 
           duration += serviceDuration
           price += servicePrice
@@ -250,7 +253,24 @@ export function BookingConfirmPage() {
       }
 
       const result = await createBooking.mutateAsync(bookingState)
-      updateBookingState({ notes })
+
+      // Store booking summary for the success page (avoids fetching appointment by ID)
+      updateBookingState({
+        notes,
+        bookingSummary: {
+          groomerName: selectedGroomer
+            ? `${selectedGroomer.firstName} ${selectedGroomer.lastName}`
+            : null,
+          petNames: petSummaries.map((p) => p.name).join(', '),
+          date: format(startTime, 'EEEE, MMMM d, yyyy'),
+          time: format(startTime, 'h:mm a'),
+          endTime: format(endTime, 'h:mm a'),
+          totalAmount: formatCurrency(grandTotal),
+          depositAmount: result.appointment.depositAmount,
+          depositPaid: result.appointment.depositPaid,
+          isRequested: result.requiresConfirmation,
+        },
+      })
 
       // Send booking confirmation email to client (fire-and-forget)
       const clientName = isNewClient
@@ -292,7 +312,7 @@ export function BookingConfirmPage() {
         }).catch((err) => console.warn('[Email] Staff alert failed:', err))
       }
 
-      navigate(`/book/${organization.slug}/success?appointmentId=${result.appointment.id}`)
+      navigate(`/book/${organization.slug}/success`)
     } catch {
       setPaymentStatus('failed')
       setError('Payment failed. Please check your payment details and try again.')
@@ -369,6 +389,13 @@ export function BookingConfirmPage() {
         grandTotal={grandTotal}
       />
 
+      {/* Demo Mode Banner */}
+      <div className="rounded-xl border-2 border-[#1e293b] bg-[#fef9c3] p-3 shadow-[2px_2px_0px_0px_#1e293b]">
+        <p className="text-sm font-semibold text-[#1e293b]">
+          Demo Mode — Payment processing is simulated. No real charges will be made.
+        </p>
+      </div>
+
       {/* Payment Section */}
       <PaymentForm
         paymentStatus={paymentStatus}
@@ -418,7 +445,7 @@ export function BookingConfirmPage() {
         ) : paymentStatus !== 'completed' ? (
           <Button
             onClick={handlePayment}
-            disabled={!agreedToPolicy || paymentStatus === 'processing' || isSubmitting}
+            disabled={!agreedToPolicy || paymentStatus === 'processing' || isSubmitting || (!selectedPaymentMethodId && !newCardValue)}
             className="bg-[#fcd9bd] text-[#1e293b] hover:bg-[#fbc4a0] border-[#1e293b]"
           >
             {paymentStatus === 'processing' ? (

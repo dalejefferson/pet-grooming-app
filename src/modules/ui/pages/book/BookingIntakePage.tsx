@@ -3,7 +3,7 @@ import { useNavigate, Navigate, useParams } from 'react-router-dom'
 import { ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react'
 import { Card, Button } from '../../components/common'
 import { GroomerDisplayCard, ServiceCategorySection, PetProgressTabs } from '../../components/booking'
-import { useActiveServices, useClientPets, useGroomers } from '@/hooks'
+import { useActiveServices, useClientPetsForBooking, useGroomers } from '@/hooks'
 import { useBookingContext } from '../../context/BookingContext'
 import {
   SERVICE_CATEGORIES,
@@ -56,7 +56,7 @@ export function BookingIntakePage() {
   }))
 
   const { data: services = [] } = useActiveServices(organization.id)
-  const { data: clientPets = [] } = useClientPets(clientId || '')
+  const { data: clientPets = [] } = useClientPetsForBooking(clientId || '', organization?.id || '')
   const { data: allGroomers = [] } = useGroomers()
 
   const selectedGroomer = useMemo(() => {

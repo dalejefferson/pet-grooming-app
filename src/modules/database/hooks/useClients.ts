@@ -18,6 +18,17 @@ export function useClient(id: string) {
   })
 }
 
+/**
+ * Fetch a client by ID with org verification. Uses RPC — safe for anonymous booking flow.
+ */
+export function useClientForBooking(id: string, organizationId: string) {
+  return useQuery({
+    queryKey: ['client', 'booking', id, organizationId],
+    queryFn: () => clientsApi.getByIdForBooking(id, organizationId),
+    enabled: !!id && !!organizationId,
+  })
+}
+
 export function useSearchClients(query: string, organizationId?: string) {
   return useQuery({
     queryKey: ['clients', 'search', query, organizationId],

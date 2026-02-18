@@ -61,7 +61,8 @@ export function AuthCallbackPage() {
       }
 
       const pendingCheckout = localStorage.getItem('pendingCheckout')
-      navigate(pendingCheckout ? '/app/settings' : '/app/dashboard', { replace: true })
+      localStorage.removeItem('pendingCheckout')
+      navigate(pendingCheckout ? '/app/billing' : '/app/dashboard', { replace: true })
     }
 
     // Listen for auth state changes (catches the event if exchange hasn't completed yet)

@@ -129,7 +129,11 @@ export function StaffPerformanceDashboard({
             </h2>
             <p className="text-sm text-[#64748b]">Last 30 days</p>
           </div>
-          <StarRating rating={performance.averageRating} />
+          {performance.averageRating != null ? (
+            <StarRating rating={performance.averageRating} />
+          ) : (
+            <span className="text-sm text-[#64748b]">No ratings yet</span>
+          )}
         </div>
       </Card>
 

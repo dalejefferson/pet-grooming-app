@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { Search, Plus, Phone, Trash2, Users } from 'lucide-react'
 import { Card, Button, Input, Badge, Modal, ImageUpload, HistorySection, ConfirmDialog, Skeleton, EmptyState, AddressAutocomplete } from '../../components/common'
 import { useClients, useClientPets, useCreateClient, useDeleteClient, useDeletedHistory, useAddToHistory, useCurrentUser } from '@/hooks'
+import { clientsApi } from '@/modules/database/api/clientsApi'
+import { petsApi } from '@/modules/database/api/petsApi'
 import { formatPhone, cn } from '@/lib/utils'
 import { debounce } from '@/lib/utils/debounce'
 import { validators, validateForm } from '@/lib/utils/formValidation'
@@ -234,6 +236,14 @@ export function ClientsPage() {
     const clientToDelete = clients.find(c => c.id === clientId)
     if (!clientToDelete) return
 
+    // Snapshot the client's pets (with vaccinations) BEFORE deleting
+    let clientPetsSnapshot: Awaited<ReturnType<typeof petsApi.getByClientId>> = []
+    try {
+      clientPetsSnapshot = await petsApi.getByClientId(clientId)
+    } catch {
+      // If we can't fetch pets, proceed with just client restore on undo
+    }
+
     await deleteClient.mutateAsync(clientId)
 
     // Add to history for restore functionality
@@ -250,9 +260,8 @@ export function ClientsPage() {
       label: `${clientToDelete.firstName} ${clientToDelete.lastName}`,
       data: clientToDelete,
       onUndo: async () => {
-        // Restore the client (create with same data, excluding id/timestamps)
-        const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...clientData } = clientToDelete
-        await createClient.mutateAsync(clientData)
+        // Restore client with original ID, plus their pets and vaccinations
+        await clientsApi.restoreClient(clientToDelete, clientPetsSnapshot)
       }
     })
   }

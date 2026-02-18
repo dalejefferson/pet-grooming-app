@@ -164,7 +164,7 @@ export const bookingApi = {
       })
       isNewClient = true
     } else if (booking.clientId) {
-      const existingClient = await clientsApi.getById(booking.clientId)
+      const existingClient = await clientsApi.getByIdForBooking(booking.clientId, booking.organizationId)
       if (!existingClient) {
         throw new Error('Client not found')
       }
@@ -177,7 +177,7 @@ export const bookingApi = {
     const existingPetsForValidation: Pet[] = []
     for (const selectedPet of booking.selectedPets) {
       if (!selectedPet.isNewPet && selectedPet.petId) {
-        const pet = await petsApi.getById(selectedPet.petId)
+        const pet = await petsApi.getByIdForBooking(selectedPet.petId, booking.organizationId)
         if (pet) existingPetsForValidation.push(pet)
       }
     }

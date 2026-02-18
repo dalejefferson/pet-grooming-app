@@ -2,7 +2,8 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, AlertTriangle, User, Trash2, PawPrint } from 'lucide-react'
 import { Card, Input, Badge, HistorySection, ConfirmDialog, Skeleton, EmptyState } from '../../components/common'
-import { usePets, useClients, useDeletePet, useCreatePet, useDeletedHistory, useAddToHistory } from '@/hooks'
+import { usePets, useClients, useDeletePet, useDeletedHistory, useAddToHistory } from '@/hooks'
+import { petsApi } from '@/modules/database/api/petsApi'
 import { debounce } from '@/lib/utils/debounce'
 import type { Pet, Client } from '@/types'
 import { BEHAVIOR_LEVEL_LABELS } from '@/config/constants'
@@ -91,7 +92,6 @@ export function PetsPage() {
   const { data: clients = [] } = useClients()
   const { data: deletedItems = [] } = useDeletedHistory('pet')
   const deletePet = useDeletePet()
-  const createPet = useCreatePet()
   const addToHistory = useAddToHistory()
 
   const debouncedSetQuery = useMemo(
@@ -123,8 +123,8 @@ export function PetsPage() {
       label: petToDelete.name,
       data: petToDelete,
       onUndo: async () => {
-        const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...petData } = petToDelete
-        await createPet.mutateAsync(petData)
+        // Restore pet with original ID plus vaccination records
+        await petsApi.restorePet(petToDelete)
       }
     })
   }

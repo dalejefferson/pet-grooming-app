@@ -98,30 +98,27 @@ export function DocumentUpload({
         return
       }
 
-      // For base64 data URLs (legacy), open in new tab with custom viewer
-      const newWindow = window.open()
+      // For base64 data URLs (legacy), build DOM safely without document.write()
+      const newWindow = window.open('', '_blank')
       if (newWindow) {
+        const doc = newWindow.document
+        doc.title = 'Vaccination Document'
+
         const fileType = getFileType(currentDocument)
         if (fileType === 'pdf') {
-          newWindow.document.write(`
-            <html>
-              <head><title>Vaccination Document</title></head>
-              <body style="margin:0;padding:0;">
-                <iframe src="${currentDocument}" style="width:100%;height:100vh;border:none;"></iframe>
-              </body>
-            </html>
-          `)
+          doc.body.style.cssText = 'margin:0;padding:0;'
+          const iframe = doc.createElement('iframe')
+          iframe.src = currentDocument
+          iframe.style.cssText = 'width:100%;height:100vh;border:none;'
+          doc.body.appendChild(iframe)
         } else {
-          newWindow.document.write(`
-            <html>
-              <head><title>Vaccination Document</title></head>
-              <body style="margin:0;padding:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#1e293b;">
-                <img src="${currentDocument}" alt="Uploaded vaccination document" style="max-width:100%;max-height:100vh;object-fit:contain;" />
-              </body>
-            </html>
-          `)
+          doc.body.style.cssText = 'margin:0;padding:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#1e293b;'
+          const img = doc.createElement('img')
+          img.src = currentDocument
+          img.alt = 'Uploaded vaccination document'
+          img.style.cssText = 'max-width:100%;max-height:100vh;object-fit:contain;'
+          doc.body.appendChild(img)
         }
-        newWindow.document.close()
       }
     }
   }

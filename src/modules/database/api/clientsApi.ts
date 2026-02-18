@@ -1,6 +1,6 @@
-import type { Client } from '../types'
+import type { Client, Pet, VaccinationRecord } from '../types'
 import { supabase } from '@/lib/supabase/client'
-import { mapClient, toDbClient, mapPaymentMethod } from '../types/supabase-mappers'
+import { mapClient, toDbClient, mapPaymentMethod, toDbPet, toDbVaccinationRecord } from '../types/supabase-mappers'
 
 async function fetchPaymentMethods(clientId: string) {
   const { data, error } = await supabase
@@ -71,38 +71,49 @@ export const clientsApi = {
     return mapClient(data, paymentMethods)
   },
 
-  async getByEmail(email: string): Promise<Client | null> {
+  async getByEmail(email: string, organizationId: string): Promise<Client | null> {
     const { data, error } = await supabase
-      .from('clients')
-      .select('*')
-      .eq('email', email)
-      .single()
+      .rpc('lookup_client_by_email', {
+        p_org_id: organizationId,
+        p_email: email,
+      })
 
-    if (error) {
-      if (error.code === 'PGRST116') return null
-      throw new Error(error.message)
-    }
+    if (error) throw new Error(error.message)
 
-    if (!data) return null
+    const row = Array.isArray(data) ? data[0] : data
+    if (!row) return null
 
-    const paymentMethods = await fetchPaymentMethods(data.id)
-    return mapClient(data, paymentMethods)
+    const paymentMethods = await fetchPaymentMethods(row.id)
+    return mapClient(row, paymentMethods)
   },
 
   async search(query: string, organizationId?: string): Promise<Client[]> {
+    // Use RPC for org-scoped searches (safe for anonymous booking flow)
+    if (organizationId) {
+      const { data, error } = await supabase
+        .rpc('search_clients_for_booking', {
+          p_org_id: organizationId,
+          p_query: query,
+        })
+
+      if (error) throw new Error(error.message)
+
+      const rows = data ?? []
+      const clientIds = rows.map((r: Record<string, unknown>) => r.id as string)
+      const pmMap = await fetchPaymentMethodsForClients(clientIds)
+
+      return rows.map((row: Record<string, unknown>) => mapClient(row, pmMap.get(row.id as string) ?? []))
+    }
+
+    // Direct table access for authenticated users (RLS scopes to their org)
     const pattern = `%${query}%`
-    let dbQuery = supabase
+    const { data, error } = await supabase
       .from('clients')
       .select('*')
       .or(
         `first_name.ilike.${pattern},last_name.ilike.${pattern},email.ilike.${pattern},phone.ilike.${pattern}`
       )
 
-    if (organizationId) {
-      dbQuery = dbQuery.eq('organization_id', organizationId)
-    }
-
-    const { data, error } = await dbQuery
     if (error) throw new Error(error.message)
 
     const rows = data ?? []
@@ -110,6 +121,26 @@ export const clientsApi = {
     const pmMap = await fetchPaymentMethodsForClients(clientIds)
 
     return rows.map((row) => mapClient(row, pmMap.get(row.id) ?? []))
+  },
+
+  /**
+   * Get client by ID with org verification. Uses RPC — safe for anonymous booking flow.
+   * Use this when the caller has an organizationId (e.g., booking flow).
+   */
+  async getByIdForBooking(id: string, organizationId: string): Promise<Client | null> {
+    const { data, error } = await supabase
+      .rpc('get_client_for_booking', {
+        p_org_id: organizationId,
+        p_client_id: id,
+      })
+
+    if (error) throw new Error(error.message)
+
+    const row = Array.isArray(data) ? data[0] : data
+    if (!row) return null
+
+    const paymentMethods = await fetchPaymentMethods(row.id)
+    return mapClient(row, paymentMethods)
   },
 
   async create(data: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Promise<Client> {
@@ -203,5 +234,41 @@ export const clientsApi = {
       .delete()
       .eq('id', id)
     if (error) throw new Error(error.message)
+  },
+
+  async restoreClient(client: Client, pets: Pet[]): Promise<void> {
+    // Re-insert client with original ID
+    const clientDbData = toDbClient(client)
+    clientDbData.id = client.id
+    clientDbData.created_at = client.createdAt
+    clientDbData.updated_at = client.updatedAt
+    const { error: clientError } = await supabase
+      .from('clients')
+      .upsert(clientDbData, { onConflict: 'id' })
+    if (clientError) throw new Error(clientError.message)
+
+    // Re-insert each pet with original IDs
+    for (const pet of pets) {
+      const petDbData = toDbPet(pet)
+      petDbData.id = pet.id
+      petDbData.created_at = pet.createdAt
+      petDbData.updated_at = pet.updatedAt
+      const { error: petError } = await supabase
+        .from('pets')
+        .upsert(petDbData, { onConflict: 'id' })
+      if (petError) throw new Error(petError.message)
+
+      // Re-insert vaccination records for this pet
+      if (pet.vaccinations && pet.vaccinations.length > 0) {
+        for (const vax of pet.vaccinations) {
+          const vaxDbData = toDbVaccinationRecord({ ...vax, petId: pet.id })
+          vaxDbData.id = vax.id
+          const { error: vaxError } = await supabase
+            .from('vaccination_records')
+            .upsert(vaxDbData, { onConflict: 'id' })
+          if (vaxError) throw new Error(vaxError.message)
+        }
+      }
+    }
   },
 }

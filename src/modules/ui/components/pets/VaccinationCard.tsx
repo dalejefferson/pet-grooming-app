@@ -85,29 +85,35 @@ export function VaccinationCard({ vaccination: vax, onEdit, onDelete }: Vaccinat
             variant="ghost"
             size="sm"
             onClick={() => {
-              const newWindow = window.open()
-              if (newWindow && vax.documentUrl) {
+              if (!vax.documentUrl) return
+
+              // For regular URLs (Supabase storage, etc.), open directly
+              if (!vax.documentUrl.startsWith('data:')) {
+                window.open(vax.documentUrl, '_blank')
+                return
+              }
+
+              // For base64 data URLs (legacy), build DOM safely without document.write()
+              const newWindow = window.open('', '_blank')
+              if (newWindow) {
+                const doc = newWindow.document
+                doc.title = `${vax.name} - Vaccination Document`
+
                 const isPdf = vax.documentUrl.startsWith('data:application/pdf')
                 if (isPdf) {
-                  newWindow.document.write(`
-                    <html>
-                      <head><title>${vax.name} - Vaccination Document</title></head>
-                      <body style="margin:0;padding:0;">
-                        <iframe src="${vax.documentUrl}" style="width:100%;height:100vh;border:none;"></iframe>
-                      </body>
-                    </html>
-                  `)
+                  doc.body.style.cssText = 'margin:0;padding:0;'
+                  const iframe = doc.createElement('iframe')
+                  iframe.src = vax.documentUrl
+                  iframe.style.cssText = 'width:100%;height:100vh;border:none;'
+                  doc.body.appendChild(iframe)
                 } else {
-                  newWindow.document.write(`
-                    <html>
-                      <head><title>${vax.name} - Vaccination Document</title></head>
-                      <body style="margin:0;padding:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#1e293b;">
-                        <img src="${vax.documentUrl}" alt="${vax.name} vaccination document" style="max-width:100%;max-height:100vh;object-fit:contain;" />
-                      </body>
-                    </html>
-                  `)
+                  doc.body.style.cssText = 'margin:0;padding:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#1e293b;'
+                  const img = doc.createElement('img')
+                  img.src = vax.documentUrl
+                  img.alt = `${vax.name} vaccination document`
+                  img.style.cssText = 'max-width:100%;max-height:100vh;object-fit:contain;'
+                  doc.body.appendChild(img)
                 }
-                newWindow.document.close()
               }
             }}
             className="text-[#22c55e] hover:text-[#16a34a]"
