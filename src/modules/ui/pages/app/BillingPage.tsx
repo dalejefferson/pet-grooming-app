@@ -37,13 +37,13 @@ export function BillingPage() {
 
   return (
     <div className={cn('min-h-screen p-4 lg:p-6', colors.pageGradientLight)}>
-      <h1 className="text-2xl font-bold text-gray-900">Billing</h1>
+      <h1 className="text-2xl font-bold text-[#1e293b]">Billing</h1>
       <div className="mt-6 space-y-6">
         {/* Dev bypass indicator — shown inline, doesn't hide other sections */}
         {devBypass && !subscription && (
           <Card colorVariant="lemon">
             <div className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-[#a16207]" />
+              <Zap className="h-5 w-5" style={{ color: colors.accentColorDark }} />
               <CardTitle>Dev Bypass Active</CardTitle>
             </div>
             <p className="mt-2 text-sm text-[#64748b]">

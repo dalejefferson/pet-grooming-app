@@ -1,6 +1,7 @@
 import { Card, CardTitle, Button, Badge } from '../common'
 import { useSubscriptionContext } from '../../context/SubscriptionContext'
 import { useCreatePortalSession } from '@/modules/database/hooks'
+import { useTheme } from '@/modules/ui/context/ThemeContext'
 import { Crown, AlertTriangle } from 'lucide-react'
 import { PLANS, getStatusBadge } from './plans'
 
@@ -14,6 +15,7 @@ export function PlanStatusCard() {
     isLoading,
   } = useSubscriptionContext()
   const portal = useCreatePortalSession()
+  const { colors } = useTheme()
 
   if (isLoading) {
     return (
@@ -59,7 +61,7 @@ export function PlanStatusCard() {
         {/* Plan name + interval */}
         <div className="flex items-center gap-2">
           <Crown className="h-5 w-5 text-[#1e293b]" />
-          <span className="font-semibold text-[#1e293b]">{plan?.name ?? planTier} Plan</span>
+          <span className="font-semibold" style={{ color: colors.accentColorDark }}>{plan?.name ?? planTier} Plan</span>
           <span className="text-sm text-[#64748b]">
             ({subscription.billingInterval === 'yearly' ? 'Annual' : 'Monthly'})
           </span>
@@ -77,9 +79,9 @@ export function PlanStatusCard() {
 
         {/* Trial countdown */}
         {isTrialing && trialDaysRemaining != null && (
-          <div className="flex items-center gap-2 rounded-xl border-2 border-[#1e293b] bg-[#fef9c3] px-3 py-2 shadow-[2px_2px_0px_0px_#1e293b]">
-            <AlertTriangle className="h-4 w-4 shrink-0 text-[#a16207]" />
-            <span className="text-sm font-medium text-[#a16207]">
+          <div className="flex items-center gap-2 rounded-xl border-2 border-[#1e293b] px-3 py-2 shadow-[2px_2px_0px_0px_#1e293b]" style={{ backgroundColor: colors.accentColor + '33' }}>
+            <AlertTriangle className="h-4 w-4 shrink-0" style={{ color: colors.accentColorDark }} />
+            <span className="text-sm font-medium" style={{ color: colors.accentColorDark }}>
               {trialDaysRemaining} day{trialDaysRemaining !== 1 ? 's' : ''} left in your free trial
             </span>
           </div>
@@ -98,9 +100,9 @@ export function PlanStatusCard() {
         {/* Cancel-at-period-end notice + resume */}
         {subscription.cancelAtPeriodEnd && (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 rounded-xl border-2 border-[#1e293b] bg-[#fef9c3] px-3 py-2 shadow-[2px_2px_0px_0px_#1e293b]">
-              <AlertTriangle className="h-4 w-4 shrink-0 text-[#a16207]" />
-              <span className="text-sm font-medium text-[#a16207]">
+            <div className="flex items-center gap-2 rounded-xl border-2 border-[#1e293b] px-3 py-2 shadow-[2px_2px_0px_0px_#1e293b]" style={{ backgroundColor: colors.accentColor + '33' }}>
+              <AlertTriangle className="h-4 w-4 shrink-0" style={{ color: colors.accentColorDark }} />
+              <span className="text-sm font-medium" style={{ color: colors.accentColorDark }}>
                 Your subscription cancels on{' '}
                 {subscription.currentPeriodEnd
                   ? new Date(subscription.currentPeriodEnd).toLocaleDateString()
@@ -108,7 +110,7 @@ export function PlanStatusCard() {
               </span>
             </div>
             <Button
-              variant="primary"
+              variant="themed"
               size="sm"
               loading={portal.isPending}
               onClick={() => portal.mutate()}

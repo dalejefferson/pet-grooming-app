@@ -6,6 +6,7 @@ import { FEATURE_LABELS, FEATURE_TIER_MAP, getStaffLimit } from '@/config/subscr
 import type { SubscriptionPlanTier, SubscriptionBillingInterval, GatedFeature } from '@/modules/database/types'
 import { Check, Lock, Crown, Users } from 'lucide-react'
 import { PLANS } from './plans'
+import { useTheme } from '@/modules/ui/context/ThemeContext'
 
 // Shared features included in ALL plans (not gated)
 const SHARED_FEATURES = [
@@ -20,6 +21,7 @@ const SHARED_FEATURES = [
 const GATED_FEATURES = Object.keys(FEATURE_TIER_MAP) as GatedFeature[]
 
 export function PlanComparison() {
+  const { colors } = useTheme()
   const {
     planTier,
     isSubscriptionActive,
@@ -70,10 +72,10 @@ export function PlanComparison() {
       return { label: 'Current Plan', variant: 'secondary' as const, disabled: true }
     }
     if (!isSubscriptionActive) {
-      return { label: 'Start 14-Day Free Trial', variant: 'primary' as const, disabled: false }
+      return { label: 'Start 14-Day Free Trial', variant: 'themed' as const, disabled: false }
     }
     if (targetTier === 'studio') {
-      return { label: 'Upgrade to Studio', variant: 'primary' as const, disabled: false }
+      return { label: 'Upgrade to Studio', variant: 'themed' as const, disabled: false }
     }
     return { label: 'Downgrade to Solo', variant: 'outline' as const, disabled: false }
   }
@@ -91,9 +93,10 @@ export function PlanComparison() {
           onClick={() => setBillingInterval('monthly')}
           className={`rounded-lg border-2 border-[#1e293b] px-3 py-1.5 text-sm font-semibold transition-all ${
             billingInterval === 'monthly'
-              ? 'bg-[#1e293b] text-white shadow-[2px_2px_0px_0px_#1e293b]'
+              ? 'shadow-[2px_2px_0px_0px_#1e293b]'
               : 'bg-white text-[#334155] hover:bg-gray-50'
           }`}
+          style={billingInterval === 'monthly' ? { backgroundColor: colors.accentColorDark, color: 'var(--text-on-accent)' } : undefined}
         >
           Monthly
         </button>
@@ -101,9 +104,10 @@ export function PlanComparison() {
           onClick={() => setBillingInterval('yearly')}
           className={`rounded-lg border-2 border-[#1e293b] px-3 py-1.5 text-sm font-semibold transition-all ${
             billingInterval === 'yearly'
-              ? 'bg-[#1e293b] text-white shadow-[2px_2px_0px_0px_#1e293b]'
+              ? 'shadow-[2px_2px_0px_0px_#1e293b]'
               : 'bg-white text-[#334155] hover:bg-gray-50'
           }`}
+          style={billingInterval === 'yearly' ? { backgroundColor: colors.accentColorDark, color: 'var(--text-on-accent)' } : undefined}
         >
           Yearly
           <span className="ml-1 text-xs font-normal opacity-75">(Save 20%)</span>
@@ -117,10 +121,11 @@ export function PlanComparison() {
           const perMonth = billingInterval === 'yearly' ? Math.round(plan.yearlyPrice / 12) : plan.monthlyPrice
           const buttonProps = getButtonProps(plan.tier)
           const isCurrent = isSubscriptionActive && planTier === plan.tier
-          const colorVariant = plan.tier === 'solo' ? 'lemon' : 'mint'
+          const isStudio = plan.tier === 'studio'
+          const cardBg = isStudio ? colors.accentColor : colors.secondaryAccent
 
           return (
-            <Card key={plan.tier} colorVariant={colorVariant} padding="md">
+            <Card key={plan.tier} padding="md" style={{ backgroundColor: cardBg }}>
               <div className="flex items-center gap-2">
                 <Crown className="h-5 w-5 text-[#1e293b]" />
                 <span className="text-lg font-bold text-[#1e293b]">{plan.name}</span>
@@ -148,7 +153,7 @@ export function PlanComparison() {
                 <p className="text-xs font-semibold uppercase text-[#64748b]">Features</p>
                 {SHARED_FEATURES.map((feature) => (
                   <div key={feature} className="flex items-center gap-2 text-sm text-[#334155]">
-                    <Check className="h-4 w-4 shrink-0 text-green-600" />
+                    <Check className="h-4 w-4 shrink-0" style={{ color: colors.accentColorDark }} />
                     <span>{feature}</span>
                   </div>
                 ))}
@@ -159,7 +164,7 @@ export function PlanComparison() {
                   return (
                     <div key={featureKey} className={`flex items-center gap-2 text-sm ${included ? 'text-[#334155]' : 'text-[#94a3b8]'}`}>
                       {included ? (
-                        <Check className="h-4 w-4 shrink-0 text-green-600" />
+                        <Check className="h-4 w-4 shrink-0" style={{ color: colors.accentColorDark }} />
                       ) : (
                         <Lock className="h-4 w-4 shrink-0 text-[#94a3b8]" />
                       )}

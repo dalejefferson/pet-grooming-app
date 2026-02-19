@@ -71,14 +71,13 @@ export function TourOverlay() {
 
   return createPortal(
     <div role="dialog" aria-modal="true" aria-label="Product tour">
-      {/* Blur backdrop with spotlight cutout */}
+      {/* Dimmed backdrop with spotlight cutout */}
       <div
         className="bg-slate-900/50 tour-spotlight-transition"
         style={{
           position: 'fixed',
           inset: 0,
           zIndex: 9999,
-          backdropFilter: 'blur(3px)',
           ...(rect ? { clipPath: buildClipPath(rect) } : {}),
         }}
         onClick={(e) => e.stopPropagation()}

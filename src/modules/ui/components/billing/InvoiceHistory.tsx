@@ -4,6 +4,7 @@ import { useInvoices } from '@/modules/database/hooks'
 import type { StripeInvoice } from '@/modules/database/types'
 import { FileText, Download, ExternalLink } from 'lucide-react'
 import { format } from 'date-fns'
+import { useTheme } from '@/modules/ui/context/ThemeContext'
 
 function getInvoiceBadge(status: StripeInvoice['status']): {
   variant: 'success' | 'warning' | 'danger' | 'default' | 'outline'
@@ -26,6 +27,7 @@ function getInvoiceBadge(status: StripeInvoice['status']): {
 }
 
 export function InvoiceHistory() {
+  const { colors } = useTheme()
   const [cursor, setCursor] = useState<string | undefined>(undefined)
   const [accumulated, setAccumulated] = useState<StripeInvoice[]>([])
   const [canLoadMore, setCanLoadMore] = useState(true)
@@ -113,7 +115,7 @@ export function InvoiceHistory() {
         <div className="overflow-hidden rounded-xl border-2 border-[#1e293b]">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b-2 border-[#1e293b] bg-gray-50">
+              <tr className="border-b-2 border-[#1e293b]" style={{ backgroundColor: colors.accentColor + '1A' }}>
                 <th className="px-4 py-3 text-left font-semibold text-[#1e293b]">Date</th>
                 <th className="px-4 py-3 text-left font-semibold text-[#1e293b]">Invoice</th>
                 <th className="px-4 py-3 text-right font-semibold text-[#1e293b]">Amount</th>
@@ -203,7 +205,7 @@ function InvoiceActions({ invoice }: { invoice: StripeInvoice }) {
           href={invoice.invoicePdf}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-sm text-[#64748b] hover:text-[#1e293b] transition-colors"
+          className="inline-flex items-center gap-1 text-sm text-[#64748b] hover:text-[var(--accent-color-dark)] transition-colors"
         >
           <Download className="h-3.5 w-3.5" /> PDF
         </a>
@@ -213,7 +215,7 @@ function InvoiceActions({ invoice }: { invoice: StripeInvoice }) {
           href={invoice.hostedInvoiceUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-sm text-[#64748b] hover:text-[#1e293b] transition-colors"
+          className="inline-flex items-center gap-1 text-sm text-[#64748b] hover:text-[var(--accent-color-dark)] transition-colors"
         >
           <ExternalLink className="h-3.5 w-3.5" /> View
         </a>

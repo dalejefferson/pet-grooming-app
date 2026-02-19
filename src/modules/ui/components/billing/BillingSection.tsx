@@ -5,6 +5,7 @@ import { useCreateCheckoutSession, useCreatePortalSession } from '@/modules/data
 import type { SubscriptionPlanTier, SubscriptionBillingInterval, SubscriptionStatus } from '@/modules/database/types'
 import { CreditCard, ExternalLink, Crown, AlertTriangle, Zap } from 'lucide-react'
 import { getStaffLimit } from '@/config/subscriptionGates'
+import { useTheme } from '@/modules/ui/context/ThemeContext'
 
 const PLANS = [
   { tier: 'solo' as const, name: 'Solo', monthlyPrice: 45, yearlyPrice: 432, desc: 'For independent groomers' },
@@ -22,6 +23,7 @@ function getStatusBadge(status: SubscriptionStatus): { variant: 'success' | 'war
 }
 
 export function BillingSection() {
+  const { colors } = useTheme()
   const {
     subscription,
     planTier,
@@ -88,8 +90,11 @@ export function BillingSection() {
       <Card>
         <CardTitle>Billing</CardTitle>
         {subscription?.status === 'canceled' && (
-          <div className="mt-3 rounded-xl border-2 border-[#1e293b] bg-[#fef9c3] px-4 py-3 shadow-[2px_2px_0px_0px_#1e293b]">
-            <p className="text-sm font-medium text-[#a16207]">
+          <div
+            className="mt-3 rounded-xl border-2 border-[#1e293b] px-4 py-3 shadow-[2px_2px_0px_0px_#1e293b]"
+            style={{ backgroundColor: colors.accentColor + '33' }}
+          >
+            <p className="text-sm font-medium" style={{ color: colors.accentColorDark }}>
               Welcome back! Your previous subscription ended
               {subscription.currentPeriodEnd
                 ? ` on ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`
@@ -110,9 +115,10 @@ export function BillingSection() {
             onClick={() => setBillingInterval('monthly')}
             className={`rounded-lg border-2 border-[#1e293b] px-3 py-1.5 text-sm font-semibold transition-all ${
               billingInterval === 'monthly'
-                ? 'bg-[#1e293b] text-white shadow-[2px_2px_0px_0px_#1e293b]'
+                ? 'shadow-[2px_2px_0px_0px_#1e293b]'
                 : 'bg-white text-[#334155] hover:bg-gray-50'
             }`}
+            style={billingInterval === 'monthly' ? { backgroundColor: colors.accentColorDark, color: 'var(--text-on-accent)' } : undefined}
           >
             Monthly
           </button>
@@ -120,9 +126,10 @@ export function BillingSection() {
             onClick={() => setBillingInterval('yearly')}
             className={`rounded-lg border-2 border-[#1e293b] px-3 py-1.5 text-sm font-semibold transition-all ${
               billingInterval === 'yearly'
-                ? 'bg-[#1e293b] text-white shadow-[2px_2px_0px_0px_#1e293b]'
+                ? 'shadow-[2px_2px_0px_0px_#1e293b]'
                 : 'bg-white text-[#334155] hover:bg-gray-50'
             }`}
+            style={billingInterval === 'yearly' ? { backgroundColor: colors.accentColorDark, color: 'var(--text-on-accent)' } : undefined}
           >
             Yearly
             <span className="ml-1 text-xs font-normal opacity-75">(Save 20%)</span>
@@ -161,7 +168,7 @@ export function BillingSection() {
         </div>
 
         <Button
-          variant="primary"
+          variant="themed"
           className="mt-4 w-full"
           loading={checkout.isPending}
           onClick={() => checkout.mutate({ planTier: selectedPlan, billingInterval })}
@@ -207,9 +214,12 @@ export function BillingSection() {
 
         {/* Trial countdown */}
         {isTrialing && trialDaysRemaining != null && (
-          <div className="flex items-center gap-2 rounded-xl border-2 border-[#1e293b] bg-[#fef9c3] px-3 py-2 shadow-[2px_2px_0px_0px_#1e293b]">
-            <AlertTriangle className="h-4 w-4 shrink-0 text-[#a16207]" />
-            <span className="text-sm font-medium text-[#a16207]">
+          <div
+            className="flex items-center gap-2 rounded-xl border-2 border-[#1e293b] px-3 py-2 shadow-[2px_2px_0px_0px_#1e293b]"
+            style={{ backgroundColor: colors.accentColor + '33' }}
+          >
+            <AlertTriangle className="h-4 w-4 shrink-0" style={{ color: colors.accentColorDark }} />
+            <span className="text-sm font-medium" style={{ color: colors.accentColorDark }}>
               {trialDaysRemaining} day{trialDaysRemaining !== 1 ? 's' : ''} left in your free trial
             </span>
           </div>
@@ -228,9 +238,12 @@ export function BillingSection() {
         {/* Cancellation notice + resume */}
         {subscription.cancelAtPeriodEnd && (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 rounded-xl border-2 border-[#1e293b] bg-[#fef9c3] px-3 py-2 shadow-[2px_2px_0px_0px_#1e293b]">
-              <AlertTriangle className="h-4 w-4 shrink-0 text-[#a16207]" />
-              <span className="text-sm font-medium text-[#a16207]">
+            <div
+              className="flex items-center gap-2 rounded-xl border-2 border-[#1e293b] px-3 py-2 shadow-[2px_2px_0px_0px_#1e293b]"
+              style={{ backgroundColor: colors.accentColor + '33' }}
+            >
+              <AlertTriangle className="h-4 w-4 shrink-0" style={{ color: colors.accentColorDark }} />
+              <span className="text-sm font-medium" style={{ color: colors.accentColorDark }}>
                 Your subscription cancels on{' '}
                 {subscription.currentPeriodEnd
                   ? new Date(subscription.currentPeriodEnd).toLocaleDateString()
@@ -238,7 +251,7 @@ export function BillingSection() {
               </span>
             </div>
             <Button
-              variant="primary"
+              variant="themed"
               size="sm"
               loading={portal.isPending}
               onClick={() => portal.mutate()}

@@ -126,6 +126,7 @@ export function SettingsPage() {
   const { startTour } = useOnboarding()
   const [formData, setFormData] = useState<Partial<Organization>>({})
   const [hasChanges, setHasChanges] = useState(false)
+  const [quickKeysExpanded, setQuickKeysExpanded] = useState(false)
   const [themeExpanded, setThemeExpanded] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSendingTest, setIsSendingTest] = useState(false)
@@ -367,45 +368,53 @@ export function SettingsPage() {
 
       {/* Quick Keys Section */}
       <Card>
-        <CardTitle>Quick Keys</CardTitle>
-        <p className="text-sm text-gray-500 mb-4">Keyboard shortcuts for faster navigation</p>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between py-2 border-b border-gray-100">
-            <span className="text-sm text-gray-700">Collapse Sidebar</span>
-            <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">S</kbd>
-          </div>
-          <div className="flex items-center justify-between py-2 border-b border-gray-100">
-            <span className="text-sm text-gray-700">Go to Calendar</span>
-            <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">C</kbd>
-          </div>
-          <div className="flex items-center justify-between py-2 border-b border-gray-100">
-            <span className="text-sm text-gray-700">Cycle Calendar Views</span>
-            <div className="flex items-center gap-1">
-              <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">Tab</kbd>
-              <span className="text-xs text-gray-400">(on Calendar page)</span>
+        <div
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setQuickKeysExpanded(!quickKeysExpanded)}
+        >
+          <CardTitle>Quick Keys</CardTitle>
+          <ChevronDown className={cn("h-5 w-5 transition-transform", quickKeysExpanded && "rotate-180")} />
+        </div>
+        <p className="text-sm text-gray-500">Keyboard shortcuts for faster navigation</p>
+        {quickKeysExpanded && (
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-700">Collapse Sidebar</span>
+              <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">S</kbd>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-700">Go to Calendar</span>
+              <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">C</kbd>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-700">Cycle Calendar Views</span>
+              <div className="flex items-center gap-1">
+                <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">Tab</kbd>
+                <span className="text-xs text-gray-400">(on Calendar page)</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-700">Book Appointment</span>
+              <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">A</kbd>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-700">Cycle Color Themes</span>
+              <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">T</kbd>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-700">Cycle Report Ranges</span>
+              <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">R</kbd>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-700">Cycle Dashboard Ranges</span>
+              <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">D</kbd>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm text-gray-700">Navigate Sidebar</span>
+              <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">Shift + ↑↓</kbd>
             </div>
           </div>
-          <div className="flex items-center justify-between py-2 border-b border-gray-100">
-            <span className="text-sm text-gray-700">Book Appointment</span>
-            <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">A</kbd>
-          </div>
-          <div className="flex items-center justify-between py-2 border-b border-gray-100">
-            <span className="text-sm text-gray-700">Cycle Color Themes</span>
-            <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">T</kbd>
-          </div>
-          <div className="flex items-center justify-between py-2 border-b border-gray-100">
-            <span className="text-sm text-gray-700">Cycle Report Ranges</span>
-            <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">R</kbd>
-          </div>
-          <div className="flex items-center justify-between py-2 border-b border-gray-100">
-            <span className="text-sm text-gray-700">Cycle Dashboard Ranges</span>
-            <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">D</kbd>
-          </div>
-          <div className="flex items-center justify-between py-2">
-            <span className="text-sm text-gray-700">Navigate Sidebar</span>
-            <kbd className="px-2 py-1 text-xs font-semibold bg-gray-100 border-2 border-[#1e293b] rounded-lg">Shift + ↑↓</kbd>
-          </div>
-        </div>
+        )}
       </Card>
 
       {/* Appearance Section */}
@@ -421,7 +430,7 @@ export function SettingsPage() {
           Choose your color palette
         </p>
         <div className="mt-4 grid gap-4 grid-cols-2 sm:grid-cols-4">
-          {(themeExpanded ? themeOptions : themeOptions.slice(0, 3)).map((theme) => {
+          {(themeExpanded ? themeOptions : themeOptions.slice(0, 4)).map((theme) => {
             const isSelected = currentTheme === theme.name
             return (
               <button
@@ -469,7 +478,7 @@ export function SettingsPage() {
             )
           })}
         </div>
-        {!themeExpanded && themeOptions.length > 3 && (
+        {!themeExpanded && themeOptions.length > 4 && (
           <button
             onClick={() => setThemeExpanded(true)}
             className="mt-3 text-sm text-primary-600 hover:underline"

@@ -3,6 +3,7 @@ import { useSubscriptionContext } from '../../context/SubscriptionContext'
 import type { GatedFeature } from '@/modules/database/types'
 import { FEATURE_LABELS } from '@/config/subscriptionGates'
 import { useCreateCheckoutSession, useCreatePortalSession } from '@/modules/database/hooks'
+import { useTheme } from '@/modules/ui/context/ThemeContext'
 import { Card, CardTitle } from './Card'
 import { Button } from './Button'
 import { Lock } from 'lucide-react'
@@ -41,18 +42,19 @@ function UpgradePrompt({ feature }: { feature: GatedFeature }) {
   const { isSubscriptionActive } = useSubscriptionContext()
   const checkout = useCreateCheckoutSession()
   const portal = useCreatePortalSession()
+  const { colors } = useTheme()
 
   return (
-    <Card colorVariant="lavender" padding="md">
+    <Card padding="md" style={{ backgroundColor: colors.accentColor + '22' }}>
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-[#1e293b] bg-white shadow-[2px_2px_0px_0px_#1e293b]">
-          <Lock className="h-5 w-5 text-[#1e293b]" />
+          <Lock className="h-5 w-5" style={{ color: colors.accentColorDark }} />
         </div>
         <div className="flex-1">
           <CardTitle className="text-base">{label.name}</CardTitle>
           <p className="mt-1 text-sm text-[#64748b]">{label.description}</p>
           <Button
-            variant="primary"
+            variant="themed"
             size="sm"
             className="mt-3"
             loading={isSubscriptionActive ? portal.isPending : checkout.isPending}
