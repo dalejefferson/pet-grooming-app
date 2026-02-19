@@ -1,4 +1,4 @@
-import type { Client, Pet, VaccinationRecord } from '../types'
+import type { Client, Pet } from '../types'
 import { supabase } from '@/lib/supabase/client'
 import { mapClient, toDbClient, mapPaymentMethod, toDbPet, toDbVaccinationRecord } from '../types/supabase-mappers'
 

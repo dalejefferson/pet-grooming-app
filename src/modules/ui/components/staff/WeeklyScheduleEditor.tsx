@@ -19,7 +19,7 @@ export function WeeklyScheduleEditor({
   onValidationChange,
   disabled = false,
 }: WeeklyScheduleEditorProps) {
-  const [dayErrors, setDayErrors] = useState<Record<number, boolean>>({})
+  const [_dayErrors, setDayErrors] = useState<Record<number, boolean>>({})
 
   // Create a map for quick lookup
   const scheduleMap = new Map(schedule.map((s) => [s.dayOfWeek, s]))
