@@ -1,5 +1,3 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
-import { createPortal } from 'react-dom'
 import { Search, X } from 'lucide-react'
 import { Card } from '../common'
 import { cn } from '@/lib/utils'
@@ -8,53 +6,20 @@ import type { CalendarToolbarProps, ViewType } from './types'
 import type { AppointmentStatus } from '@/types'
 import { STATUS_BG_COLORS, STATUS_TEXT_COLORS } from './types'
 
-// Tooltip state and component for status filter buttons
-interface TooltipState {
-  visible: boolean
-  label: string
-  left: number
-  top: number
-}
-
-function StatusTooltip({ visible, label, left, top }: TooltipState) {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- mount-only effect needed to trigger re-render for portal target availability
-    setMounted(true)
-  }, [])
-
-  if (!visible || !mounted) return null
-
-  return createPortal(
-    <div
-      className="pointer-events-none fixed z-[9999] whitespace-nowrap rounded-xl border-2 border-[#1e293b] bg-white px-3 py-1.5 text-sm font-bold text-[#1e293b] shadow-[3px_3px_0px_0px_#1e293b] animate-fade-in"
-      style={{
-        left: `${left}px`,
-        top: `${top}px`,
-        transform: 'translateX(-50%)',
-      }}
-    >
-      {label}
-    </div>,
-    document.body
-  )
-}
-
 const viewButtons: { value: ViewType; label: string }[] = [
   { value: 'day', label: 'Day' },
   { value: 'week', label: 'Week' },
   { value: 'month', label: 'Month' },
 ]
 
-const statusOptions: { value: AppointmentStatus; label: string; abbrev: string }[] = [
-  { value: 'requested', label: 'Requested', abbrev: 'R' },
-  { value: 'confirmed', label: 'Confirmed', abbrev: 'C' },
-  { value: 'checked_in', label: 'Checked In', abbrev: 'I' },
-  { value: 'in_progress', label: 'In Progress', abbrev: 'P' },
-  { value: 'completed', label: 'Completed', abbrev: 'D' },
-  { value: 'cancelled', label: 'Cancelled', abbrev: 'X' },
-  { value: 'no_show', label: 'No Show', abbrev: 'N' },
+const statusOptions: { value: AppointmentStatus; label: string }[] = [
+  { value: 'requested', label: 'Requested' },
+  { value: 'confirmed', label: 'Confirmed' },
+  { value: 'checked_in', label: 'Checked In' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'cancelled', label: 'Cancelled' },
+  { value: 'no_show', label: 'No Show' },
 ]
 
 // Helper sub-components
@@ -166,9 +131,6 @@ interface StatusFiltersProps {
 }
 
 function StatusFilters({ selectedStatuses, onStatusFilterChange }: StatusFiltersProps) {
-  const [tooltip, setTooltip] = useState<TooltipState>({ visible: false, label: '', left: 0, top: 0 })
-  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
   const handleStatusToggle = (status: AppointmentStatus) => {
     if (selectedStatuses.includes(status)) {
       onStatusFilterChange(selectedStatuses.filter((s) => s !== status))
@@ -177,40 +139,19 @@ function StatusFilters({ selectedStatuses, onStatusFilterChange }: StatusFilters
     }
   }
 
-  const showTooltip = useCallback((label: string, element: HTMLElement) => {
-    if (hideTimeoutRef.current) {
-      clearTimeout(hideTimeoutRef.current)
-      hideTimeoutRef.current = null
-    }
-
-    const rect = element.getBoundingClientRect()
-    // Position tooltip centered above the button with gap
-    const left = rect.left + rect.width / 2
-    const top = rect.top - 40
-    setTooltip({ visible: true, label, left, top })
-  }, [])
-
-  const hideTooltip = useCallback(() => {
-    hideTimeoutRef.current = setTimeout(() => {
-      setTooltip(prev => ({ ...prev, visible: false }))
-    }, 50)
-  }, [])
-
   return (
-    <>
-      <div className="flex flex-nowrap items-center gap-1 overflow-x-auto">
+    <div className="max-w-[360px] overflow-x-auto scrollbar-hide" style={{ scrollBehavior: 'smooth' }}>
+      <div className="flex flex-nowrap items-center gap-1.5">
         {statusOptions.map((status) => {
           const isActive = selectedStatuses.includes(status.value)
           return (
             <button
               key={status.value}
               onClick={() => handleStatusToggle(status.value)}
-              onMouseEnter={(e) => showTooltip(status.label, e.currentTarget)}
-              onMouseLeave={hideTooltip}
               aria-label={`${isActive ? 'Hide' : 'Show'} ${status.label.toLowerCase()} appointments`}
               aria-pressed={isActive}
               className={cn(
-                'h-9 w-9 flex items-center justify-center rounded-xl border-2 border-[#1e293b] text-xs font-bold transition-all',
+                'h-8 flex items-center justify-center rounded-xl border-2 border-[#1e293b] px-3 whitespace-nowrap text-xs font-bold transition-all',
                 isActive
                   ? 'shadow-[2px_2px_0px_0px_#1e293b] -translate-y-0.5'
                   : 'bg-white hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_0px_#1e293b]'
@@ -224,24 +165,21 @@ function StatusFilters({ selectedStatuses, onStatusFilterChange }: StatusFilters
                   : undefined
               }
             >
-              {status.abbrev}
+              {status.label}
             </button>
           )
         })}
         {selectedStatuses.length > 0 && (
           <button
             onClick={() => onStatusFilterChange([])}
-            onMouseEnter={(e) => showTooltip('Clear all filters', e.currentTarget)}
-            onMouseLeave={hideTooltip}
             aria-label="Clear all status filters"
-            className="h-9 w-9 flex items-center justify-center rounded-xl border-2 border-[#1e293b] bg-white text-xs font-bold text-[#64748b] hover:text-[#1e293b] hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_0px_#1e293b] transition-all"
+            className="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-xl border-2 border-[#1e293b] bg-white text-xs font-bold text-[#64748b] hover:text-[#1e293b] hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_0px_#1e293b] transition-all"
           >
             ✕
           </button>
         )}
       </div>
-      <StatusTooltip {...tooltip} />
-    </>
+    </div>
   )
 }
 

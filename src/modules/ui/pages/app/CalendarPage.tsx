@@ -270,6 +270,21 @@ export function CalendarPage() {
     return { start: startOfWeek(currentDate, { weekStartsOn: 0 }), end: endOfWeek(currentDate, { weekStartsOn: 0 }) }
   }, [currentDate, view])
 
+  // Compute appointment statuses by date for MiniCalendar dot indicators
+  const appointmentsByDate = useMemo(() => {
+    const map = new Map<string, import('@/types').AppointmentStatus[]>()
+    for (const apt of appointments) {
+      const dateKey = format(new Date(apt.startTime), 'yyyy-MM-dd')
+      const existing = map.get(dateKey)
+      if (existing) {
+        existing.push(apt.status)
+      } else {
+        map.set(dateKey, [apt.status])
+      }
+    }
+    return map
+  }, [appointments])
+
   // Hover handlers
   const handleEventMouseEnter = useCallback((event: CalendarEvent, e: React.MouseEvent) => {
     if (isDragging) return
@@ -428,7 +443,7 @@ export function CalendarPage() {
         <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
           {(view === 'day' || view === 'week') && (
             <div className="flex-shrink-0 w-full lg:w-auto">
-              <MiniCalendar currentMonth={miniCalendarMonth} selectedDate={currentDate} weekRange={weekRange} onDateSelect={handleMiniCalendarDateSelect} onMonthChange={handleMiniCalendarMonthChange} />
+              <MiniCalendar currentMonth={miniCalendarMonth} selectedDate={currentDate} weekRange={weekRange} appointmentsByDate={appointmentsByDate} onDateSelect={handleMiniCalendarDateSelect} onMonthChange={handleMiniCalendarMonthChange} />
             </div>
           )}
 
