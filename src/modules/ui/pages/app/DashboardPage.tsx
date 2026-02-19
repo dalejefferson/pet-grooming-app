@@ -65,7 +65,7 @@ export function DashboardPage() {
   const [selectedStatuses, setSelectedStatuses] = useState<AppointmentStatus[]>([])
 
   // Issues (No-Shows & Cancellations) range state
-  const [issuesRange, setIssuesRange] = useState<'today' | '7days' | '30days'>('today')
+  const [issuesRange, setIssuesRange] = useState<'today' | '7days' | '30days'>('30days')
 
   // Cycle through dashboard issue ranges: today -> 7days -> 30days -> today
   const cycleDashboardRange = useCallback(() => {

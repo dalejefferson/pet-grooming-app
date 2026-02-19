@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { MessageSquare, Clock, RefreshCw } from 'lucide-react'
-import { Card, CardTitle, Button, Input, Toggle, Textarea } from '../../components/common'
-import { VaccinationReminderSettings } from '../../components/reminders'
+import { Card, CardTitle, Button, Input, Toggle } from '../../components/common'
+import { VaccinationReminderSettings, TemplateEditor } from '../../components/reminders'
 import { useReminders, useUpdateReminders, usePreviewReminder, useDefaultTemplates } from '@/hooks'
 import type { ReminderSchedule } from '@/types'
 import { useTheme, useToast } from '../../context'
@@ -149,9 +149,9 @@ export function RemindersPage() {
               />
               {appointmentReminders?.enabled48h && (
                 <div>
-                  <Textarea
+                  <TemplateEditor
                     value={appointmentReminders?.template48h || ''}
-                    onChange={(e) => handleAppointmentReminderChange('template48h', e.target.value)}
+                    onChange={(val) => handleAppointmentReminderChange('template48h', val)}
                     rows={3}
                   />
                   <Button
@@ -177,9 +177,9 @@ export function RemindersPage() {
               />
               {appointmentReminders?.enabled24h && (
                 <div>
-                  <Textarea
+                  <TemplateEditor
                     value={appointmentReminders?.template24h || ''}
-                    onChange={(e) => handleAppointmentReminderChange('template24h', e.target.value)}
+                    onChange={(val) => handleAppointmentReminderChange('template24h', val)}
                     rows={3}
                   />
                   <Button
@@ -205,9 +205,9 @@ export function RemindersPage() {
               />
               {appointmentReminders?.enabled2h && (
                 <div>
-                  <Textarea
+                  <TemplateEditor
                     value={appointmentReminders?.template2h || ''}
-                    onChange={(e) => handleAppointmentReminderChange('template2h', e.target.value)}
+                    onChange={(val) => handleAppointmentReminderChange('template2h', val)}
                     rows={3}
                   />
                   <Button
@@ -258,9 +258,9 @@ export function RemindersPage() {
                   <label className="mb-1 block text-sm font-medium text-gray-700">
                     Message Template
                   </label>
-                  <Textarea
+                  <TemplateEditor
                     value={dueForGrooming?.template || ''}
-                    onChange={(e) => handleDueForGroomingChange('template', e.target.value)}
+                    onChange={(val) => handleDueForGroomingChange('template', val)}
                     rows={3}
                   />
                   <Button
