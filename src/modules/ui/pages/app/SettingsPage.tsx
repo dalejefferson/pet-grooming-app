@@ -280,7 +280,7 @@ export function SettingsPage() {
               value={formData.phone || ''}
               onChange={(val) => {
                 handleChange('phone', val)
-                if (errors.phone) setErrors((p) => ({ ...p, phone: undefined }))
+                if (errors.phone) setErrors((p) => ({ ...p, phone: '' }))
               }}
               error={errors.phone}
             />
@@ -290,7 +290,7 @@ export function SettingsPage() {
               value={formData.email || ''}
               onChange={(e) => {
                 handleChange('email', e.target.value)
-                if (errors.email) setErrors((p) => ({ ...p, email: undefined }))
+                if (errors.email) setErrors((p) => ({ ...p, email: '' }))
               }}
               onBlur={() => {
                 if (formData.email && !isValidEmail(formData.email)) {
@@ -324,7 +324,7 @@ export function SettingsPage() {
             value={formData.emailSettings?.replyToEmail || ''}
             onChange={(e) => {
               handleEmailSettingsChange('replyToEmail', e.target.value)
-              if (errors.replyToEmail) setErrors((p) => ({ ...p, replyToEmail: undefined }))
+              if (errors.replyToEmail) setErrors((p) => ({ ...p, replyToEmail: '' }))
             }}
             onBlur={() => {
               const replyTo = formData.emailSettings?.replyToEmail || ''
@@ -342,7 +342,7 @@ export function SettingsPage() {
             value={testEmailAddress}
             onChange={(e) => {
               setTestEmailAddress(e.target.value)
-              if (errors.testEmail) setErrors((p) => ({ ...p, testEmail: undefined }))
+              if (errors.testEmail) setErrors((p) => ({ ...p, testEmail: '' }))
             }}
             onBlur={() => {
               if (testEmailAddress && !isValidEmail(testEmailAddress)) {
