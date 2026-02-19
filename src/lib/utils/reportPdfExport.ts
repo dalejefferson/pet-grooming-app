@@ -338,6 +338,12 @@ export function exportReportPdf(params: ExportPdfParams): void {
   const chartWidth = (pageWidth - 2 * margin - 10) / 2
   const chartHeightVal = 75
 
+  // Check if charts fit on current page, otherwise start a new page
+  if (yPos + chartHeightVal > pageHeight - 30) {
+    doc.addPage()
+    yPos = margin
+  }
+
   drawBarChart(doc, statusChartData, margin, yPos, chartWidth, chartHeightVal, 'Appointments by Status')
 
   const themeChartColors = [
@@ -358,17 +364,21 @@ export function exportReportPdf(params: ExportPdfParams): void {
 
   yPos += chartHeightVal + 15
 
-  // ===== PAGE 2: Detailed Charts =====
-  doc.addPage()
-  yPos = margin
+  // ===== Detailed Charts Section =====
+  // Check if the header + next chart (revenue, 80px) fit on current page
+  const detailedSectionMinHeight = 30 + 80
+  if (yPos + detailedSectionMinHeight > pageHeight - 30) {
+    doc.addPage()
+    yPos = margin
+  }
 
-  drawRoundedRect(doc, 0, 0, pageWidth, 30, 0, themeColors.accentColorLight)
+  drawRoundedRect(doc, 0, yPos, pageWidth, 30, 0, themeColors.accentColorLight)
   doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(PDF_COLORS.dark)
-  doc.text('Detailed Analytics', margin, 20)
+  doc.text('Detailed Analytics', margin, yPos + 20)
 
-  yPos = 45
+  yPos += 45
 
   // Revenue Trend Chart
   const revenueChartHeight = 80
@@ -447,6 +457,10 @@ export function exportReportPdf(params: ExportPdfParams): void {
 
   // Client Acquisition Chart
   const clientChartHeight = 70
+  if (yPos + clientChartHeight > pageHeight - 30) {
+    doc.addPage()
+    yPos = margin
+  }
   drawRoundedRect(doc, margin + 2, yPos + 2, pageWidth - 2 * margin, clientChartHeight, 4, PDF_COLORS.dark)
   drawRoundedRect(doc, margin, yPos, pageWidth - 2 * margin, clientChartHeight, 4, '#ffffff', PDF_COLORS.dark)
 

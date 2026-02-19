@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react'
 import { Search, X } from 'lucide-react'
 import { Card } from '../common'
 import { cn } from '@/lib/utils'
@@ -131,6 +132,8 @@ interface StatusFiltersProps {
 }
 
 function StatusFilters({ selectedStatuses, onStatusFilterChange }: StatusFiltersProps) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+
   const handleStatusToggle = (status: AppointmentStatus) => {
     if (selectedStatuses.includes(status)) {
       onStatusFilterChange(selectedStatuses.filter((s) => s !== status))
@@ -139,9 +142,29 @@ function StatusFilters({ selectedStatuses, onStatusFilterChange }: StatusFilters
     }
   }
 
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const onWheel = (e: WheelEvent) => {
+      // Only intercept pure vertical scroll (mouse wheel)
+      // Let trackpad horizontal gestures pass through natively
+      if (e.deltaX === 0 && e.deltaY !== 0) {
+        e.preventDefault()
+        el.scrollLeft += e.deltaY
+      }
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [])
+
   return (
-    <div className="max-w-[360px] overflow-x-auto scrollbar-hide" style={{ scrollBehavior: 'smooth' }}>
-      <div className="flex flex-nowrap items-center gap-1.5">
+    <div className="min-w-0 flex-1 py-1">
+      <div
+        ref={scrollRef}
+        className="overflow-x-auto overflow-y-hidden scrollbar-hide"
+        style={{ overscrollBehaviorX: 'contain' }}
+      >
+        <div className="flex flex-nowrap items-center gap-1.5">
         {statusOptions.map((status) => {
           const isActive = selectedStatuses.includes(status.value)
           return (
@@ -178,6 +201,7 @@ function StatusFilters({ selectedStatuses, onStatusFilterChange }: StatusFilters
             ✕
           </button>
         )}
+        </div>
       </div>
     </div>
   )
@@ -208,7 +232,7 @@ export function CalendarToolbar({
   return (
     <Card className="bg-white/80 backdrop-blur-sm">
       {/* Single row - no wrapping */}
-      <div className="flex flex-nowrap items-center gap-3 overflow-x-auto">
+      <div className="flex flex-nowrap items-center gap-3 overflow-x-auto py-1">
         {/* Title */}
         <h1 className="text-lg font-bold text-[#1e293b]">Calendar</h1>
 
@@ -230,8 +254,8 @@ export function CalendarToolbar({
           onStatusFilterChange={onStatusFilterChange}
         />
 
-        {/* Flex spacer to push search and view toggle to the right */}
-        <div className="flex-1" />
+        {/* Spacer if status filters don't fill enough */}
+        <div className="flex-shrink-0" />
 
         {/* Results count when filtering */}
         {(searchQuery || selectedStatuses.length > 0) && (

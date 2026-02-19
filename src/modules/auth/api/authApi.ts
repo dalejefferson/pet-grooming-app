@@ -2,6 +2,30 @@ import { supabase } from '@/lib/supabase/client'
 import type { User } from '../types'
 import type { RolePermissions, StaffRole } from '@/modules/database/types'
 
+export function isTestMode(): boolean {
+  return sessionStorage.getItem('testMode') === 'true'
+}
+
+export function enableTestMode(): void {
+  sessionStorage.setItem('testMode', 'true')
+  window.dispatchEvent(new Event('testModeChange'))
+}
+
+export function disableTestMode(): void {
+  sessionStorage.removeItem('testMode')
+  window.dispatchEvent(new Event('testModeChange'))
+}
+
+/** Subscribe to test mode changes for use with useSyncExternalStore */
+export function subscribeToTestMode(callback: () => void): () => void {
+  window.addEventListener('testModeChange', callback)
+  return () => window.removeEventListener('testModeChange', callback)
+}
+
+export function getTestModeSnapshot(): boolean {
+  return sessionStorage.getItem('testMode') === 'true'
+}
+
 function mapUserRow(row: Record<string, unknown>): User {
   return {
     id: row.id as string,
@@ -37,6 +61,7 @@ export const authApi = {
   },
 
   async logout(): Promise<void> {
+    disableTestMode()
     const { error } = await supabase.auth.signOut()
     if (error) throw new Error(error.message)
   },

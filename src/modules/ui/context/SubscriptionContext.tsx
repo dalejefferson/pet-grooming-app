@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo } from 'react'
+import { createContext, useContext, useEffect, useMemo, useSyncExternalStore } from 'react'
 import type { ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useSubscription } from '@/modules/database/hooks'
@@ -7,6 +7,7 @@ import { FEATURE_TIER_MAP, tierSatisfies, getStaffLimit } from '@/config/subscri
 import { useGroomers } from '@/modules/database/hooks'
 import { supabase } from '@/lib/supabase/client'
 import { mapSubscription } from '@/modules/database/types/supabase-mappers'
+import { subscribeToTestMode, getTestModeSnapshot } from '@/modules/auth/api/authApi'
 
 interface SubscriptionContextValue {
   subscription: Subscription | null | undefined
@@ -36,7 +37,8 @@ const SubscriptionContext = createContext<SubscriptionContextValue>({
 
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const { data: subscription, isLoading } = useSubscription()
-  const devBypass = import.meta.env.DEV && import.meta.env.VITE_DEV_BYPASS_SUBSCRIPTION === 'true'
+  const testMode = useSyncExternalStore(subscribeToTestMode, getTestModeSnapshot)
+  const devBypass = testMode || (import.meta.env.DEV && import.meta.env.VITE_DEV_BYPASS_SUBSCRIPTION === 'true')
   const queryClient = useQueryClient()
 
   useEffect(() => {
