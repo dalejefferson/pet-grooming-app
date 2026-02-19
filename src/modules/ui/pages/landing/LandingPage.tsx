@@ -2,7 +2,6 @@ import {
   LandingNav,
   HeroSection,
   FeaturesSection,
-  TestimonialsSection,
   PricingSection,
   LandingFooter,
 } from './components'
@@ -14,7 +13,6 @@ export function LandingPage() {
       <main>
         <HeroSection />
         <FeaturesSection />
-        <TestimonialsSection />
         <PricingSection />
       </main>
       <LandingFooter />

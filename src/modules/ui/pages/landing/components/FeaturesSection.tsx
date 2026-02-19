@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
-import { Calendar, Heart, TrendingUp } from 'lucide-react'
+import { Calendar, Heart, TrendingUp, Mail, DollarSign, Shield } from 'lucide-react'
 import { Card } from '@/modules/ui/components/common'
 
 const features = [
@@ -20,6 +20,24 @@ const features = [
     title: 'Team & Business Insights',
     description: 'Role-based staff management, dynamic service pricing, and analytics dashboards with PDF and CSV exports.',
     color: 'lemon' as const,
+  },
+  {
+    icon: Mail,
+    title: 'Email Notifications & Reminders',
+    description: 'Automated appointment reminders, vaccination alerts, and ready-for-pickup emails. Keep clients informed without lifting a finger.',
+    color: 'pink' as const,
+  },
+  {
+    icon: DollarSign,
+    title: 'Dynamic Service Pricing',
+    description: 'Set base prices with smart modifiers for weight, coat type, breed, and add-ons. Every quote is accurate and automatic.',
+    color: 'lime' as const,
+  },
+  {
+    icon: Shield,
+    title: 'Policies & Cancellation Management',
+    description: 'Configure deposit rules, cancellation windows, and no-show fees. Protect your revenue with clear, enforceable policies.',
+    color: 'peach' as const,
   },
 ]
 

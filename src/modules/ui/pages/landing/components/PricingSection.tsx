@@ -149,7 +149,7 @@ export function PricingSection() {
                     window.location.href = '/login'
                   }}
                 >
-                  Start Free Trial
+                  Get Started
                 </Button>
               </Card>
             )

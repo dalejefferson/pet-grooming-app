@@ -1,5 +1,5 @@
 import { Dog, TrendingUp, Clock, CheckCircle } from 'lucide-react'
-import { Button, Badge } from '@/modules/ui/components/common'
+import { Button } from '@/modules/ui/components/common'
 
 export function HeroSection() {
   const scrollToFeatures = () => {
@@ -11,7 +11,6 @@ export function HeroSection() {
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2 lg:gap-16">
         {/* Text */}
         <div className="animate-slide-up">
-          <Badge variant="primary" className="mb-4">Now in Beta</Badge>
           <h1 className="mb-4 text-4xl font-extrabold leading-tight text-[#1e293b] lg:text-5xl xl:text-6xl">
             Grooming management that&apos;s a cut above
           </h1>
@@ -20,7 +19,7 @@ export function HeroSection() {
           </p>
           <div className="flex flex-wrap gap-3">
             <Button variant="themed" size="lg" onClick={() => window.location.href = '/login'}>
-              Start Your Free Trial
+              Get Started
             </Button>
             <Button variant="outline" size="lg" onClick={scrollToFeatures}>
               See Features

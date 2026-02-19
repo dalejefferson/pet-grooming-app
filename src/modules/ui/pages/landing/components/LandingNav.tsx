@@ -41,9 +41,6 @@ export function LandingNav() {
           <button onClick={() => scrollTo('features')} className="text-sm font-semibold text-[#334155] hover:text-[#1e293b]">
             Features
           </button>
-          <button onClick={() => scrollTo('testimonials')} className="text-sm font-semibold text-[#334155] hover:text-[#1e293b]">
-            Testimonials
-          </button>
           <button onClick={() => scrollTo('pricing')} className="text-sm font-semibold text-[#334155] hover:text-[#1e293b]">
             Pricing
           </button>
@@ -55,7 +52,7 @@ export function LandingNav() {
             Log In
           </Button>
           <Button variant="themed" size="sm" onClick={() => navigate('/login')}>
-            Start Free Trial
+            Get Started
           </Button>
         </div>
 
@@ -76,9 +73,6 @@ export function LandingNav() {
             <button onClick={() => scrollTo('features')} className="rounded-xl px-3 py-2 text-left text-sm font-semibold text-[#334155] hover:bg-[#d1fae5]">
               Features
             </button>
-            <button onClick={() => scrollTo('testimonials')} className="rounded-xl px-3 py-2 text-left text-sm font-semibold text-[#334155] hover:bg-[#d1fae5]">
-              Testimonials
-            </button>
             <button onClick={() => scrollTo('pricing')} className="rounded-xl px-3 py-2 text-left text-sm font-semibold text-[#334155] hover:bg-[#d1fae5]">
               Pricing
             </button>
@@ -87,7 +81,7 @@ export function LandingNav() {
               Log In
             </Button>
             <Button variant="themed" size="sm" onClick={() => navigate('/login')} className="w-full">
-              Start Free Trial
+              Get Started
             </Button>
           </div>
         </div>

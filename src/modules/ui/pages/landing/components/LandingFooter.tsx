@@ -33,11 +33,6 @@ export function LandingFooter() {
                 Pricing
               </button>
             </li>
-            <li>
-              <button onClick={() => scrollTo('testimonials')} className="text-sm text-[#64748b] hover:text-[#1e293b]">
-                Testimonials
-              </button>
-            </li>
           </ul>
         </div>
 
