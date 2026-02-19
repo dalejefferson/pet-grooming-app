@@ -6,12 +6,12 @@ export const PLANS = [
 ]
 
 export function getStatusBadge(status: SubscriptionStatus): {
-  variant: 'success' | 'warning' | 'danger' | 'default' | 'primary'
+  variant: 'success' | 'warning' | 'danger' | 'default' | 'themed'
   label: string
 } {
   switch (status) {
     case 'active': return { variant: 'success', label: 'Active' }
-    case 'trialing': return { variant: 'primary', label: 'Trial' }
+    case 'trialing': return { variant: 'themed', label: 'Trial' }
     case 'past_due': return { variant: 'danger', label: 'Past Due' }
     case 'canceled': return { variant: 'default', label: 'Canceled' }
     default: return { variant: 'default', label: status }

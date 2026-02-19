@@ -11,6 +11,7 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
     | 'warning'
     | 'danger'
     | 'outline'
+    | 'themed'
   size?: 'sm' | 'md'
 }
 
@@ -19,6 +20,7 @@ export function Badge({
   className,
   variant = 'default',
   size = 'md',
+  style,
   ...props
 }: BadgeProps) {
   const variants = {
@@ -29,12 +31,17 @@ export function Badge({
     warning: 'bg-[#fef9c3] text-[#a16207] border-2 border-[#1e293b]',
     danger: 'bg-[#fce7f3] text-[#be123c] border-2 border-[#1e293b]', // pink
     outline: 'bg-white text-[#334155] border-2 border-[#1e293b]',
+    themed: 'border-2 border-[#1e293b]',
   }
 
   const sizes = {
     sm: 'px-2 py-0.5 text-xs',
     md: 'px-2.5 py-1 text-xs',
   }
+
+  const themedStyle = variant === 'themed'
+    ? { backgroundColor: 'var(--accent-color)', color: 'var(--text-on-primary)', ...style }
+    : style
 
   return (
     <span
@@ -44,6 +51,7 @@ export function Badge({
         sizes[size],
         className
       )}
+      style={themedStyle}
       {...props}
     >
       {children}

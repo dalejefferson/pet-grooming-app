@@ -408,8 +408,8 @@ export function StaffPage() {
                     <Card key={request.id} padding="md">
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-start gap-3">
-                          <div className="rounded-xl bg-[#e9d5ff] p-3">
-                            <Calendar className="h-5 w-5 text-[#7c3aed]" />
+                          <div className="rounded-xl p-3" style={{ backgroundColor: 'var(--accent-color)' }}>
+                            <Calendar className="h-5 w-5" style={{ color: 'var(--text-on-primary)' }} />
                           </div>
                           <div>
                             <p className="font-semibold text-[#1e293b]">{getStaffName(request.staffId)}</p>

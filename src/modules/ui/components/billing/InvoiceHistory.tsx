@@ -7,12 +7,12 @@ import { format } from 'date-fns'
 import { useTheme } from '@/modules/ui/context/ThemeContext'
 
 function getInvoiceBadge(status: StripeInvoice['status']): {
-  variant: 'success' | 'warning' | 'danger' | 'default' | 'outline'
+  variant: 'themed' | 'warning' | 'danger' | 'default' | 'outline'
   label: string
 } {
   switch (status) {
     case 'paid':
-      return { variant: 'success', label: 'Paid' }
+      return { variant: 'themed', label: 'Paid' }
     case 'open':
       return { variant: 'warning', label: 'Open' }
     case 'void':

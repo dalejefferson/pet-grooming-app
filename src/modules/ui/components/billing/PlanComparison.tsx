@@ -129,7 +129,7 @@ export function PlanComparison() {
               <div className="flex items-center gap-2">
                 <Crown className="h-5 w-5 text-[#1e293b]" />
                 <span className="text-lg font-bold text-[#1e293b]">{plan.name}</span>
-                {isCurrent && <Badge variant="primary">Current</Badge>}
+                {isCurrent && <Badge variant="themed">Current</Badge>}
               </div>
               <p className="mt-1 text-sm text-[#64748b]">{plan.desc}</p>
 

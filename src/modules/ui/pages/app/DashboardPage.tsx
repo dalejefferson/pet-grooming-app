@@ -332,7 +332,8 @@ export function DashboardPage() {
           <CardTitle>Today's Schedule</CardTitle>
           <Link
             to="/app/calendar"
-            className="text-sm font-medium text-primary-600 hover:text-primary-700"
+            className="text-sm font-medium"
+            style={{ color: 'var(--accent-color-dark)' }}
           >
             View Calendar
           </Link>

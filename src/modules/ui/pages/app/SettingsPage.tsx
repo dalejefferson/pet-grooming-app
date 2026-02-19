@@ -238,8 +238,8 @@ export function SettingsPage() {
       <Card>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-pastel-lavender p-2 border-2 border-[#1e293b]">
-              <Compass className="h-5 w-5 text-[#1e293b]" />
+            <div className="rounded-lg p-2 border-2 border-[#1e293b]" style={{ backgroundColor: 'var(--accent-color)' }}>
+              <Compass className="h-5 w-5" style={{ color: 'var(--text-on-primary)' }} />
             </div>
             <div>
               <CardTitle>Product Tour</CardTitle>
@@ -352,7 +352,7 @@ export function SettingsPage() {
             error={errors.testEmail}
           />
           <Button
-            variant="primary"
+            variant="themed"
             size="sm"
             loading={isSendingTest}
             disabled={!testEmailAddress || isSendingTest}
