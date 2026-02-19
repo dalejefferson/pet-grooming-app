@@ -1,3 +1,5 @@
+import { isValidPhone, PHONE_ERROR } from '@/lib/utils/validation'
+
 export const validators = {
   email: (v: string) =>
     !v
@@ -8,9 +10,9 @@ export const validators = {
   phone: (v: string) =>
     !v
       ? undefined
-      : /^[+]?[\d\s()-]{7,}$/.test(v)
+      : isValidPhone(v)
         ? undefined
-        : 'Please enter a valid phone number',
+        : PHONE_ERROR,
   required: (v: string) => (v?.trim() ? undefined : 'This field is required'),
 }
 

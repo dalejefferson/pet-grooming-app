@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardTitle, Button, Input, Select, Toggle, Textarea } from '../../components/common'
 import { usePolicies, useUpdatePolicies, useGeneratePolicyText } from '@/hooks'
+import { POLICY_MAX_LENGTH } from '@/lib/utils/validation'
 import type { BookingPolicies } from '@/types'
 import { useTheme, useToast } from '../../context'
 import { cn } from '@/lib/utils'
@@ -204,7 +205,11 @@ export function PoliciesPage() {
           value={formData.policyText || ''}
           onChange={(e) => handleChange('policyText', e.target.value)}
           rows={4}
+          maxLength={POLICY_MAX_LENGTH}
         />
+        <p className={`mt-1 text-right text-xs ${(formData.policyText || '').length > POLICY_MAX_LENGTH - 20 ? 'text-red-500' : 'text-[#64748b]'}`}>
+          {(formData.policyText || '').length}/{POLICY_MAX_LENGTH}
+        </p>
         {generatedText && (
           <div className="mt-4">
             <p className="text-sm font-medium text-gray-700">Auto-generated preview:</p>

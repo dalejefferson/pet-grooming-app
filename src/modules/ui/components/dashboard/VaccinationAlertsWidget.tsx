@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { AlertTriangle, AlertCircle, CheckCircle, Shield, Mail } from 'lucide-react'
 import { Card, CardTitle, Badge } from '../common'
 import { useExpiringVaccinations, useOrganization } from '@/hooks'
@@ -98,13 +98,19 @@ interface AlertRowProps {
 }
 
 function AlertRow({ alert, clientEmail, onSendEmail, isSending }: AlertRowProps) {
+  const navigate = useNavigate()
+
   return (
-    <div className="flex items-center justify-between rounded-xl border-2 border-[#1e293b] bg-white p-3 shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b]">
+    <div
+      onClick={() => navigate(`/app/clients/${alert.clientId}`)}
+      className="flex cursor-pointer items-center justify-between rounded-xl border-2 border-[#1e293b] bg-white p-3 shadow-[2px_2px_0px_0px_#1e293b] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_#1e293b]"
+    >
       <div className="flex items-center gap-3">
         {getStatusIcon(alert.status)}
         <div>
           <Link
             to={`/app/pets/${alert.petId}`}
+            onClick={(e) => e.stopPropagation()}
             className="font-medium text-[#1e293b] hover:underline"
           >
             {alert.petName}
@@ -121,7 +127,7 @@ function AlertRow({ alert, clientEmail, onSendEmail, isSending }: AlertRowProps)
         </div>
         {clientEmail && onSendEmail && (
           <button
-            onClick={(e) => { e.preventDefault(); onSendEmail(alert) }}
+            onClick={(e) => { e.stopPropagation(); onSendEmail(alert) }}
             disabled={isSending}
             className="rounded-lg border-2 border-[#1e293b] bg-white px-2 py-1 text-xs font-medium shadow-[1px_1px_0px_0px_#1e293b] hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_0px_#1e293b] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
           >

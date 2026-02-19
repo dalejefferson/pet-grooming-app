@@ -1,13 +1,14 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Plus, Phone, Trash2, Users } from 'lucide-react'
-import { Card, Button, Input, Badge, Modal, ImageUpload, HistorySection, ConfirmDialog, Skeleton, EmptyState, AddressAutocomplete } from '../../components/common'
+import { Card, Button, Input, Badge, Modal, ImageUpload, HistorySection, ConfirmDialog, Skeleton, EmptyState, AddressAutocomplete, PhoneInput } from '../../components/common'
 import { useClients, useClientPets, useCreateClient, useDeleteClient, useDeletedHistory, useAddToHistory, useCurrentUser } from '@/hooks'
 import { clientsApi } from '@/modules/database/api/clientsApi'
 import { petsApi } from '@/modules/database/api/petsApi'
 import { formatPhone, cn } from '@/lib/utils'
 import { debounce } from '@/lib/utils/debounce'
 import { validators, validateForm } from '@/lib/utils/formValidation'
+import { isValidEmail, EMAIL_ERROR } from '@/lib/utils/validation'
 import type { Client } from '@/types'
 import { useTheme, useUndo } from '../../context'
 
@@ -97,15 +98,19 @@ function ClientForm({
         label="Email"
         type="email"
         value={formData.email}
-        onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
+        onChange={(e) => { setFormData((p) => ({ ...p, email: e.target.value })); if (errors.email) setErrors((p) => ({ ...p, email: '' })) }}
+        onBlur={() => {
+          if (formData.email && !isValidEmail(formData.email)) {
+            setErrors((p) => ({ ...p, email: EMAIL_ERROR }))
+          }
+        }}
         error={errors.email}
         required
       />
-      <Input
+      <PhoneInput
         label="Phone"
-        type="tel"
         value={formData.phone}
-        onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
+        onChange={(val) => { setFormData((p) => ({ ...p, phone: val })); if (errors.phone) setErrors((p) => ({ ...p, phone: '' })) }}
         error={errors.phone}
         required
       />

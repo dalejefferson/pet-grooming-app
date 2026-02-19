@@ -5,6 +5,7 @@ import { Button, Input, Card } from '@/modules/ui/components/common'
 import { useLogin } from '../hooks/useAuth'
 import { APP_NAME } from '@/config/constants'
 import { supabase } from '@/lib/supabase/client'
+import { isValidEmail, EMAIL_ERROR } from '@/lib/utils/validation'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -17,6 +18,11 @@ export function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (!isValidEmail(email)) {
+      setError(EMAIL_ERROR)
+      return
+    }
 
     try {
       await login.mutateAsync({ email, password })

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Phone, Mail, Edit2, User, Calendar, BarChart3, Clock, Shield } from 'lucide-react'
-import { Card, CardTitle, Button, Badge, Modal, Input, Select, Toggle, ImageUpload, SubscriptionGate } from '../../components/common'
+import { Card, CardTitle, Button, Badge, Modal, Input, Select, Toggle, ImageUpload, SubscriptionGate, PhoneInput } from '../../components/common'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import {
   StaffAvailabilityForm,
@@ -14,6 +14,7 @@ import { PermissionGate, usePermissions } from '@/modules/auth'
 import { formatPhone, cn } from '@/lib/utils'
 import type { Groomer } from '@/types'
 import { useTheme } from '../../context'
+import { isValidEmail, EMAIL_ERROR, isValidPhone, PHONE_ERROR } from '@/lib/utils/validation'
 
 type TabValue = 'overview' | 'availability' | 'performance' | 'timeoff' | 'permissions'
 
@@ -94,9 +95,22 @@ function EditStaffModal({
     isActive: staff.isActive,
   })
   const [newSpecialty, setNewSpecialty] = useState('')
+  const [errors, setErrors] = useState<{ email?: string; phone?: string }>({})
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const newErrors: { email?: string; phone?: string } = {}
+    if (formData.email && !isValidEmail(formData.email)) {
+      newErrors.email = EMAIL_ERROR
+    }
+    if (formData.phone && !isValidPhone(formData.phone)) {
+      newErrors.phone = PHONE_ERROR
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+    setErrors({})
     await onSave({
       ...formData,
       imageUrl: formData.imageUrl || undefined,
@@ -154,15 +168,27 @@ function EditStaffModal({
           label="Email"
           type="email"
           value={formData.email}
-          onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
+          onChange={(e) => {
+            setFormData((p) => ({ ...p, email: e.target.value }))
+            if (errors.email) setErrors((p) => ({ ...p, email: undefined }))
+          }}
+          onBlur={() => {
+            if (formData.email && !isValidEmail(formData.email)) {
+              setErrors((p) => ({ ...p, email: EMAIL_ERROR }))
+            }
+          }}
+          error={errors.email}
           required
         />
 
-        <Input
+        <PhoneInput
           label="Phone"
-          type="tel"
           value={formData.phone}
-          onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
+          onChange={(val) => {
+            setFormData((p) => ({ ...p, phone: val }))
+            if (errors.phone) setErrors((p) => ({ ...p, phone: undefined }))
+          }}
+          error={errors.phone}
           required
         />
 

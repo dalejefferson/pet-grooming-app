@@ -1,11 +1,12 @@
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Phone, Mail, MapPin, Dog, Plus, Edit2, Calendar } from 'lucide-react'
-import { Card, CardTitle, Button, Badge, LoadingPage, Modal, Input, Select, Textarea, ImageUpload, ComboBox } from '../../components/common'
+import { Card, CardTitle, Button, Badge, LoadingPage, Modal, Input, Select, Textarea, ImageUpload, ComboBox, PhoneInput } from '../../components/common'
 import { CreateAppointmentModal } from '../../components/calendar'
 import type { PetServiceSelection } from '../../components/calendar'
 import { PaymentMethodsSection } from '../../components/payment'
 import { useClient, useClientPets, useUpdateClient, useCreatePet, useOrganization, useServices, useGroomers, useCreateAppointment, useCurrentUser } from '@/hooks'
 import { formatPhone, cn } from '@/lib/utils'
+import { isValidEmail, EMAIL_ERROR, isValidPhone, PHONE_ERROR, NOTES_MAX_LENGTH } from '@/lib/utils/validation'
 import { BEHAVIOR_LEVEL_LABELS, COAT_TYPE_LABELS, WEIGHT_RANGE_LABELS, DOG_BREEDS, CAT_BREEDS } from '@/config/constants'
 import type { Pet, AppointmentStatus } from '@/types'
 import { useState, useMemo } from 'react'
@@ -132,7 +133,11 @@ function PetForm({
         value={formData.groomingNotes}
         onChange={(e) => setFormData((p) => ({ ...p, groomingNotes: e.target.value }))}
         rows={3}
+        maxLength={NOTES_MAX_LENGTH}
       />
+      <p className={`mt-1 text-right text-xs ${formData.groomingNotes.length > NOTES_MAX_LENGTH - 20 ? 'text-red-500' : 'text-[#64748b]'}`}>
+        {formData.groomingNotes.length}/{NOTES_MAX_LENGTH}
+      </p>
       <div className="flex gap-3 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
@@ -197,14 +202,12 @@ export function ClientDetailPage() {
   }
 
   const handleSaveContact = async () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    const phoneRegex = /^[+]?[\d\s()-]{7,}$/
     const errors: { email?: string; phone?: string } = {}
-    if (contactForm.email && !emailRegex.test(contactForm.email)) {
-      errors.email = 'Please enter a valid email address'
+    if (contactForm.email && !isValidEmail(contactForm.email)) {
+      errors.email = EMAIL_ERROR
     }
-    if (contactForm.phone && !phoneRegex.test(contactForm.phone)) {
-      errors.phone = 'Please enter a valid phone number'
+    if (contactForm.phone && !isValidPhone(contactForm.phone)) {
+      errors.phone = PHONE_ERROR
     }
     if (Object.keys(errors).length > 0) {
       setContactErrors(errors)
@@ -334,14 +337,18 @@ export function ClientDetailPage() {
                   setContactForm((p) => ({ ...p, email: e.target.value }))
                   if (contactErrors.email) setContactErrors((p) => ({ ...p, email: undefined }))
                 }}
+                onBlur={() => {
+                  if (contactForm.email && !isValidEmail(contactForm.email)) {
+                    setContactErrors((p) => ({ ...p, email: EMAIL_ERROR }))
+                  }
+                }}
                 error={contactErrors.email}
               />
-              <Input
+              <PhoneInput
                 label="Phone"
-                type="tel"
                 value={contactForm.phone}
-                onChange={(e) => {
-                  setContactForm((p) => ({ ...p, phone: e.target.value }))
+                onChange={(val) => {
+                  setContactForm((p) => ({ ...p, phone: val }))
                   if (contactErrors.phone) setContactErrors((p) => ({ ...p, phone: undefined }))
                 }}
                 error={contactErrors.phone}
@@ -429,7 +436,11 @@ export function ClientDetailPage() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={4}
+                maxLength={NOTES_MAX_LENGTH}
               />
+              <p className={`mt-1 text-right text-xs ${notes.length > NOTES_MAX_LENGTH - 20 ? 'text-red-500' : 'text-[#64748b]'}`}>
+                {notes.length}/{NOTES_MAX_LENGTH}
+              </p>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => setIsEditingNotes(false)}>
                   Cancel

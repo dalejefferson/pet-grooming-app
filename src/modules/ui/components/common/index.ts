@@ -60,3 +60,6 @@ export type { AddressAutocompleteProps } from './AddressAutocomplete'
 
 export { SubscriptionGate } from './SubscriptionGate'
 export type { SubscriptionGateProps } from './SubscriptionGate'
+
+export { PhoneInput } from './PhoneInput'
+export type { PhoneInputProps } from './PhoneInput'

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { AlertTriangle, Plus, Clock, User, Scissors, AlertCircle, Calendar } from 'lucide-react'
 import { Modal, Button, Input, Textarea, Select } from '../common'
 import { formatCurrency, formatDuration, formatTime12h, cn } from '@/lib/utils'
+import { NOTES_MAX_LENGTH } from '@/lib/utils/validation'
 import type { CreateAppointmentModalProps, PetServiceSelection } from './types'
 import { useTheme } from '../../context'
 import { useStaffAvailability, useTimeOffRequests } from '@/hooks'
@@ -450,7 +451,11 @@ export function CreateAppointmentModal({
                 value={appointmentNotes}
                 onChange={(e) => setAppointmentNotes(e.target.value)}
                 rows={3}
+                maxLength={NOTES_MAX_LENGTH}
               />
+              <p className={`mt-1 text-right text-xs ${appointmentNotes.length > NOTES_MAX_LENGTH - 20 ? 'text-red-500' : 'text-[#64748b]'}`}>
+                {appointmentNotes.length}/{NOTES_MAX_LENGTH}
+              </p>
             </div>
 
             {/* Total & Submit */}

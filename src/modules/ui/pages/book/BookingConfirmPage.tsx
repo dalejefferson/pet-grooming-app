@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from 'react'
 import { useNavigate, Navigate, useParams } from 'react-router-dom'
 import { ArrowLeft, CreditCard } from 'lucide-react'
 import { Card, CardTitle, Button, Textarea, LoadingSpinner } from '../../components/common'
+import { NOTES_MAX_LENGTH } from '@/lib/utils/validation'
 import {
   BookingSummaryCard,
   GroomerInfoCard,
@@ -368,7 +369,11 @@ export function BookingConfirmPage() {
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Any special instructions or notes for us?"
           rows={3}
+          maxLength={NOTES_MAX_LENGTH}
         />
+        <p className={`mt-1 text-right text-xs ${notes.length > NOTES_MAX_LENGTH - 20 ? 'text-red-500' : 'text-[#64748b]'}`}>
+          {notes.length}/{NOTES_MAX_LENGTH}
+        </p>
       </Card>
 
       {/* Add a Tip */}

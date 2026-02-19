@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AlertTriangle, Edit2 } from 'lucide-react'
 import { Card, CardTitle, Button, Textarea } from '../common'
 import { useTheme } from '../../context'
+import { NOTES_MAX_LENGTH } from '@/lib/utils/validation'
 import type { Pet } from '@/types'
 
 export interface MedicalNotesCardProps {
@@ -47,8 +48,12 @@ export function MedicalNotesCard({ pet, onSaveMedicalNotes, isSaving }: MedicalN
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={4}
+            maxLength={NOTES_MAX_LENGTH}
             placeholder="Enter any medical notes, allergies, or health conditions..."
           />
+          <p className={`mt-1 text-right text-xs ${notes.length > NOTES_MAX_LENGTH - 20 ? 'text-red-500' : 'text-[#64748b]'}`}>
+            {notes.length}/{NOTES_MAX_LENGTH}
+          </p>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
               Cancel

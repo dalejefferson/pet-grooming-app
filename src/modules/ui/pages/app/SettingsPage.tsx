@@ -1,4 +1,4 @@
-import { Card, CardTitle, Button, Input, AddressAutocomplete } from '../../components/common'
+import { Card, CardTitle, Button, Input, AddressAutocomplete, PhoneInput } from '../../components/common'
 import { useOrganization, useUpdateOrganization } from '@/hooks'
 import { useTheme, themeColors, type ThemeName, useToast, useOnboarding } from '../../context'
 import { useState, useEffect } from 'react'
@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { validators, validateForm } from '@/lib/utils/formValidation'
 import { emailApi } from '@/modules/database/api'
 import { ChevronDown, ChevronRight, CreditCard, Mail, Send, Compass } from 'lucide-react'
+import { isValidEmail, EMAIL_ERROR } from '@/lib/utils/validation'
 
 // Theme configuration for the picker
 const themeOptions: { name: ThemeName; label: string; swatches: string[] }[] = [
@@ -164,6 +165,11 @@ export function SettingsPage() {
         phone: [validators.phone],
       }
     )
+    // Validate reply-to email only if non-empty
+    const replyTo = formData.emailSettings?.replyToEmail || ''
+    if (replyTo && !isValidEmail(replyTo)) {
+      validationErrors.replyToEmail = EMAIL_ERROR
+    }
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
       showError('Please fix the validation errors before saving')
@@ -269,17 +275,28 @@ export function SettingsPage() {
             onChange={(val) => handleChange('address', val)}
           />
           <div className="grid gap-4 sm:grid-cols-2">
-            <Input
+            <PhoneInput
               label="Phone"
               value={formData.phone || ''}
-              onChange={(e) => handleChange('phone', e.target.value)}
+              onChange={(val) => {
+                handleChange('phone', val)
+                if (errors.phone) setErrors((p) => ({ ...p, phone: undefined }))
+              }}
               error={errors.phone}
             />
             <Input
               label="Email"
               type="email"
               value={formData.email || ''}
-              onChange={(e) => handleChange('email', e.target.value)}
+              onChange={(e) => {
+                handleChange('email', e.target.value)
+                if (errors.email) setErrors((p) => ({ ...p, email: undefined }))
+              }}
+              onBlur={() => {
+                if (formData.email && !isValidEmail(formData.email)) {
+                  setErrors((p) => ({ ...p, email: EMAIL_ERROR }))
+                }
+              }}
               error={errors.email}
             />
           </div>
@@ -305,7 +322,17 @@ export function SettingsPage() {
             label="Reply-To Email"
             type="email"
             value={formData.emailSettings?.replyToEmail || ''}
-            onChange={(e) => handleEmailSettingsChange('replyToEmail', e.target.value)}
+            onChange={(e) => {
+              handleEmailSettingsChange('replyToEmail', e.target.value)
+              if (errors.replyToEmail) setErrors((p) => ({ ...p, replyToEmail: undefined }))
+            }}
+            onBlur={() => {
+              const replyTo = formData.emailSettings?.replyToEmail || ''
+              if (replyTo && !isValidEmail(replyTo)) {
+                setErrors((p) => ({ ...p, replyToEmail: EMAIL_ERROR }))
+              }
+            }}
+            error={errors.replyToEmail}
             helperText="Where client replies are sent (defaults to your business email)"
           />
           <Input
@@ -313,7 +340,16 @@ export function SettingsPage() {
             type="email"
             placeholder="Enter an email address to test"
             value={testEmailAddress}
-            onChange={(e) => setTestEmailAddress(e.target.value)}
+            onChange={(e) => {
+              setTestEmailAddress(e.target.value)
+              if (errors.testEmail) setErrors((p) => ({ ...p, testEmail: undefined }))
+            }}
+            onBlur={() => {
+              if (testEmailAddress && !isValidEmail(testEmailAddress)) {
+                setErrors((p) => ({ ...p, testEmail: EMAIL_ERROR }))
+              }
+            }}
+            error={errors.testEmail}
           />
           <Button
             variant="primary"
@@ -321,6 +357,10 @@ export function SettingsPage() {
             loading={isSendingTest}
             disabled={!testEmailAddress || isSendingTest}
             onClick={async () => {
+              if (!isValidEmail(testEmailAddress)) {
+                setErrors((p) => ({ ...p, testEmail: EMAIL_ERROR }))
+                return
+              }
               setIsSendingTest(true)
               const recipient = testEmailAddress
               try {

@@ -2,6 +2,7 @@ import { UserX, XCircle } from 'lucide-react'
 import { Modal, Button, Textarea } from '../common'
 import { useTheme } from '../../context'
 import { cn } from '@/lib/utils'
+import { NOTES_MAX_LENGTH } from '@/lib/utils/validation'
 import type { StatusChangeModalProps } from './types'
 
 /**
@@ -69,7 +70,11 @@ export function StatusChangeModal({
             value={notes}
             onChange={(e) => onNotesChange(e.target.value)}
             rows={4}
+            maxLength={NOTES_MAX_LENGTH}
           />
+          <p className={`mt-1 text-right text-xs ${notes.length > NOTES_MAX_LENGTH - 20 ? 'text-red-500' : 'text-[#64748b]'}`}>
+            {notes.length}/{NOTES_MAX_LENGTH}
+          </p>
         </div>
 
         {/* Actions */}

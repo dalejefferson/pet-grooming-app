@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { User, UserPlus, ArrowRight } from 'lucide-react'
-import { Card, CardTitle, Button, Input, LoadingPage, AddressAutocomplete } from '../../components/common'
+import { Card, CardTitle, Button, Input, LoadingPage, AddressAutocomplete, PhoneInput } from '../../components/common'
 import { useClientForBooking } from '@/hooks'
 import { useBookingContext } from '../../context/BookingContext'
 import { clientsApi } from '@/modules/database/api'
 import type { Client } from '@/types'
+import { isValidEmail, EMAIL_ERROR, isValidPhone, PHONE_ERROR } from '@/lib/utils/validation'
 
 export function BookingStartPage() {
   const navigate = useNavigate()
@@ -31,11 +32,9 @@ export function BookingStartPage() {
 
   const { data: prefilledClient, isLoading: isLoadingPrefilledClient } = useClientForBooking(prefilledClientId || '', organization?.id || '')
 
-  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-
   const handleEmailLookup = async () => {
     if (!isValidEmail(emailLookup)) {
-      setLookupError('Please enter a valid email address')
+      setLookupError(EMAIL_ERROR)
       return
     }
     setIsSearching(true)
@@ -91,9 +90,6 @@ export function BookingStartPage() {
     navigate(`/book/${organization.slug}/pets`)
   }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  const phoneRegex = /^\+?[\d\s\-()]{10,}$/
-
   const validateFields = () => {
     const errors: { firstName?: string; lastName?: string; email?: string; phone?: string } = {}
     if (!newClientInfo.firstName.trim()) {
@@ -102,18 +98,18 @@ export function BookingStartPage() {
     if (!newClientInfo.lastName.trim()) {
       errors.lastName = 'Last name is required'
     }
-    if (newClientInfo.email && !emailRegex.test(newClientInfo.email)) {
-      errors.email = 'Please enter a valid email address'
+    if (newClientInfo.email && !isValidEmail(newClientInfo.email)) {
+      errors.email = EMAIL_ERROR
     }
-    if (newClientInfo.phone && !phoneRegex.test(newClientInfo.phone)) {
-      errors.phone = 'Please enter a valid phone number'
+    if (newClientInfo.phone && !isValidPhone(newClientInfo.phone)) {
+      errors.phone = PHONE_ERROR
     }
     setValidationErrors(errors)
     return Object.keys(errors).length === 0
   }
 
-  const isEmailValid = !newClientInfo.email || emailRegex.test(newClientInfo.email)
-  const isPhoneValid = !newClientInfo.phone || phoneRegex.test(newClientInfo.phone)
+  const isEmailValid = !newClientInfo.email || isValidEmail(newClientInfo.email)
+  const isPhoneValid = !newClientInfo.phone || isValidPhone(newClientInfo.phone)
 
   const canContinue =
     (isNewClient &&
@@ -227,6 +223,11 @@ export function BookingStartPage() {
                   setLookupResult(null)
                   setSelectedClient(null)
                 }}
+                onBlur={() => {
+                  if (emailLookup && !isValidEmail(emailLookup)) {
+                    setLookupError(EMAIL_ERROR)
+                  }
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && isValidEmail(emailLookup)) {
                     handleEmailLookup()
@@ -321,18 +322,22 @@ export function BookingStartPage() {
                 setNewClientInfo((p) => ({ ...p, email: e.target.value }))
                 if (validationErrors.email) setValidationErrors((p) => ({ ...p, email: undefined }))
               }}
-              error={validationErrors.email || (!isEmailValid && newClientInfo.email ? 'Please enter a valid email address' : undefined)}
+              onBlur={() => {
+                if (newClientInfo.email && !isValidEmail(newClientInfo.email)) {
+                  setValidationErrors((p) => ({ ...p, email: EMAIL_ERROR }))
+                }
+              }}
+              error={validationErrors.email || (!isEmailValid && newClientInfo.email ? EMAIL_ERROR : undefined)}
               required
             />
-            <Input
+            <PhoneInput
               label="Phone"
-              type="tel"
               value={newClientInfo.phone}
-              onChange={(e) => {
-                setNewClientInfo((p) => ({ ...p, phone: e.target.value }))
+              onChange={(val) => {
+                setNewClientInfo((p) => ({ ...p, phone: val }))
                 if (validationErrors.phone) setValidationErrors((p) => ({ ...p, phone: undefined }))
               }}
-              error={validationErrors.phone || (!isPhoneValid && newClientInfo.phone ? 'Please enter a valid phone number' : undefined)}
+              error={validationErrors.phone || (!isPhoneValid && newClientInfo.phone ? PHONE_ERROR : undefined)}
               required
             />
             <AddressAutocomplete

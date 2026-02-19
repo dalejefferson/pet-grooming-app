@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react'
 import { X } from 'lucide-react'
-import { Button, Input, Badge, Toggle, ImageUpload } from '../common'
+import { Button, Input, Badge, Toggle, ImageUpload, PhoneInput } from '../common'
 import { useTheme } from '../../context'
 import { usePermissions, useCurrentUser } from '@/modules/auth'
 import type { Groomer } from '@/types'
+import { isValidEmail, EMAIL_ERROR, isValidPhone, PHONE_ERROR } from '@/lib/utils/validation'
 
 const BASE_ROLE_OPTIONS = [
   { value: 'admin', label: 'Admin' },
@@ -61,9 +62,22 @@ export function GroomerForm({
     isActive: groomer?.isActive ?? true,
   })
   const [newSpecialty, setNewSpecialty] = useState('')
+  const [errors, setErrors] = useState<{ email?: string; phone?: string }>({})
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    const newErrors: { email?: string; phone?: string } = {}
+    if (formData.email && !isValidEmail(formData.email)) {
+      newErrors.email = EMAIL_ERROR
+    }
+    if (formData.phone && !isValidPhone(formData.phone)) {
+      newErrors.phone = PHONE_ERROR
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+    setErrors({})
     onSubmit({
       ...formData,
       organizationId: user?.organizationId || '',
@@ -119,14 +133,26 @@ export function GroomerForm({
         label="Email"
         type="email"
         value={formData.email}
-        onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
+        onChange={(e) => {
+          setFormData((p) => ({ ...p, email: e.target.value }))
+          if (errors.email) setErrors((p) => ({ ...p, email: undefined }))
+        }}
+        onBlur={() => {
+          if (formData.email && !isValidEmail(formData.email)) {
+            setErrors((p) => ({ ...p, email: EMAIL_ERROR }))
+          }
+        }}
+        error={errors.email}
         required
       />
-      <Input
+      <PhoneInput
         label="Phone"
-        type="tel"
         value={formData.phone}
-        onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
+        onChange={(val) => {
+          setFormData((p) => ({ ...p, phone: val }))
+          if (errors.phone) setErrors((p) => ({ ...p, phone: undefined }))
+        }}
+        error={errors.phone}
         required
       />
 

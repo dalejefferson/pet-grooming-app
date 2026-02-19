@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button, Input, Select, Textarea, Toggle } from '../common'
 import { useTheme } from '../../context'
 import { SERVICE_CATEGORIES } from '@/config/constants'
+import { DESCRIPTION_MAX_LENGTH } from '@/lib/utils/validation'
 import { useCurrentUser } from '@/modules/auth'
 import type { Service } from '@/types'
 
@@ -70,7 +71,11 @@ export function ServiceForm({
         value={formData.description}
         onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))}
         rows={3}
+        maxLength={DESCRIPTION_MAX_LENGTH}
       />
+      <p className={`mt-1 text-right text-xs ${formData.description.length > DESCRIPTION_MAX_LENGTH - 20 ? 'text-red-500' : 'text-[#64748b]'}`}>
+        {formData.description.length}/{DESCRIPTION_MAX_LENGTH}
+      </p>
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
         <Input
           label="Base Duration (minutes)"

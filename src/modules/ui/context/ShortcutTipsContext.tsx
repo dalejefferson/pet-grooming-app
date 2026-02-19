@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useTheme } from './ThemeContext'
 
 const SHORTCUT_TIPS = [
@@ -21,10 +22,14 @@ const ShortcutTipsContext = createContext<ShortcutTipsContextType | null>(null)
 
 export function ShortcutTipsProvider({ children }: { children: ReactNode }) {
   const { colors } = useTheme()
+  const location = useLocation()
   const [currentTip, setCurrentTip] = useState<typeof SHORTCUT_TIPS[0] | null>(null)
   const [isVisible, setIsVisible] = useState(false)
   const dismissTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const intervalRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Only show tips on admin app routes (not booking, landing, or login)
+  const isAppRoute = location.pathname.startsWith('/app')
 
   const getRandomTip = useCallback(() => {
     const randomIndex = Math.floor(Math.random() * SHORTCUT_TIPS.length)
@@ -51,7 +56,17 @@ export function ShortcutTipsProvider({ children }: { children: ReactNode }) {
     }, 5000)
   }, [getRandomTip, dismissTip])
 
+  // Dismiss any visible tip when navigating away from app routes
   useEffect(() => {
+    if (!isAppRoute && currentTip) {
+      dismissTip()
+    }
+  }, [isAppRoute, currentTip, dismissTip])
+
+  useEffect(() => {
+    // Don't schedule tips outside admin app routes
+    if (!isAppRoute) return
+
     const scheduleNextTip = () => {
       // Random interval between 60-90 seconds
       const delay = Math.floor(Math.random() * 30000) + 60000
@@ -67,7 +82,7 @@ export function ShortcutTipsProvider({ children }: { children: ReactNode }) {
       if (intervalRef.current) clearTimeout(intervalRef.current)
       if (dismissTimeoutRef.current) clearTimeout(dismissTimeoutRef.current)
     }
-  }, [showTip])
+  }, [showTip, isAppRoute])
 
   return (
     <ShortcutTipsContext.Provider value={{ dismissTip }}>

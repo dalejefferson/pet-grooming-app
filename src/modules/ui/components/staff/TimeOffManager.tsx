@@ -8,6 +8,7 @@ import { Modal } from '../common/Modal'
 import { Input } from '../common/Input'
 import { Textarea } from '../common/Textarea'
 import { LoadingSpinner } from '../common/LoadingSpinner'
+import { NOTES_MAX_LENGTH } from '@/lib/utils/validation'
 import {
   useTimeOffRequests,
   useCreateTimeOffRequest,
@@ -237,7 +238,11 @@ export function TimeOffManager({ staffId, isAdmin = false }: TimeOffManagerProps
             }
             placeholder="Vacation, personal day, etc."
             rows={3}
+            maxLength={NOTES_MAX_LENGTH}
           />
+          <p className={`mt-1 text-right text-xs ${formData.reason.length > NOTES_MAX_LENGTH - 20 ? 'text-red-500' : 'text-[#64748b]'}`}>
+            {formData.reason.length}/{NOTES_MAX_LENGTH}
+          </p>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={handleCloseModal}>
