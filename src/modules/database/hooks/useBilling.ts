@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { billingApi } from '../api'
 import { useToast } from '@/modules/ui/hooks/useToast'
 import type { SubscriptionPlanTier, SubscriptionBillingInterval } from '../types'
@@ -50,6 +50,22 @@ export function useCreatePortalSession() {
     },
     onError: (error) => {
       showError(error instanceof Error ? error.message : 'Failed to open billing portal. Please try again.')
+    },
+  })
+}
+
+export function useCancelSubscription() {
+  const { showSuccess, showError } = useToast()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: () => billingApi.cancelSubscription(),
+    onSuccess: () => {
+      showSuccess('Subscription canceled', 'Your subscription will remain active until the end of your current billing period.')
+      queryClient.invalidateQueries({ queryKey: ['subscription'] })
+    },
+    onError: (error) => {
+      showError(error instanceof Error ? error.message : 'Failed to cancel subscription. Please try again.')
     },
   })
 }

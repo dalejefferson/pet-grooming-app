@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { Card, CardTitle, Button, Badge } from '../common'
 import { useSubscriptionContext } from '../../context/SubscriptionContext'
-import { useCreatePortalSession } from '@/modules/database/hooks'
+import { useCreatePortalSession, useCancelSubscription } from '@/modules/database/hooks'
 import { useTheme } from '@/modules/ui/context/ThemeContext'
 import { Crown, AlertTriangle } from 'lucide-react'
 import { PLANS, getStatusBadge } from './plans'
+import { CancelSubscriptionModal } from './CancelSubscriptionModal'
 
 export function PlanStatusCard() {
   const {
@@ -15,7 +17,9 @@ export function PlanStatusCard() {
     isLoading,
   } = useSubscriptionContext()
   const portal = useCreatePortalSession()
+  const cancelMutation = useCancelSubscription()
   const { colors } = useTheme()
+  const [showCancelModal, setShowCancelModal] = useState(false)
 
   if (isLoading) {
     return (
@@ -47,6 +51,10 @@ export function PlanStatusCard() {
   const price = plan
     ? subscription.billingInterval === 'yearly' ? plan.yearlyPrice : plan.monthlyPrice
     : null
+
+  const canCancel =
+    (subscription?.status === 'active' || subscription?.status === 'trialing') &&
+    !subscription?.cancelAtPeriodEnd
 
   return (
     <Card>
@@ -123,6 +131,30 @@ export function PlanStatusCard() {
           </div>
         )}
       </div>
+
+      {canCancel && (
+        <div className="mt-4 border-t border-gray-200 pt-4">
+          <button
+            onClick={() => setShowCancelModal(true)}
+            className="text-sm text-[#64748b] underline decoration-1 underline-offset-2 hover:text-[#be123c] transition-colors"
+          >
+            Cancel subscription
+          </button>
+        </div>
+      )}
+
+      <CancelSubscriptionModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={() => {
+          cancelMutation.mutate(undefined, {
+            onSuccess: () => setShowCancelModal(false),
+          })
+        }}
+        isLoading={cancelMutation.isPending}
+        periodEndDate={subscription?.currentPeriodEnd ?? null}
+        planName={plan?.name ?? planTier ?? 'current'}
+      />
     </Card>
   )
 }
